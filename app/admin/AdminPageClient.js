@@ -1,6 +1,7 @@
 'use client';
-import React, { useContext, useState, useEffect, useCallback } from "react";
-import { Link, useSearchParams, useRouter } from "next/navigation";
+import React, { useContext, useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { ThemeContext } from "@/contexts/ThemeContext";
 import { AuthContext } from "@/contexts/AuthContext";
 import axios from "axios";
@@ -26,6 +27,9 @@ const AdminPageClient = () => {
   const [categories] = useState(["قصص أطفال", "كتب دينية", "كتب تجارية", "كتب رومانسية", "كتب بوليسية", "أدب", "تاريخ", "علوم", "فلسفة", "تكنولوجيا", "سيرة ذاتية", "شعر", "فن", "طبخ"]);
   const [editingBook, setEditingBook] = useState(null);
 
+  const coverInputRef = useRef(null);
+  const pdfFileInputRef = useRef(null);
+
   const editBookId = searchParams.get('edit');
 
   const clearForm = useCallback(() => {
@@ -40,6 +44,8 @@ const AdminPageClient = () => {
     setLanguage("");
     setKeywords("");
     setEditingBook(null);
+    if (coverInputRef.current) coverInputRef.current.value = '';
+    if (pdfFileInputRef.current) pdfFileInputRef.current.value = '';
     router.push('/admin');
   }, [router]);
 
@@ -98,6 +104,8 @@ const AdminPageClient = () => {
 
       toast.success(editingBook ? "تم تحديث الكتاب بنجاح!" : "تم إضافة الكتاب بنجاح!");
       clearForm();
+      if (coverInputRef.current) coverInputRef.current.value = '';
+      if (pdfFileInputRef.current) pdfFileInputRef.current.value = '';
     } catch (error) {
       console.error("Error saving book:", error);
       toast.error(error.response?.data?.message || 'فشل حفظ الكتاب.');
@@ -170,11 +178,11 @@ const AdminPageClient = () => {
           </div>
           <div className="admin-form-group">
             <label>صورة الغلاف</label>
-            <input type="file" accept="image/*" onChange={(e) => setCover(e.target.files[0])} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
+            <input type="file" accept="image/*" onChange={(e) => setCover(e.target.files[0])} ref={coverInputRef} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
           </div>
           <div className="admin-form-group">
             <label>ملف PDF</label>
-            <input type="file" accept="application/pdf" onChange={(e) => setPdfFile(e.target.files[0])} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
+            <input type="file" accept="application/pdf" onChange={(e) => setPdfFile(e.target.files[0])} ref={pdfFileInputRef} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
           </div>
           <div className="admin-form-group">
             <label>الكلمات المفتاحية (افصل بينها بفاصلة)</label>

@@ -9,11 +9,22 @@ import './HomePage.css';
 const HomePage = () => {
   const { theme } = useContext(ThemeContext);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("الكل");
   const [books, setBooks] = useState([]);
   const [categories, setCategories] = useState(["الكل"]);
 
-  const { data: booksData, loading, error } = useFetch(`${API_URL}/api/books?search=${searchTerm}`);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms debounce time
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
+
+  const { data: booksData, loading, error } = useFetch(`${API_URL}/api/books?search=${debouncedSearchTerm}`);
 
   useEffect(() => {
     if (booksData) {

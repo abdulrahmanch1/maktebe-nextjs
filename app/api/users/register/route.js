@@ -38,7 +38,13 @@ export async function POST(request) {
     const newUser = await user.save();
 
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${newUser.verificationToken}`;
-    sendVerificationEmail(newUser.email, newUser.username, verificationUrl);
+    try {
+      await sendVerificationEmail(newUser.email, newUser.username, verificationUrl);
+    } catch (emailError) {
+      console.error("Error sending verification email after registration:", emailError);
+      // Optionally, you might want to delete the user here if email sending is critical
+      return NextResponse.json({ message: 'تم إنشاء الحساب بنجاح، ولكن فشل إرسال بريد التحقق. يرجى المحاولة لاحقًا أو التواصل مع الدعم.' }, { status: 500 });
+    }
 
     if (newUser) {
       return NextResponse.json({

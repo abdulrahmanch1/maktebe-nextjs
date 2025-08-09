@@ -16,9 +16,13 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search');
+    const ids = searchParams.get('ids');
     let query = {};
 
-    if (search) {
+    if (ids) {
+      const bookIds = ids.split(',');
+      query = { _id: { $in: bookIds } };
+    } else if (search) {
       query = {
         $or: [
           { title: { $regex: search, $options: 'i' } },
@@ -49,7 +53,7 @@ export const POST = protect(admin(async (request) => {
       pages: fields.pages ? parseInt(fields.pages[0]) : undefined,
       publishYear: fields.publishYear ? parseInt(fields.publishYear[0]) : undefined,
       language: fields.language ? fields.language[0] : undefined,
-      keywords: fields.keywords ? fields.keywords[0].split(',').map(keyword => keyword.trim()) : [],
+      keywords: fields.keywords && fields.keywords[0] ? fields.keywords[0].split(',').map(keyword => keyword.trim()).filter(k => k !== '') : [],
       cover: coverUrl || undefined,
       pdfFile: pdfFileUrl || undefined,
     };

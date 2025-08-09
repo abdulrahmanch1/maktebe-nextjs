@@ -47,7 +47,7 @@ export const DELETE = protect(async (request, { params }) => {
   }
 });
 
-export const POST = protect(async (request, { params }) => {
+export const PATCH = protect(async (request, { params }) => {
   const { id, commentId } = params;
   const { book, comment, error } = await getBookAndComment(id, commentId);
   if (error) {

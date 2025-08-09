@@ -186,6 +186,7 @@ const AccountSettings = () => {
       });
       setUser({ ...user, profilePicture: res.data.profilePicture });
       toast.success("تم تحديث الصورة بنجاح!");
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err) {
       console.error(err);
     }
@@ -264,10 +265,40 @@ const SecuritySettings = () => {
   const { theme } = useContext(ThemeContext);
   const { user, token, logout } = useContext(AuthContext);
   const router = useRouter();
-  const [isPrivate, setIsPrivate] = useState(false);
 
-  const handlePasswordResetRequest = async () => {
-    toast.info("هذه الميزة قيد التطوير حاليًا.");
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+
+  const handleChangePassword = async () => {
+    if (!oldPassword || !newPassword || !confirmNewPassword) {
+      toast.error("الرجاء تعبئة جميع حقول كلمة المرور.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error("يجب أن تكون كلمة المرور الجديدة 6 أحرف على الأقل.");
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      toast.error("كلمة المرور الجديدة وتأكيدها غير متطابقين.");
+      return;
+    }
+
+    try {
+      await axios.patch(`${API_URL}/api/users/${user._id}`, {
+        oldPassword,
+        password: newPassword,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success("تم تغيير كلمة المرور بنجاح!");
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    } catch (err) {
+      console.error("Error changing password:", err);
+      toast.error(err.response?.data?.message || "فشل تغيير كلمة المرور.");
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -291,21 +322,33 @@ const SecuritySettings = () => {
     <div className="settings-section">
       <h2 style={{ borderColor: theme.accent, color: theme.primary }}>إعدادات الأمان</h2>
       <div className="form-group">
-        <label>تغيير كلمة المرور</label>
-        <button className="button" onClick={handlePasswordResetRequest} style={{ backgroundColor: theme.accent, color: theme.primary }}>
+        <label>كلمة المرور القديمة</label>
+        <input
+          type="password"
+          value={oldPassword}
+          onChange={(e) => setOldPassword(e.target.value)}
+          placeholder="أدخل كلمة المرور القديمة"
+          style={{ borderColor: theme.secondary, backgroundColor: theme.background, color: theme.primary }}
+        />
+        <label>كلمة المرور الجديدة</label>
+        <input
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          placeholder="أدخل كلمة المرور الجديدة"
+          style={{ borderColor: theme.secondary, backgroundColor: theme.background, color: theme.primary }}
+        />
+        <label>تأكيد كلمة المرور الجديدة</label>
+        <input
+          type="password"
+          value={confirmNewPassword}
+          onChange={(e) => setConfirmNewPassword(e.target.value)}
+          placeholder="أعد إدخال كلمة المرور الجديدة"
+          style={{ borderColor: theme.secondary, backgroundColor: theme.background, color: theme.primary }}
+        />
+        <button className="button" onClick={handleChangePassword} style={{ backgroundColor: theme.accent, color: theme.primary }}>
           تغيير كلمة المرور
         </button>
-      </div>
-      <div className="form-group">
-        <label>خصوصية الحساب:</label>
-        <select
-          value={isPrivate ? "private" : "public"}
-          onChange={(e) => setIsPrivate(e.target.value === "private")}
-          style={{ borderColor: theme.secondary, backgroundColor: theme.background, color: theme.primary }}
-        >
-          <option value="public">عام</option>
-          <option value="private">خاص</option>
-        </select>
       </div>
       <div className="form-group">
         <label>حذف الحساب</label>

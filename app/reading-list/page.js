@@ -22,18 +22,22 @@ const ReadingListPage = () => {
 
   useEffect(() => {
     const fetchBookDetails = async () => {
-      if (userData && userData.readingList) {
-        const bookDetailsPromises = userData.readingList.map(async (item) => {
-          try {
-            const bookResponse = await axios.get(`${API_URL}/api/books/${item.book}`);
-            return { ...bookResponse.data, read: item.read };
-          } catch (bookError) {
-            console.error(`Error fetching book ${item.book}:`, bookError);
-            return null;
-          }
-        });
-        const fetchedBooks = (await Promise.all(bookDetailsPromises)).filter(Boolean);
-        setReadingListBooks(fetchedBooks);
+      if (userData && userData.readingList && userData.readingList.length > 0) {
+        const bookIds = userData.readingList.map(item => item.book).join(',');
+        try {
+          const response = await axios.get(`${API_URL}/api/books?ids=${bookIds}`);
+          const fetchedBooksMap = new Map(response.data.map(book => [book._id, book]));
+
+          const mergedBooks = userData.readingList.map(item => {
+            const book = fetchedBooksMap.get(item.book);
+            return book ? { ...book, read: item.read } : null;
+          }).filter(Boolean);
+
+          setReadingListBooks(mergedBooks);
+        } catch (bookError) {
+          console.error("Error fetching reading list books:", bookError);
+          setReadingListBooks([]);
+        }
       } else {
         setReadingListBooks([]);
       }

@@ -53,7 +53,7 @@ const BookDetailsClient = ({ params }) => {
     }
 
     if (!isLoggedIn) {
-      toast.info("لقد تم فتح الكتاب للقراءة. لتتمكن من إضافة الكتاب إلى قائمة القراءة وتتبع تقدمك والتعليق، يرجى تسجيل الدخول.");
+      toast.info("تم فتح الكتاب للقراءة. لتتبع تقدمك وإضافة تعليقات، يرجى تسجيل الدخول.");
       return;
     }
 
@@ -169,14 +169,14 @@ const BookDetailsClient = ({ params }) => {
     }
 
     try {
-      const res = await axios.post(`${API_URL}/api/books/${book._id}/comments/${commentId}/like`, {}, {
+      const res = await axios.patch(`${API_URL}/api/books/${book._id}/comments/${commentId}/like`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       setBookComments(prevComments =>
         prevComments.map(comment =>
           comment._id === commentId
-            ? { ...comment, likes: res.data.liked ? [...comment.likes, user._id] : comment.likes.filter(id => id !== user._id) }
+            ? { ...comment, likes: res.data.liked ? [...comment.likes, user._id] : comment.likes.filter(id => id.toString() !== user._id.toString()) }
             : comment
         )
       );
@@ -301,10 +301,10 @@ const BookDetailsClient = ({ params }) => {
                     <div className="comment-actions">
                       <span
                         onClick={() => handleToggleLike(comment._id)}
-                        className={`comment-like-button ${comment.likes && comment.likes.includes(user?._id) ? 'liked' : ''}`}
-                        style={{ color: comment.likes && comment.likes.includes(user?._id) ? "red" : theme.primary }}
+                        className={`comment-like-button ${comment.likes && user && comment.likes.some(id => id.toString() === user._id.toString()) ? 'liked' : ''}`}
+                        style={{ color: comment.likes && user && comment.likes.some(id => id.toString() === user._id.toString()) ? "red" : theme.primary }}
                       >
-                        {(comment.likes && comment.likes.includes(user?._id)) ? '❤️' : '♡'} <span style={{ fontSize: "0.8em" }}>({comment.likes ? comment.likes.length : 0})</span>
+                        {(comment.likes && user && comment.likes.some(id => id.toString() === user._id.toString())) ? '❤️' : '♡'} <span style={{ fontSize: "0.8em" }}>({comment.likes ? comment.likes.length : 0})</span>
                       </span>
                     </div>
                   </div>
