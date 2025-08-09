@@ -6,7 +6,7 @@ import { protect } from '@/lib/middleware';
 import { validateMongoId } from '@/lib/validation';
 
 export const DELETE = protect(async (request, { params }) => {
-  const { id } = params;
+  const { id, bookId } = params;
 
   const userIdErrors = validateMongoId(id);
   const bookIdErrors = validateMongoId(bookId);

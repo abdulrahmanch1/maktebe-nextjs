@@ -26,7 +26,7 @@ async function getUserAndReadingListItem(id, bookId) {
 }
 
 export const PATCH = protect(async (request, { params }) => {
-  const { id } = params;
+  const { id, bookId } = params;
   const { read } = await request.json();
 
   const validationErrors = validateReadingStatus({ read });
@@ -54,7 +54,7 @@ export const PATCH = protect(async (request, { params }) => {
 });
 
 export const DELETE = protect(async (request, { params }) => {
-  const { id } = params;
+  const { id, bookId } = params;
 
   if (id !== request.user._id.toString()) {
     return NextResponse.json({ message: 'Not authorized to modify this reading list' }, { status: 403 });

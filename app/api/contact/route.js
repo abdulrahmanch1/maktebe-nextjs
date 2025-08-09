@@ -19,7 +19,7 @@ export async function POST(request) {
       message,
       email,
       username: username || 'Guest',
-      user: request.user ? request.user._id : null, // Associate with user if logged in
+      user: null, // Always null for unprotected route
     });
 
     await newContactMessage.save();
