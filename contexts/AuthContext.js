@@ -15,27 +15,39 @@ export const AuthContext = createContext({
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const logout = useCallback(() => {
-    setIsLoggedIn(false);
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    delete axios.defaults.headers.common['Authorization'];
+  const logout = useCallback(async () => {
+    try {
+      await axios.post(`${API_URL}/api/users/logout`);
+      setIsLoggedIn(false);
+      setUser(null);
+      toast.success("تم تسجيل الخروج بنجاح!");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      toast.error(error.response?.data?.message || "فشل تسجيل الخروج.");
+    }
   }, []);
 
+  // Initial check for user data (assuming user data is returned with login and stored in context)
+  // For HttpOnly cookies, the token is not accessible here, so we rely on API calls to determine auth status
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-      setIsLoggedIn(true);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-    }
+    // This useEffect is primarily for re-hydrating user state if the page refreshes
+    // and the cookie is still valid. A simple way is to try fetching user data.
+    // In a real app, you might have a /me endpoint or similar.
+    const checkAuthStatus = async () => {
+      try {
+        // Attempt to fetch user data, which will succeed if the cookie is valid
+        const response = await axios.get(`${API_URL}/api/users/me`); // Assuming a /me endpoint exists or can be created
+        setUser(response.data.user);
+        setIsLoggedIn(true);
+      } catch (error) {
+        // If fetching user data fails (e.g., 401), then user is not logged in
+        setIsLoggedIn(false);
+        setUser(null);
+      }
+    };
+    checkAuthStatus();
   }, []);
 
   useEffect(() => {
@@ -43,7 +55,10 @@ export const AuthProvider = ({ children }) => {
       (response) => response,
       (error) => {
         if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-          logout();
+          // Only logout if the user was previously logged in to avoid infinite loops
+          if (isLoggedIn) {
+            logout();
+          }
         }
         return Promise.reject(error);
       }
@@ -51,18 +66,14 @@ export const AuthProvider = ({ children }) => {
     return () => {
       axios.interceptors.response.eject(interceptor);
     };
-  }, [logout]);
+  }, [logout, isLoggedIn]);
 
   const login = async (email, password) => {
     try {
       const response = await axios.post(`${API_URL}/api/users/login`, { email, password });
-      const { user: userData, token: userToken } = response.data;
+      const { user: userData } = response.data; // Token is now in HttpOnly cookie
       setIsLoggedIn(true);
       setUser(userData);
-      setToken(userToken);
-      localStorage.setItem("user", JSON.stringify(userData));
-      localStorage.setItem("token", userToken);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${userToken}`;
       toast.success("تم تسجيل الدخول بنجاح!");
       return true;
     } catch (error) {
@@ -76,12 +87,11 @@ export const AuthProvider = ({ children }) => {
     () => ({
       isLoggedIn,
       user,
-      token,
       login,
       logout,
       setUser,
     }),
-    [isLoggedIn, user, token, logout]
+    [isLoggedIn, user, login, logout]
   );
 
   return (
