@@ -5,15 +5,15 @@ import Book from '@/models/Book';
 import { protect } from '@/lib/middleware';
 import { validateReadingStatus, validateMongoId } from '@/lib/validation';
 
-async function getUserAndReadingListItem(userId, id) {
+async function getUserAndReadingListItem(id, id) {
   await dbConnect();
-  const userIdErrors = validateMongoId(userId);
+  const userIdErrors = validateMongoId(id);
   const bookIdErrors = validateMongoId(id);
   if (Object.keys(userIdErrors).length > 0 || Object.keys(bookIdErrors).length > 0) {
     return { user: null, readingListItem: null, error: { message: 'Invalid IDs', errors: { ...userIdErrors, ...bookIdErrors } } };
   }
 
-  const user = await User.findById(userId);
+  const user = await User.findById(id);
   if (!user) {
     return { user: null, readingListItem: null, error: { message: 'User not found' } };
   }
@@ -26,7 +26,7 @@ async function getUserAndReadingListItem(userId, id) {
 }
 
 export const PATCH = protect(async (request, { params }) => {
-  const { userId, id } = params;
+  const { id } = params;
   const { read } = await request.json();
 
   const validationErrors = validateReadingStatus({ read });
@@ -34,11 +34,11 @@ export const PATCH = protect(async (request, { params }) => {
     return NextResponse.json({ message: 'Validation failed', errors: validationErrors }, { status: 400 });
   }
 
-  if (userId !== request.user._id.toString()) {
+  if (id !== request.user._id.toString()) {
     return NextResponse.json({ message: 'Not authorized to modify this reading list' }, { status: 403 });
   }
 
-  const { user, readingListItem, error } = await getUserAndReadingListItem(userId, bookId);
+  const { user, readingListItem, error } = await getUserAndReadingListItem(id, bookId);
   if (error) {
     return NextResponse.json(error, { status: error.message === 'User not found' || error.message === 'Book not found in reading list' ? 404 : 400 });
   }
@@ -54,13 +54,13 @@ export const PATCH = protect(async (request, { params }) => {
 });
 
 export const DELETE = protect(async (request, { params }) => {
-  const { userId, id } = params;
+  const { id } = params;
 
-  if (userId !== request.user._id.toString()) {
+  if (id !== request.user._id.toString()) {
     return NextResponse.json({ message: 'Not authorized to modify this reading list' }, { status: 403 });
   }
 
-  const { user, readingListItem, error } = await getUserAndReadingListItem(userId, id);
+  const { user, readingListItem, error } = await getUserAndReadingListItem(id, id);
   if (error) {
     return NextResponse.json(error, { status: error.message === 'User not found' || error.message === 'Book not found in reading list' ? 404 : 400 });
   }
