@@ -3,13 +3,6 @@ import dbConnect from '@/lib/dbConnect';
 import Book from '@/models/Book';
 import { protect, admin } from '@/lib/middleware';
 import { validateBook } from '@/lib/validation';
-import { parseMultipartForm } from '@/lib/cloudinaryUpload';
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
 
 export async function GET(request) {
   await dbConnect();
@@ -43,19 +36,19 @@ export async function GET(request) {
 export const POST = protect(admin(async (request) => {
   await dbConnect();
   try {
-    const { fields, coverUrl, pdfFileUrl } = await parseMultipartForm(request);
+    const { title, author, category, description, pages, publishYear, language, keywords, cover, pdfFile } = await request.json();
 
     const bookData = {
-      title: fields.title ? fields.title[0] : undefined,
-      author: fields.author ? fields.author[0] : undefined,
-      category: fields.category ? fields.category[0] : undefined,
-      description: fields.description ? fields.description[0] : undefined,
-      pages: fields.pages ? parseInt(fields.pages[0]) : undefined,
-      publishYear: fields.publishYear ? parseInt(fields.publishYear[0]) : undefined,
-      language: fields.language ? fields.language[0] : undefined,
-      keywords: fields.keywords && fields.keywords[0] ? fields.keywords[0].split(',').map(keyword => keyword.trim()).filter(k => k !== '') : [],
-      cover: coverUrl || undefined,
-      pdfFile: pdfFileUrl || undefined,
+      title,
+      author,
+      category,
+      description,
+      pages: parseInt(pages),
+      publishYear: parseInt(publishYear),
+      language,
+      keywords: keywords || [],
+      cover,
+      pdfFile,
     };
 
     const errors = validateBook(bookData);

@@ -77,28 +77,56 @@ const AdminPageClient = () => {
     e.preventDefault();
     if (!token) return toast.error('الرجاء تسجيل الدخول مرة أخرى.');
 
-    const formData = new FormData();
-    formData.append("title", title);
-    formData.append("author", author);
-    formData.append("category", category);
-    formData.append("description", description);
-    formData.append("pages", pages);
-    formData.append("publishYear", publishYear);
-    formData.append("language", language);
-    formData.append("keywords", keywords);
-    if (cover) formData.append("cover", cover);
-    if (pdfFile) formData.append("pdfFile", pdfFile);
+    let coverUrl = editingBook?.cover;
+    let pdfFileUrl = editingBook?.pdfFile;
+
+    const uploadFile = async (file, type) => {
+      if (!file) return null;
+      const filename = `${Date.now()}-${file.name}`;
+      const response = await fetch(`/api/upload-blob?filename=${filename}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': file.type,
+        },
+        body: file,
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to upload ${type} file.`);
+      }
+      const data = await response.json();
+      return data.url;
+    };
 
     try {
+      if (cover) {
+        coverUrl = await uploadFile(cover, 'cover');
+      }
+      if (pdfFile) {
+        pdfFileUrl = await uploadFile(pdfFile, 'pdf');
+      }
+
+      const bookData = {
+        title,
+        author,
+        category,
+        description,
+        pages: parseInt(pages),
+        publishYear: parseInt(publishYear),
+        language,
+        keywords: keywords.split(',').map(k => k.trim()).filter(k => k !== ''),
+        cover: coverUrl,
+        pdfFile: pdfFileUrl,
+      };
+
       const url = editingBook ? `${API_URL}/api/books/${editingBook._id}` : `${API_URL}/api/books`;
       const method = editingBook ? 'patch' : 'post';
       await axios({
         method,
         url,
-        data: formData,
+        data: bookData, // Send as JSON
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json', // Specify JSON content type
         },
       });
 
@@ -108,7 +136,7 @@ const AdminPageClient = () => {
       if (pdfFileInputRef.current) pdfFileInputRef.current.value = '';
     } catch (error) {
       console.error("Error saving book:", error);
-      toast.error(error.response?.data?.message || 'فشل حفظ الكتاب.');
+      toast.error(error.message || 'فشل حفظ الكتاب.');
     }
   };
 
@@ -134,7 +162,7 @@ const AdminPageClient = () => {
 
       <div className="admin-form-container" style={{ backgroundColor: theme.secondary, color: theme.primary }}>
         <h2 className="admin-form-title">{editingBook ? "تعديل الكتاب" : "إضافة كتاب جديد"}</h2>
-        <form onSubmit={handleSubmit} encType="multipart/form-data">
+        <form onSubmit={handleSubmit}>
           <div className="admin-form-group">
             <label>عنوان الكتاب</label>
             <input type="text" placeholder="أدخل عنوان الكتاب" value={title} onChange={(e) => setTitle(e.target.value)} required style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />

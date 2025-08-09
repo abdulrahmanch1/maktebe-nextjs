@@ -3,13 +3,6 @@ import dbConnect from '@/lib/dbConnect';
 import Book from '@/models/Book';
 import { protect, admin } from '@/lib/middleware';
 import { validateBook, validateMongoId } from '@/lib/validation';
-import { parseMultipartForm } from '@/lib/cloudinaryUpload';
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
 
 async function getBook(id) {
   await dbConnect();
@@ -41,19 +34,19 @@ export const PATCH = protect(admin(async (request, { params }) => {
   }
 
   try {
-    const { fields, coverUrl, pdfFileUrl } = await parseMultipartForm(request);
+    const { title, author, category, description, pages, publishYear, language, keywords, cover, pdfFile } = await request.json();
 
     const bookData = {
-      title: fields.title ? fields.title[0] : undefined,
-      author: fields.author ? fields.author[0] : undefined,
-      category: fields.category ? fields.category[0] : undefined,
-      description: fields.description ? fields.description[0] : undefined,
-      pages: fields.pages ? parseInt(fields.pages[0]) : undefined,
-      publishYear: fields.publishYear ? parseInt(fields.publishYear[0]) : undefined,
-      language: fields.language ? fields.language[0] : undefined,
-      keywords: fields.keywords ? fields.keywords[0].split(',').map(keyword => keyword.trim()) : undefined,
-      cover: coverUrl !== undefined ? coverUrl : (fields.cover === '' ? null : undefined), // Handle clearing cover
-      pdfFile: pdfFileUrl !== undefined ? pdfFileUrl : (fields.pdfFile === '' ? null : undefined), // Handle clearing pdfFile
+      title,
+      author,
+      category,
+      description,
+      pages: parseInt(pages),
+      publishYear: parseInt(publishYear),
+      language,
+      keywords: keywords || [],
+      cover,
+      pdfFile,
     };
 
     // Filter out undefined values to only update provided fields
