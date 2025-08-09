@@ -178,10 +178,26 @@ const AccountSettings = () => {
 
   const handleImageUpload = async (file) => {
     if (!file) return;
-    const formData = new FormData();
-    formData.append("profilePicture", file);
+
     try {
-      const res = await axios.patch(`${API_URL}/api/users/${user._id}/profile-picture`, formData, {
+      const filename = `${Date.now()}-${file.name}`;
+      const uploadResponse = await fetch(`/api/upload-blob?filename=${filename}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': file.type,
+        },
+        body: file,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload profile picture.');
+      }
+      const uploadData = await uploadResponse.json();
+      const profilePictureUrl = uploadData.url;
+
+      const res = await axios.patch(`${API_URL}/api/users/${user._id}/profile-picture`, {
+        profilePicture: profilePictureUrl,
+      }, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser({ ...user, profilePicture: res.data.profilePicture });
@@ -189,6 +205,7 @@ const AccountSettings = () => {
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err) {
       console.error(err);
+      toast.error(err.message || "فشل تحديث الصورة.");
     }
   };
 
