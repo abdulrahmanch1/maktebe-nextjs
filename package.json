@@ -18,6 +18,8 @@
     "jsonwebtoken": "^9.0.2",
     "cloudinary": "^2.2.0",
     "formidable": "^3.5.1",
-    "mongoose": "^8.4.4"
+    "mongoose": "^8.4.4",
+    "nodemailer": "^6.9.14",
+    "bcryptjs": "^2.4.3"
   }
 }
