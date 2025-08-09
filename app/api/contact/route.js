@@ -14,10 +14,7 @@ export async function POST(request) {
     if (!subject || !message || !email) {
       return NextResponse.json({ message: 'Subject, message, and email are required.' }, { status: 400 });
     }
-    if (!/^[^
-@]+@[^
-@]+\.[^
-@]+$/.test(email)) {
+    if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
       return NextResponse.json({ message: 'Invalid email format.' }, { status: 400 });
     }
 
