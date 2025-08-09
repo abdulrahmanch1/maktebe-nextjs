@@ -4,16 +4,16 @@ import Book from '@/models/Book';
 import { protect, admin } from '@/lib/middleware';
 import { validateMongoId } from '@/lib/validation';
 
-async function getBookAndComment(bookId, commentId) {
+async function getBookAndComment(id, commentId) {
   await dbConnect();
-  const bookIdErrors = validateMongoId(bookId);
+  const bookIdErrors = validateMongoId(id);
   const commentIdErrors = validateMongoId(commentId);
 
   if (Object.keys(bookIdErrors).length > 0 || Object.keys(commentIdErrors).length > 0) {
     return { book: null, comment: null, error: { message: 'Invalid IDs', errors: { ...bookIdErrors, ...commentIdErrors } } };
   }
 
-  const book = await Book.findById(bookId);
+  const book = await Book.findById(id);
   if (!book) {
     return { book: null, comment: null, error: { message: 'Book not found' } };
   }
@@ -26,8 +26,8 @@ async function getBookAndComment(bookId, commentId) {
 }
 
 export const DELETE = protect(async (request, { params }) => {
-  const { bookId, commentId } = params;
-  const { book, comment, error } = await getBookAndComment(bookId, commentId);
+  const { id, commentId } = params;
+  const { book, comment, error } = await getBookAndComment(id, commentId);
   if (error) {
     return NextResponse.json(error, { status: error.message === 'Book not found' || error.message === 'Comment not found' ? 404 : 400 });
   }
@@ -48,8 +48,8 @@ export const DELETE = protect(async (request, { params }) => {
 });
 
 export const POST = protect(async (request, { params }) => {
-  const { bookId, commentId } = params;
-  const { book, comment, error } = await getBookAndComment(bookId, commentId);
+  const { id, commentId } = params;
+  const { book, comment, error } = await getBookAndComment(id, commentId);
   if (error) {
     return NextResponse.json(error, { status: error.message === 'Book not found' || error.message === 'Comment not found' ? 404 : 400 });
   }

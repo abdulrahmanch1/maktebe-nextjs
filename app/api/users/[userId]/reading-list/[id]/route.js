@@ -5,10 +5,10 @@ import Book from '@/models/Book';
 import { protect } from '@/lib/middleware';
 import { validateReadingStatus, validateMongoId } from '@/lib/validation';
 
-async function getUserAndReadingListItem(userId, bookId) {
+async function getUserAndReadingListItem(userId, id) {
   await dbConnect();
   const userIdErrors = validateMongoId(userId);
-  const bookIdErrors = validateMongoId(bookId);
+  const bookIdErrors = validateMongoId(id);
   if (Object.keys(userIdErrors).length > 0 || Object.keys(bookIdErrors).length > 0) {
     return { user: null, readingListItem: null, error: { message: 'Invalid IDs', errors: { ...userIdErrors, ...bookIdErrors } } };
   }
@@ -18,7 +18,7 @@ async function getUserAndReadingListItem(userId, bookId) {
     return { user: null, readingListItem: null, error: { message: 'User not found' } };
   }
 
-  const readingListItem = user.readingList.find(item => item.book.toString() === bookId);
+  const readingListItem = user.readingList.find(item => item.book.toString() === id);
   if (!readingListItem) {
     return { user, readingListItem: null, error: { message: 'Book not found in reading list' } };
   }
@@ -26,7 +26,7 @@ async function getUserAndReadingListItem(userId, bookId) {
 }
 
 export const PATCH = protect(async (request, { params }) => {
-  const { userId, bookId } = params;
+  const { userId, id } = params;
   const { read } = await request.json();
 
   const validationErrors = validateReadingStatus({ read });
@@ -54,21 +54,21 @@ export const PATCH = protect(async (request, { params }) => {
 });
 
 export const DELETE = protect(async (request, { params }) => {
-  const { userId, bookId } = params;
+  const { userId, id } = params;
 
   if (userId !== request.user._id.toString()) {
     return NextResponse.json({ message: 'Not authorized to modify this reading list' }, { status: 403 });
   }
 
-  const { user, readingListItem, error } = await getUserAndReadingListItem(userId, bookId);
+  const { user, readingListItem, error } = await getUserAndReadingListItem(userId, id);
   if (error) {
     return NextResponse.json(error, { status: error.message === 'User not found' || error.message === 'Book not found in reading list' ? 404 : 400 });
   }
 
   try {
-    user.readingList = user.readingList.filter(item => item.book.toString() !== bookId);
+    user.readingList = user.readingList.filter(item => item.book.toString() !== id);
     await user.save();
-    await Book.findByIdAndUpdate(bookId, { $inc: { readCount: -1 } });
+    await Book.findByIdAndUpdate(id, { $inc: { readCount: -1 } });
     return NextResponse.json(user.readingList);
   } catch (err) {
     console.error('Error deleting from reading list:', err);

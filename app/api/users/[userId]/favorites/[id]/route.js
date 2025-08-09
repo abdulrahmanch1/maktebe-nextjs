@@ -6,10 +6,10 @@ import { protect } from '@/lib/middleware';
 import { validateMongoId } from '@/lib/validation';
 
 export const DELETE = protect(async (request, { params }) => {
-  const { userId, bookId } = params;
+  const { userId, id } = params;
 
   const userIdErrors = validateMongoId(userId);
-  const bookIdErrors = validateMongoId(bookId);
+  const bookIdErrors = validateMongoId(id);
   if (Object.keys(userIdErrors).length > 0 || Object.keys(bookIdErrors).length > 0) {
     return NextResponse.json({ message: 'Invalid IDs', errors: { ...userIdErrors, ...bookIdErrors } }, { status: 400 });
   }
@@ -25,9 +25,9 @@ export const DELETE = protect(async (request, { params }) => {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    user.favorites = user.favorites.filter(id => id.toString() !== bookId);
+    user.favorites = user.favorites.filter(id => id.toString() !== id);
     await user.save();
-    await Book.findByIdAndUpdate(bookId, { $inc: { favoriteCount: -1 } });
+    await Book.findByIdAndUpdate(id, { $inc: { favoriteCount: -1 } });
 
     return NextResponse.json({ favorites: user.favorites });
   } catch (err) {
