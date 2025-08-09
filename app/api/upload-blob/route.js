@@ -15,6 +15,8 @@ export async function POST(request) {
     const form = new IncomingForm();
     const [fields, files] = await form.parse(request);
 
+    console.log('BLOB_READ_WRITE_TOKEN:', process.env.BLOB_READ_WRITE_TOKEN ? 'Set' : 'Not Set');
+
     let uploadedFile = null;
     // Find the first file in the files object (assuming only one file is sent per request)
     for (const key in files) {
