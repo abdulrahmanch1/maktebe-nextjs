@@ -75,7 +75,6 @@ const AdminPageClient = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!token) return toast.error('الرجاء تسجيل الدخول مرة أخرى.');
 
     let coverUrl = editingBook?.cover;
     let pdfFileUrl = editingBook?.pdfFile;
@@ -125,7 +124,6 @@ const AdminPageClient = () => {
         url,
         data: bookData, // Send as JSON
         headers: {
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json', // Specify JSON content type
         },
       });

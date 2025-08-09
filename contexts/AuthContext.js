@@ -7,7 +7,6 @@ import { API_URL } from "@/constants";
 export const AuthContext = createContext({
   isLoggedIn: false,
   user: null,
-  token: null,
   login: async () => {},
   logout: () => {},
   setUser: () => {},
