@@ -1,46 +1,32 @@
 import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
-import { IncomingForm } from 'formidable';
-import fs from 'fs/promises'; // Import fs.promises for file operations
-
-// This is crucial for formidable to work with Next.js API routes
-export const config = {
-  api: {
-    bodyParser: false, // Disable Next.js's body parser for formidable
-  },
-};
 
 export async function POST(request) {
+  // أضفت هذا السطر المؤقت للتحقق من متغير البيئة
+  console.log('BLOB_READ_WRITE_TOKEN:', process.env.BLOB_READ_WRITE_TOKEN ? 'Set' : 'Not Set');
+
   try {
-    const form = new IncomingForm();
-    const [fields, files] = await form.parse(request);
-
-    console.log('BLOB_READ_WRITE_TOKEN:', process.env.BLOB_READ_WRITE_TOKEN ? 'Set' : 'Not Set');
-
-    let uploadedFile = null;
-    // Find the first file in the files object (assuming only one file is sent per request)
-    for (const key in files) {
-      if (Array.isArray(files[key]) && files[key].length > 0) {
-        uploadedFile = files[key][0];
+    // استخدام request.formData() لتحليل طلب multipart/form-data
+    const formData = await request.formData();
+    
+    let file = null;
+    // البحث عن كائن الملف داخل formData (يجب أن يكون هناك ملف واحد فقط)
+    for (const entry of formData.values()) {
+      if (entry instanceof File) {
+        file = entry;
         break;
       }
     }
 
-    if (!uploadedFile) {
+    if (!file) {
       return NextResponse.json({ error: 'No file uploaded.' }, { status: 400 });
     }
 
-    // Read the temporary file content created by formidable
-    const fileBuffer = await fs.readFile(uploadedFile.filepath);
-
-    // Use put to upload the file to Vercel Blob Storage
-    const blob = await put(uploadedFile.originalFilename || uploadedFile.newFilename, fileBuffer, {
+    // دالة put يمكنها قبول كائن File مباشرة
+    const blob = await put(file.name, file, {
       access: 'public',
-      contentType: uploadedFile.mimetype,
+      contentType: file.type,
     });
-
-    // Clean up the temporary file created by formidable
-    await fs.unlink(uploadedFile.filepath);
 
     return NextResponse.json(blob);
   } catch (error) {
