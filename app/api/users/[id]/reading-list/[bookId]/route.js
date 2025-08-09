@@ -5,10 +5,10 @@ import Book from '@/models/Book';
 import { protect } from '@/lib/middleware';
 import { validateReadingStatus, validateMongoId } from '@/lib/validation';
 
-async function getUserAndReadingListItem(id, id) {
+async function getUserAndReadingListItem(id, bookId) {
   await dbConnect();
   const userIdErrors = validateMongoId(id);
-  const bookIdErrors = validateMongoId(id);
+  const bookIdErrors = validateMongoId(bookId);
   if (Object.keys(userIdErrors).length > 0 || Object.keys(bookIdErrors).length > 0) {
     return { user: null, readingListItem: null, error: { message: 'Invalid IDs', errors: { ...userIdErrors, ...bookIdErrors } } };
   }
@@ -18,7 +18,7 @@ async function getUserAndReadingListItem(id, id) {
     return { user: null, readingListItem: null, error: { message: 'User not found' } };
   }
 
-  const readingListItem = user.readingList.find(item => item.book.toString() === id);
+  const readingListItem = user.readingList.find(item => item.book.toString() === bookId);
   if (!readingListItem) {
     return { user, readingListItem: null, error: { message: 'Book not found in reading list' } };
   }
@@ -60,15 +60,15 @@ export const DELETE = protect(async (request, { params }) => {
     return NextResponse.json({ message: 'Not authorized to modify this reading list' }, { status: 403 });
   }
 
-  const { user, readingListItem, error } = await getUserAndReadingListItem(id, id);
+  const { user, readingListItem, error } = await getUserAndReadingListItem(id, bookId);
   if (error) {
     return NextResponse.json(error, { status: error.message === 'User not found' || error.message === 'Book not found in reading list' ? 404 : 400 });
   }
 
   try {
-    user.readingList = user.readingList.filter(item => item.book.toString() !== id);
+    user.readingList = user.readingList.filter(item => item.book.toString() !== bookId);
     await user.save();
-    await Book.findByIdAndUpdate(id, { $inc: { readCount: -1 } });
+    await Book.findByIdAndUpdate(bookId, { $inc: { readCount: -1 } });
     return NextResponse.json(user.readingList);
   } catch (err) {
     console.error('Error deleting from reading list:', err);

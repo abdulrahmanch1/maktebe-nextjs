@@ -9,7 +9,7 @@ export const DELETE = protect(async (request, { params }) => {
   const { id } = params;
 
   const userIdErrors = validateMongoId(id);
-  const bookIdErrors = validateMongoId(id);
+  const bookIdErrors = validateMongoId(bookId);
   if (Object.keys(userIdErrors).length > 0 || Object.keys(bookIdErrors).length > 0) {
     return NextResponse.json({ message: 'Invalid IDs', errors: { ...userIdErrors, ...bookIdErrors } }, { status: 400 });
   }
@@ -25,9 +25,9 @@ export const DELETE = protect(async (request, { params }) => {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    user.favorites = user.favorites.filter(id => id.toString() !== id);
+    user.favorites = user.favorites.filter(id => id.toString() !== bookId);
     await user.save();
-    await Book.findByIdAndUpdate(id, { $inc: { favoriteCount: -1 } });
+    await Book.findByIdAndUpdate(bookId, { $inc: { favoriteCount: -1 } });
 
     return NextResponse.json({ favorites: user.favorites });
   } catch (err) {
