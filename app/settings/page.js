@@ -6,6 +6,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { themes } from "@/data/themes";
 import { toast } from 'react-toastify';
+import { upload } from '@vercel/blob/client';
 import { API_URL } from "@/constants";
 import "./SettingsPage.css";
 
@@ -180,20 +181,12 @@ const AccountSettings = () => {
     if (!file) return;
 
     try {
-      const filename = `${Date.now()}-${file.name}`;
-      const uploadResponse = await fetch(`/api/upload-blob?filename=${filename}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': file.type,
-        },
-        body: file,
+      const blob = await upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload-blob',
       });
 
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload profile picture.');
-      }
-      const uploadData = await uploadResponse.json();
-      const profilePictureUrl = uploadData.url;
+      const profilePictureUrl = blob.url;
 
       const res = await axios.patch(`${API_URL}/api/users/${user._id}/profile-picture`, {
         profilePicture: profilePictureUrl,
