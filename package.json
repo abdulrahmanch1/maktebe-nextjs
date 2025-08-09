@@ -21,6 +21,6 @@
     "mongoose": "^8.4.4",
     "nodemailer": "^6.9.14",
     "bcryptjs": "^2.4.3",
-    "@vercel/blob": "^8.0.0"
+    "@vercel/blob": "^1.1.1"
   }
 }
