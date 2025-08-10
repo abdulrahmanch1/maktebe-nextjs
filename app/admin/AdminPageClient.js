@@ -81,6 +81,12 @@ const AdminPageClient = () => {
 
     const uploadFile = async (file, type) => {
       if (!file) return null;
+
+      // Check file size (4.5 MB limit for Vercel Hobby plan)
+      if (file.size > 4.5 * 1024 * 1024) {
+        throw new Error(`حجم الملف كبير جدًا. الحد الأقصى هو 4.5 ميجابايت.`);
+      }
+
       const formData = new FormData();
       formData.append("file", file);
       try {
@@ -92,7 +98,9 @@ const AdminPageClient = () => {
         return response.data.url;
       } catch (error) {
         const errorMessage = error.response?.data?.error || error.message;
-        throw new Error(`Failed to upload ${type} file: ${errorMessage}`);
+        // Try to stringify the error if it's an object
+        const detailedError = typeof errorMessage === 'object' ? JSON.stringify(errorMessage) : errorMessage;
+        throw new Error(`Failed to upload ${type} file: ${detailedError}`);
       }
     };
 
