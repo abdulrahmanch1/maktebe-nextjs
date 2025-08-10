@@ -40,7 +40,6 @@ const Header = () => {
               <Link href="/settings" className="header-link" style={{ color: theme.background }}>{user ? user.username : "اسم المستخدم"}</Link>
               <Image
                 src={user && user.profilePicture ? user.profilePicture : '/imgs/user.jpg'}
-                onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }}
                 alt="صورة المستخدم"
                 width={40}
                 height={40}
