@@ -98,10 +98,22 @@ const AdminPageClient = () => {
 
     try {
       if (cover) {
-        coverUrl = await uploadFile(cover, 'cover');
+        try {
+          coverUrl = await uploadFile(cover, 'cover');
+        } catch (uploadError) {
+          console.error("Error uploading cover:", uploadError);
+          toast.error(`فشل رفع صورة الغلاف: ${uploadError.message}`);
+          return; // Stop execution if cover upload fails
+        }
       }
       if (pdfFile) {
-        pdfFileUrl = await uploadFile(pdfFile, 'pdf');
+        try {
+          pdfFileUrl = await uploadFile(pdfFile, 'pdf');
+        } catch (uploadError) {
+          console.error("Error uploading PDF:", uploadError);
+          toast.error(`فشل رفع ملف PDF: ${uploadError.message}`);
+          return; // Stop execution if PDF upload fails
+        }
       }
 
       const bookData = {
@@ -134,7 +146,8 @@ const AdminPageClient = () => {
       if (pdfFileInputRef.current) pdfFileInputRef.current.value = '';
     } catch (error) {
       console.error("Error saving book:", error);
-      toast.error(error.message || 'فشل حفظ الكتاب.');
+      const errorMessage = error.response?.data?.error || error.message || 'فشل حفظ الكتاب.';
+      toast.error(errorMessage);
     }
   };
 
