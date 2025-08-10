@@ -7,6 +7,7 @@ import { AuthContext } from "@/contexts/AuthContext";
 import axios from "axios";
 import { toast } from 'react-toastify';
 import useFetch from "@/hooks/useFetch";
+import Image from "next/image";
 import { API_URL } from "@/constants";
 import './BookDetailsPage.css';
 
@@ -207,9 +208,11 @@ const BookDetailsClient = ({ params }) => {
   return (
     <div style={{ backgroundColor: theme.background, color: theme.primary }} className="book-details-container">
       <div className="book-cover-section">
-        <img
+        <Image
           src={book.cover}
           alt={`غلاف كتاب ${book.title}`}
+          width={300}
+          height={450}
           className="book-cover-image"
           loading="lazy"
         />
@@ -292,9 +295,11 @@ const BookDetailsClient = ({ params }) => {
             {bookComments.length > 0 ? (
               bookComments.map((comment) => (
                 <div key={comment._id} className="comment-item" style={{ backgroundColor: theme.secondary }}>
-                  <img
+                  <Image
                     src={comment.user.profilePicture && (comment.user.profilePicture !== 'Untitled.jpg' && comment.user.profilePicture !== 'user.jpg') ? comment.user.profilePicture : '/imgs/user.jpg'}
                     alt={`صورة ملف ${comment.user.username}`}
+                    width={40}
+                    height={40}
                     className="comment-user-avatar"
                     onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }}
                   />

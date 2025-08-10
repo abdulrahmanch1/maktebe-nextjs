@@ -5,6 +5,7 @@ import { ThemeContext } from "@/contexts/ThemeContext";
 import { FavoritesContext } from "@/contexts/FavoritesContext";
 import { AuthContext } from "@/contexts/AuthContext";
 import { toast } from 'react-toastify';
+import Image from 'next/image';
 import './BookCard.css';
 
 const BookCard = ({ book }) => {
@@ -24,9 +25,11 @@ const BookCard = ({ book }) => {
       color: theme.primary,
       border: `1px solid ${theme.secondary}`,
     }}>
-      <img
+      <Image
         src={book.cover}
         alt={`غلاف كتاب ${book.title}`}
+        width={200}
+        height={300}
         className="book-card-image"
         loading="lazy"
         onError={(e) => {

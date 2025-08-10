@@ -3,6 +3,7 @@ import React, { useContext, useState } from "react";
 import Link from "next/link";
 import { ThemeContext } from "@/contexts/ThemeContext";
 import { AuthContext } from "@/contexts/AuthContext";
+import Image from 'next/image';
 import { FaBars } from 'react-icons/fa';
 import Sidebar from '@/components/Sidebar';
 import Overlay from '@/components/Overlay';
@@ -37,10 +38,12 @@ const Header = () => {
           {isLoggedIn ? (
             <>
               <Link href="/settings" className="header-link" style={{ color: theme.background }}>{user ? user.username : "اسم المستخدم"}</Link>
-              <img
+              <Image
                 src={user && user.profilePicture ? user.profilePicture : '/imgs/user.jpg'}
                 onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }}
                 alt="صورة المستخدم"
+                width={40}
+                height={40}
                 className="header-user-avatar"
               />
               <button onClick={logout} className="header-button logout-button-header" style={{ backgroundColor: theme.accent, color: theme.primary }}>تسجيل الخروج</button>

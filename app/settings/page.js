@@ -8,6 +8,7 @@ import { themes } from "@/data/themes";
 import { toast } from 'react-toastify';
 import { upload } from '@vercel/blob/client';
 import { API_URL } from "@/constants";
+import Image from "next/image";
 import "./SettingsPage.css";
 
 const SettingsPage = () => {
@@ -223,9 +224,11 @@ const AccountSettings = () => {
     <div className="settings-section">
       <h2 style={{ borderColor: theme.accent, color: theme.primary }}>إعدادات الحساب</h2>
       <div className="profile-info-section">
-        <img
+        <Image
           src={user && user.profilePicture && (user.profilePicture !== 'Untitled.jpg' && user.profilePicture !== 'user.jpg') ? user.profilePicture : '/imgs/user.jpg'}
           alt="صورة الملف الشخصي"
+          width={100}
+          height={100}
           className="profile-picture"
           style={{ borderColor: theme.accent }}
           onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }}

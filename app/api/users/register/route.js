@@ -42,8 +42,8 @@ export async function POST(request) {
       await sendVerificationEmail(newUser.email, newUser.username, verificationUrl);
     } catch (emailError) {
       console.error("Error sending verification email after registration:", emailError);
-      // Optionally, you might want to delete the user here if email sending is critical
-      return NextResponse.json({ message: 'تم إنشاء الحساب بنجاح، ولكن فشل إرسال بريد التحقق. يرجى المحاولة لاحقًا أو التواصل مع الدعم.' }, { status: 500 });
+      await User.findByIdAndDelete(newUser._id);
+      return NextResponse.json({ message: 'Failed to send verification email. Please try again later or contact support.' }, { status: 500 });
     }
 
     if (newUser) {
