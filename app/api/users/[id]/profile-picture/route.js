@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import User from '@/models/User';
 import { protect } from '@/lib/middleware';
 import { validateMongoId } from '@/lib/validation';
+import { supabase } from '@/lib/supabase'; // Import supabase client
 
 export const PATCH = protect(async (request, { params }) => {
   const { id } = params;
+  const { profilePictureUrl } = await request.json();
 
   const idErrors = validateMongoId(id);
   if (Object.keys(idErrors).length > 0) {
@@ -17,27 +17,22 @@ export const PATCH = protect(async (request, { params }) => {
     return NextResponse.json({ message: 'Not authorized to update this user' }, { status: 403 });
   }
 
-  await dbConnect();
   try {
-    const user = await User.findById(id);
-    if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    // Update the user's profile picture in Supabase
+    const { data: updatedUser, error: updateError } = await supabase
+      .from('users')
+      .update({ profilePicture: profilePictureUrl || '/imgs/user.jpg' }) // Set to default if null/empty
+      .eq('id', id)
+      .select('profilePicture') // Select only the updated field
+      .single();
+
+    if (updateError) {
+      throw new Error(updateError.message);
     }
 
-    const { profilePicture: profilePictureUrl } = await request.json();
-
-    if (profilePictureUrl) {
-      user.profilePicture = profilePictureUrl;
-    } else {
-      // If profilePictureUrl is null or empty string, it means user wants to clear it or no new picture provided
-      // For now, we'll treat null/empty as no picture provided, but could be extended to clear
-      return NextResponse.json({ message: 'No profile picture provided' }, { status: 400 });
-    }
-
-    const updatedUser = await user.save();
     return NextResponse.json({ profilePicture: updatedUser.profilePicture });
   } catch (err) {
-    console.error("Error updating profile picture:", err);
-    return NextResponse.json({ message: err.message }, { status: 400 });
+    console.error('Error updating profile picture:', err);
+    return NextResponse.json({ message: err.message }, { status: 500 });
   }
 });

@@ -1,29 +1,53 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import ContactMessage from '@/models/ContactMessage';
 import { protect, admin } from '@/lib/middleware';
 import { validateMongoId } from '@/lib/validation';
+import { supabase } from '@/lib/supabase'; // Import supabase client
+
+export const GET = protect(admin(async (request, { params }) => {
+  const { id } = params;
+
+  const errors = validateMongoId(id);
+  if (Object.keys(errors).length > 0) {
+    return NextResponse.json({ message: 'Invalid Message ID', errors }, { status: 400 });
+  }
+
+  try {
+    const { data: message, error: fetchError } = await supabase
+      .from('contact_messages')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !message) {
+      return NextResponse.json({ message: 'Message not found' }, { status: 404 });
+    }
+    return NextResponse.json(message);
+  } catch (err) {
+    console.error("Error fetching contact message:", err);
+    return NextResponse.json({ message: err.message }, { status: 500 });
+  }
+}));
 
 export const DELETE = protect(admin(async (request, { params }) => {
   const { id } = params;
 
-  const idErrors = validateMongoId(id);
-  if (Object.keys(idErrors).length > 0) {
-    return NextResponse.json({ message: 'Invalid Message ID', errors: idErrors }, { status: 400 });
+  const errors = validateMongoId(id);
+  if (Object.keys(errors).length > 0) {
+    return NextResponse.json({ message: 'Invalid Message ID', errors }, { status: 400 });
   }
 
-  await dbConnect();
   try {
-    const message = await ContactMessage.findById(id);
+    const { error: deleteError } = await supabase
+      .from('contact_messages')
+      .delete()
+      .eq('id', id);
 
-    if (!message) {
-      return NextResponse.json({ message: 'الرسالة غير موجودة.' }, { status: 404 });
+    if (deleteError) {
+      throw new Error(deleteError.message);
     }
-
-    await message.deleteOne();
-    return NextResponse.json({ message: 'تم حذف الرسالة بنجاح!' });
-  } catch (error) {
-    console.error('Error deleting contact message:', error);
-    return NextResponse.json({ message: 'فشل حذف الرسالة.' }, { status: 500 });
+    return NextResponse.json({ message: 'Message deleted' });
+  } catch (err) {
+    console.error("Error deleting contact message:", err);
+    return NextResponse.json({ message: err.message }, { status: 500 });
   }
 }));

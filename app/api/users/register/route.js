@@ -1,68 +1,68 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import User from '@/models/User';
 import { validateRegister } from '@/lib/validation';
-import { sendVerificationEmail } from '@/lib/email';
-import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
+import { sendVerificationEmail } from '@/lib/email'; // Assuming this is still needed for email verification
+import { supabase } from '@/lib/supabase'; // Import supabase client
 
-const JWT_SECRET = process.env.JWT_SECRET;
+export const POST = async (request) => {
+  const { username, email, password } = await request.json();
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, JWT_SECRET, { expiresIn: '30d' });
-};
+  const errors = validateRegister({ username, email, password });
+  if (Object.keys(errors).length > 0) {
+    return NextResponse.json({ message: 'Validation failed', errors }, { status: 400 });
+  }
 
-export async function POST(request) {
-  await dbConnect();
   try {
-    const { username, email, password } = await request.json();
-
-    const errors = validateRegister({ username, email, password });
-    if (Object.keys(errors).length > 0) {
-      return NextResponse.json({ message: 'Validation failed', errors }, { status: 400 });
-    }
-
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return NextResponse.json({ message: 'User with that email already exists' }, { status: 400 });
-    }
-
-    const user = new User({
-      username,
+    // Register user with Supabase Auth
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
-      verificationToken: crypto.randomBytes(20).toString('hex'),
-      verificationTokenExpires: Date.now() + 3600000, // 1 hour
+      options: {
+        data: {
+          username: username, // Store username in user_metadata
+          // You might want to add other default profile data here
+        },
+      },
     });
 
-    const newUser = await user.save();
-
-    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${newUser.verificationToken}`;
-    try {
-      await sendVerificationEmail(newUser.email, newUser.username, verificationUrl);
-    } catch (emailError) {
-      console.error("Error sending verification email after registration:", emailError);
-      await User.findByIdAndDelete(newUser._id);
-      return NextResponse.json({ message: 'Failed to send verification email. Please try again later or contact support.' }, { status: 500 });
+    if (signUpError) {
+      console.error('Supabase sign-up error:', signUpError.message);
+      if (signUpError.message.includes('User already registered')) {
+        return NextResponse.json({ message: 'User with that email already exists' }, { status: 400 });
+      }
+      return NextResponse.json({ message: signUpError.message }, { status: 500 });
     }
 
-    if (newUser) {
+    // If sign-up is successful, data.user will be available
+    if (data.user) {
+      // Supabase handles email verification flow.
+      // You might still want to send a custom verification email if needed,
+      // but Supabase's default email verification is usually sufficient.
+      // If you need to send a custom email, you'd get the verification URL from Supabase.
+      // For now, we'll assume Supabase handles the email.
+
+      // Optionally, if you need to store additional user profile data in a separate 'profiles' table:
+      // const { error: profileError } = await supabase.from('profiles').insert([
+      //   { id: data.user.id, username: username, email: email, role: 'user' }
+      // ]);
+      // if (profileError) {
+      //   console.error('Error creating user profile:', profileError.message);
+      //   // Handle rollback or notify admin if profile creation fails
+      // }
+
       return NextResponse.json({
-        _id: newUser._id,
-        username: newUser.username,
-        email: newUser.email,
-        message: 'تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك الإلكتروني لتأكيد حسابك.',
+        message: 'Registration successful. Please check your email to verify your account.',
+        user: {
+          id: data.user.id,
+          email: data.user.email,
+          username: data.user.user_metadata.username, // Access username from user_metadata
+          isVerified: data.user.email_confirmed_at !== null, // Check if email is confirmed
+        },
       }, { status: 201 });
     } else {
       return NextResponse.json({ message: 'Invalid user data' }, { status: 400 });
     }
-  } catch (err) {
-    console.error("Error during registration:", err);
-    if (err.code === 11000) {
-      const field = Object.keys(err.keyValue)[0];
-      const message = `هذا الـ ${field === 'email' ? 'البريد الإلكتروني' : 'اسم المستخدم'} موجود بالفعل.`;
-      return NextResponse.json({ message }, { status: 400 });
-    }
-    return NextResponse.json({ message: err.message }, { status: 500 });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    return NextResponse.json({ message: 'Server error' }, { status: 500 });
   }
-}
+};

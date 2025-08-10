@@ -1,21 +1,21 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import User from '@/models/User';
 import { protect, admin } from '@/lib/middleware';
 import { validateUserUpdate, validateMongoId } from '@/lib/validation';
+import { supabase } from '@/lib/supabase'; // Import supabase client
+import bcrypt from 'bcryptjs'; // For password hashing/comparison
 
 async function getUser(id, includePassword = false) {
-  await dbConnect();
   const errors = validateMongoId(id);
   if (Object.keys(errors).length > 0) {
     return { user: null, error: { message: 'Invalid User ID', errors } };
   }
-  let query = User.findById(id);
-  if (!includePassword) {
-    query = query.select('-password');
-  }
-  const user = await query;
-  if (!user) {
+
+  let query = supabase.from('users').select(includePassword ? '*' : '*, password'); // Select password if needed
+  query = query.eq('id', id).single();
+
+  const { data: user, error: userError } = await query;
+
+  if (userError || !user) {
     return { user: null, error: { message: 'User not found' } };
   }
   return { user, error: null };
@@ -24,10 +24,15 @@ async function getUser(id, includePassword = false) {
 export const GET = protect(async (request, { params }) => {
   const { id } = params;
   const { user, error } = await getUser(id);
+
   if (error) {
     return NextResponse.json(error, { status: error.message === 'User not found' ? 404 : 400 });
   }
-  return NextResponse.json(user);
+
+  // Remove password before sending response
+  const userWithoutPassword = { ...user };
+  delete userWithoutPassword.password;
+  return NextResponse.json(userWithoutPassword);
 });
 
 export const PATCH = protect(async (request, { params }) => {
@@ -51,24 +56,49 @@ export const PATCH = protect(async (request, { params }) => {
       return NextResponse.json({ message: 'Validation failed', errors }, { status: 400 });
     }
 
+    let hashedPassword = user.password;
     if (body.password != null) {
       if (!body.oldPassword) {
         return NextResponse.json({ message: 'Old password is required to change password.' }, { status: 400 });
       }
-      if (!(await user.matchPassword(body.oldPassword))) {
+      // Compare old password
+      const isMatch = await bcrypt.compare(body.oldPassword, user.password);
+      if (!isMatch) {
         return NextResponse.json({ message: 'Old password is incorrect.' }, { status: 400 });
       }
-      user.password = body.password; // Password will be hashed by pre-save hook
+      // Hash new password
+      const salt = await bcrypt.genSalt(10);
+      hashedPassword = await bcrypt.hash(body.password, salt);
     }
 
-    if (body.username != null) user.username = body.username;
-    if (body.email != null) user.email = body.email;
-    if (body.favorites != null) user.favorites = body.favorites;
-    if (body.readingList != null) user.readingList = body.readingList;
+    const userDataToUpdate = {
+      username: body.username ?? user.username,
+      email: body.email ?? user.email,
+      password: hashedPassword,
+      favorites: body.favorites ?? user.favorites,
+      readingList: body.readingList ?? user.readingList,
+    };
 
-    const updatedUser = await user.save();
+    // Filter out undefined values to only update provided fields
+    Object.keys(userDataToUpdate).forEach(key => {
+      if (userDataToUpdate[key] === undefined) {
+        delete userDataToUpdate[key];
+      }
+    });
+
+    const { data: updatedUser, error: updateError } = await supabase
+      .from('users')
+      .update(userDataToUpdate)
+      .eq('id', id)
+      .select('*, password') // Select password to hash it if needed
+      .single();
+
+    if (updateError) {
+      throw new Error(updateError.message);
+    }
+
     // Return user without password
-    const userWithoutPassword = updatedUser.toObject();
+    const userWithoutPassword = { ...updatedUser };
     delete userWithoutPassword.password;
     return NextResponse.json(userWithoutPassword);
   } catch (err) {
@@ -77,7 +107,7 @@ export const PATCH = protect(async (request, { params }) => {
   }
 });
 
-export const DELETE = protect(async (request, { params }) => {
+export const DELETE = protect(admin(async (request, { params }) => {
   const { id } = params;
   const { user, error } = await getUser(id);
   if (error) {
@@ -90,10 +120,18 @@ export const DELETE = protect(async (request, { params }) => {
   }
 
   try {
-    await User.deleteOne({ _id: id });
+    const { error: deleteError } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) {
+      throw new Error(deleteError.message);
+    }
+
     return NextResponse.json({ message: 'User deleted' });
   } catch (err) {
     console.error('Error deleting user:', err);
     return NextResponse.json({ message: err.message }, { status: 500 });
   }
-});
+}));

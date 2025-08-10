@@ -1,40 +1,50 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import Book from '@/models/Book';
 import { protect, admin } from '@/lib/middleware';
 import { validateBook, validateMongoId } from '@/lib/validation';
+import { supabase } from '@/lib/supabase'; // Import supabase client
 
 async function getBook(id) {
-  await dbConnect();
   const errors = validateMongoId(id);
   if (Object.keys(errors).length > 0) {
     return { book: null, error: { message: 'Invalid Book ID', errors } };
   }
-  const book = await Book.findById(id).populate('comments.user', 'username profilePicture');
-  if (!book) {
+
+  // Fetch the book and its comments, populating user details for comments
+  const { data: book, error: bookError } = await supabase
+    .from('books')
+    .select('*, comments(*, users(username, profilePicture))') // Assuming comments and users tables
+    .eq('id', id)
+    .single();
+
+  if (bookError || !book) {
     return { book: null, error: { message: 'Cannot find book' } };
   }
+
   return { book, error: null };
 }
 
 export async function GET(request, { params }) {
   const { id } = params;
   const { book, error } = await getBook(id);
+
   if (error) {
     return NextResponse.json(error, { status: error.message === 'Cannot find book' ? 404 : 400 });
   }
+
   return NextResponse.json(book);
 }
 
 export const PATCH = protect(admin(async (request, { params }) => {
   const { id } = params;
+  const body = await request.json();
+
   const { book, error } = await getBook(id);
   if (error) {
     return NextResponse.json(error, { status: error.message === 'Cannot find book' ? 404 : 400 });
   }
 
   try {
-    const { title, author, category, description, pages, publishYear, language, keywords, cover, pdfFile } = await request.json();
+    const { title, author, category, description, pages, publishYear, language, keywords, cover, pdfFile } = body;
 
     const bookData = {
       title,
@@ -61,9 +71,17 @@ export const PATCH = protect(admin(async (request, { params }) => {
       return NextResponse.json({ message: 'Validation failed', errors }, { status: 400 });
     }
 
-    Object.assign(book, bookData);
+    const { data: updatedBook, error: updateError } = await supabase
+      .from('books')
+      .update(bookData)
+      .eq('id', id)
+      .select()
+      .single();
 
-    const updatedBook = await book.save();
+    if (updateError) {
+      throw new Error(updateError.message);
+    }
+
     return NextResponse.json(updatedBook);
   } catch (error) {
     console.error('Error in PATCH /api/books/[id]:', error);
@@ -79,7 +97,15 @@ export const DELETE = protect(admin(async (request, { params }) => {
   }
 
   try {
-    await book.deleteOne();
+    const { error: deleteError } = await supabase
+      .from('books')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) {
+      throw new Error(deleteError.message);
+    }
+
     return NextResponse.json({ message: 'Book deleted' });
   } catch (error) {
     console.error('Error in DELETE /api/books/[id]:', error);
