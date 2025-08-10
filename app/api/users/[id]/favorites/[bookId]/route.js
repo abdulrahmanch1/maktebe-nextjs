@@ -1,15 +1,18 @@
 import { NextResponse } from 'next/server';
 import { protect } from '@/lib/middleware';
-import { validateMongoId } from '@/lib/validation';
+// import { validateMongoId } from '@/lib/validation'; // Removed validateMongoId
 import { supabase } from '@/lib/supabase'; // Import supabase client
 
 export const DELETE = protect(async (request, { params }) => {
   const { id, bookId } = params;
 
-  const userIdErrors = validateMongoId(id);
-  const bookIdErrors = validateMongoId(bookId);
-  if (Object.keys(userIdErrors).length > 0 || Object.keys(bookIdErrors).length > 0) {
-    return NextResponse.json({ message: 'Invalid IDs', errors: { ...userIdErrors, ...bookIdErrors } }, { status: 400 });
+  // const userIdErrors = validateMongoId(id); // Removed validateMongoId call
+  // const bookIdErrors = validateMongoId(bookId); // Removed validateMongoId call
+  // if (Object.keys(userIdErrors).length > 0 || Object.keys(bookIdErrors).length > 0) { // Removed this block
+  //   return NextResponse.json({ message: 'Invalid IDs', errors: { ...userIdErrors, ...bookIdErrors } }, { status: 400 });
+  // }
+  if (!id || !bookId) { // Simple ID validation for Supabase (assuming UUID or integer)
+    return NextResponse.json({ message: 'User ID and Book ID are required' }, { status: 400 });
   }
 
   if (id !== request.user._id.toString()) {

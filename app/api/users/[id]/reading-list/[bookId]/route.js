@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 import { protect } from '@/lib/middleware';
-import { validateReadingStatus, validateMongoId } from '@/lib/validation';
+import { validateReadingStatus } from '@/lib/validation'; // Removed validateMongoId
 import { supabase } from '@/lib/supabase'; // Import supabase client
 
 async function getUserAndReadingListItem(id, bookId) {
-  const userIdErrors = validateMongoId(id);
-  const bookIdErrors = validateMongoId(bookId);
-  if (Object.keys(userIdErrors).length > 0 || Object.keys(bookIdErrors).length > 0) {
-    return { user: null, readingListItem: null, error: { message: 'Invalid IDs', errors: { ...userIdErrors, ...bookIdErrors } } };
+  // Removed validateMongoId calls
+  if (!id || !bookId) { // Simple ID validation for Supabase (assuming UUID or integer)
+    return { user: null, readingListItem: null, error: { message: 'User ID and Book ID are required' } };
   }
 
   // Fetch the user and their reading list
@@ -35,6 +34,10 @@ export const PATCH = protect(async (request, { params }) => {
   const validationErrors = validateReadingStatus({ read });
   if (Object.keys(validationErrors).length > 0) {
     return NextResponse.json({ message: 'Validation failed', errors: validationErrors }, { status: 400 });
+  }
+
+  if (!id || !bookId) { // Simple ID validation for Supabase (assuming UUID or integer)
+    return NextResponse.json({ message: 'User ID and Book ID are required' }, { status: 400 });
   }
 
   if (id !== request.user._id.toString()) {
@@ -70,6 +73,10 @@ export const PATCH = protect(async (request, { params }) => {
 
 export const DELETE = protect(async (request, { params }) => {
   const { id, bookId } = params;
+
+  if (!id || !bookId) { // Simple ID validation for Supabase (assuming UUID or integer)
+    return NextResponse.json({ message: 'User ID and Book ID are required' }, { status: 400 });
+  }
 
   if (id !== request.user._id.toString()) {
     return NextResponse.json({ message: 'Not authorized to modify this reading list' }, { status: 403 });

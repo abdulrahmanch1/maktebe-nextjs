@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { protect, admin } from '@/lib/middleware';
-import { validateUserUpdate, validateMongoId } from '@/lib/validation';
+import { validateUserUpdate } from '@/lib/validation'; // Removed validateMongoId
 import { supabase } from '@/lib/supabase'; // Import supabase client
 import bcrypt from 'bcryptjs'; // For password hashing/comparison
 
 async function getUser(id, includePassword = false) {
-  const errors = validateMongoId(id);
-  if (Object.keys(errors).length > 0) {
-    return { user: null, error: { message: 'Invalid User ID', errors } };
+  // Removed validateMongoId call
+  if (!id) { // Simple ID validation for Supabase (assuming UUID or integer)
+    return { user: null, error: { message: 'User ID is required' } };
   }
 
   let query = supabase.from('users').select(includePassword ? '*' : '*, password'); // Select password if needed

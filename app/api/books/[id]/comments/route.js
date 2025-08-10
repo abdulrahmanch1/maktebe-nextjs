@@ -1,14 +1,18 @@
 import { NextResponse } from 'next/server';
 import { protect } from '@/lib/middleware';
-import { validateMongoId } from '@/lib/validation';
+// import { validateMongoId } from '@/lib/validation'; // Remove this import
 import { supabase } from '@/lib/supabase'; // Import supabase client
 
 export const GET = protect(async (request, { params }) => {
   const { id } = params;
 
-  const bookIdErrors = validateMongoId(id);
-  if (Object.keys(bookIdErrors).length > 0) {
-    return NextResponse.json({ message: 'Invalid Book ID', errors: bookIdErrors }, { status: 400 });
+  // const bookIdErrors = validateMongoId(id); // Remove this line
+  // if (Object.keys(bookIdErrors).length > 0) { // Remove this block
+  //   return NextResponse.json({ message: 'Invalid Book ID', errors: bookIdErrors }, { status: 400 });
+  // }
+  // Simple ID validation for Supabase (assuming UUID or integer)
+  if (!id) {
+    return NextResponse.json({ message: 'Book ID is required' }, { status: 400 });
   }
 
   try {
@@ -33,9 +37,13 @@ export const POST = protect(async (request, { params }) => {
   const { id } = params;
   const { text } = await request.json();
 
-  const bookIdErrors = validateMongoId(id);
-  if (Object.keys(bookIdErrors).length > 0) {
-    return NextResponse.json({ message: 'Invalid Book ID', errors: bookIdErrors }, { status: 400 });
+  // const bookIdErrors = validateMongoId(id); // Remove this line
+  // if (Object.keys(bookIdErrors).length > 0) { // Remove this block
+  //   return NextResponse.json({ message: 'Invalid Book ID', errors: bookIdErrors }, { status: 400 });
+  // }
+  // Simple ID validation for Supabase (assuming UUID or integer)
+  if (!id) {
+    return NextResponse.json({ message: 'Book ID is required' }, { status: 400 });
   }
 
   try {

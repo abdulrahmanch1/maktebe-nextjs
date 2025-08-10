@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { protect, admin } from '@/lib/middleware';
-import { validateBook, validateMongoId } from '@/lib/validation';
+import { validateBook } from '@/lib/validation'; // Removed validateMongoId
 import { supabase } from '@/lib/supabase'; // Import supabase client
 
 async function getBook(id) {
-  const errors = validateMongoId(id);
-  if (Object.keys(errors).length > 0) {
-    return { book: null, error: { message: 'Invalid Book ID', errors } };
+  // Removed validateMongoId(id) call
+  if (!id) { // Simple ID validation for Supabase (assuming UUID or integer)
+    return { book: null, error: { message: 'Book ID is required' } };
   }
 
   // Fetch the book and its comments, populating user details for comments
