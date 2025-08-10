@@ -7,7 +7,6 @@ import { AuthContext } from "@/contexts/AuthContext";
 import axios from "axios";
 import { toast } from 'react-toastify';
 import { API_URL } from "@/constants";
-import { upload } from '@vercel/blob/client';
 import './AdminPage.css';
 
 const AdminPageClient = () => {
@@ -82,14 +81,18 @@ const AdminPageClient = () => {
 
     const uploadFile = async (file, type) => {
       if (!file) return null;
+      const formData = new FormData();
+      formData.append("file", file);
       try {
-        const blob = await upload(file.name, file, {
-          access: 'public',
-          handleUploadUrl: '/api/upload-blob',
+        const response = await axios.post("/api/upload-blob", formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         });
-        return blob.url;
+        return response.data.url;
       } catch (error) {
-        throw new Error(`Failed to upload ${type} file: ${error.message}`);
+        const errorMessage = error.response?.data?.error || error.message;
+        throw new Error(`Failed to upload ${type} file: ${errorMessage}`);
       }
     };
 
