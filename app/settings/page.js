@@ -6,7 +6,6 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { themes } from "@/data/themes";
 import { toast } from 'react-toastify';
-import { upload } from '@vercel/blob/client';
 import { API_URL } from "@/constants";
 import Image from "next/image";
 import "./SettingsPage.css";
@@ -181,13 +180,17 @@ const AccountSettings = () => {
   const handleImageUpload = async (file) => {
     if (!file) return;
 
+    const formData = new FormData();
+    formData.append("file", file);
+
     try {
-      const blob = await upload(file.name, file, {
-        access: 'public',
-        handleUploadUrl: '/api/upload-blob',
+      const uploadResponse = await axios.post("/api/upload-blob", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
-      const profilePictureUrl = blob.url;
+      const profilePictureUrl = uploadResponse.data.url;
 
       const res = await axios.patch(`${API_URL}/api/users/${user._id}/profile-picture`, {
         profilePicture: profilePictureUrl,
@@ -199,7 +202,7 @@ const AccountSettings = () => {
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err) {
       console.error(err);
-      toast.error(err.message || "فشل تحديث الصورة.");
+      toast.error(err.response?.data?.error || err.message || "فشل تحديث الصورة.");
     }
   };
 
