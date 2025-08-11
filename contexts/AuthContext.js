@@ -1,8 +1,6 @@
 "use client";
 import React, { createContext, useState, useMemo, useEffect, useCallback } from "react";
-import axios from "axios";
-import { toast } from 'react-toastify';
-import { API_URL } from "@/constants";
+import { supabase } from "@/lib/supabase";
 
 export const AuthContext = createContext({
   isLoggedIn: false,
@@ -18,13 +16,16 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(async () => {
     try {
-      await axios.post(`${API_URL}/api/users/logout`);
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw error;
+      }
       setIsLoggedIn(false);
       setUser(null);
       toast.success("تم تسجيل الخروج بنجاح!");
     } catch (error) {
       console.error("Error during logout:", error);
-      toast.error(error.response?.data?.message || "فشل تسجيل الخروج.");
+      toast.error(error.message || "فشل تسجيل الخروج.");
     }
   }, []);
 

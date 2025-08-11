@@ -16,7 +16,7 @@ export const PATCH = protect(async (request, { params }) => {
   }
 
   // Check if the user is authorized to update this user's profile picture
-  if (id !== request.user._id.toString()) {
+  if (id !== request.user.id) {
     return NextResponse.json({ message: 'Not authorized to update this user' }, { status: 403 });
   }
 

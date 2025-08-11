@@ -13,10 +13,10 @@ const BookCard = ({ book }) => {
   const { isFavorite, toggleFavorite } = useContext(FavoritesContext);
   const { isLoggedIn } = useContext(AuthContext);
   const router = useRouter();
-  const isLiked = book?._id ? isFavorite(book._id) : false;
+  const isLiked = book?.id ? isFavorite(book.id) : false;
 
   const handleReadClick = () => {
-    router.push(`/book/${book._id}`);
+    router.push(`/book/${book.id}`);
   };
 
   return (
@@ -57,7 +57,7 @@ const BookCard = ({ book }) => {
               toast.error("يجب تسجيل الدخول لإضافة الكتاب للمفضلة.");
               return;
             }
-            toggleFavorite(book._id);
+            toggleFavorite(book.id);
           }}
           className={`favorite-icon ${isLiked ? 'liked' : ''}`}
           style={{

@@ -15,7 +15,7 @@ export const DELETE = protect(async (request, { params }) => {
     return NextResponse.json({ message: 'User ID and Book ID are required' }, { status: 400 });
   }
 
-  if (id !== request.user._id.toString()) {
+  if (id !== request.user.id) {
     return NextResponse.json({ message: 'Not authorized to modify these favorites' }, { status: 403 });
   }
 

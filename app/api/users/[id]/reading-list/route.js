@@ -20,7 +20,7 @@ export const POST = protect(async (request, { params }) => {
     return NextResponse.json({ message: 'Invalid Book ID', errors: bookIdErrors }, { status: 400 });
   }
 
-  if (userId !== request.user._id.toString()) {
+  if (userId !== request.user.id) {
     return NextResponse.json({ message: 'Not authorized to modify this user\'s reading list' }, { status: 403 });
   }
 

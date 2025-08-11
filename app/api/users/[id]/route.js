@@ -46,7 +46,7 @@ export const PATCH = protect(async (request, { params }) => {
   }
 
   // Check if the user is authorized to update this user
-  if (request.user.role !== 'admin' && id !== request.user._id.toString()) {
+  if (request.user.role !== 'admin' && id !== request.user.id) {
     return NextResponse.json({ message: 'Not authorized to update this user' }, { status: 403 });
   }
 
@@ -115,7 +115,7 @@ export const DELETE = protect(admin(async (request, { params }) => {
   }
 
   // Check if the user is authorized to delete this user
-  if (request.user.role !== 'admin' && id !== request.user._id.toString()) {
+  if (request.user.role !== 'admin' && id !== request.user.id) {
     return NextResponse.json({ message: 'Not authorized to delete this user' }, { status: 403 });
   }
 
