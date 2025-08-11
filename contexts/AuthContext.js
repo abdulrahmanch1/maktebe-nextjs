@@ -1,6 +1,9 @@
 "use client";
 import React, { createContext, useState, useMemo, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import axios from "axios";
+import { toast } from 'react-toastify';
+import { API_URL } from "@/constants";
 
 export const AuthContext = createContext({
   isLoggedIn: false,
