@@ -44,25 +44,11 @@ export const DELETE = protect(async (request, { params }) => {
       throw new Error(updateError.message);
     }
 
-    // Decrement favoriteCount in the books table
-    // This might require a Supabase function or a separate query
-    const { data: book, error: bookFetchError } = await supabase
-      .from('books')
-      .select('favoriteCount')
-      .eq('id', bookId)
-      .single();
+    // Decrement favoriteCount in the books table atomically
+    const { error: decrementError } = await supabase.rpc('decrement_favorite_count', { book_id_param: bookId });
 
-    if (bookFetchError || !book) {
-      console.warn(`Book with ID ${bookId} not found when decrementing favoriteCount.`);
-    } else {
-      const { error: decrementError } = await supabase
-        .from('books')
-        .update({ favoriteCount: book.favoriteCount - 1 })
-        .eq('id', bookId);
-
-      if (decrementError) {
-        console.error('Error decrementing favoriteCount:', decrementError.message);
-      }
+    if (decrementError) {
+      console.error('Error decrementing favoriteCount:', decrementError.message);
     }
 
     return NextResponse.json({ favorites: updatedFavorites });

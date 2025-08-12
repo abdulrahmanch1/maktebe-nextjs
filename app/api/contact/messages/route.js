@@ -8,7 +8,7 @@ export const GET = protect(admin(async (request) => {
     // and populate user details (assuming 'users' table for user info)
     const { data: messages, error: fetchError } = await supabase
       .from('contact_messages')
-      .select('*, users(username, email)') // Assuming 'user' column in contact_messages links to 'users' table
+      .select('*, username, email, users(username, email)') // Select username and email directly from contact_messages, and also from linked user if available
       .order('created_at', { ascending: false }); // Assuming 'created_at' column exists
 
     if (fetchError) {

@@ -1,84 +1,92 @@
 import { NextResponse } from 'next/server';
-// import dbConnect from '@/lib/dbConnect'; // This file was deleted, so remove this import
-// import Book from '@/models/Book'; // Comment out or remove this line
 import { protect, admin } from '@/lib/middleware';
-import { validateMongoId } from '@/lib/validation';
+import { supabase } from '@/lib/supabase'; // Import supabase client
 
-// async function getBookAndComment(id, commentId) {
-//   // await dbConnect(); // Remove this line
-//   const bookIdErrors = validateMongoId(id);
-//   const commentIdErrors = validateMongoId(commentId);
+async function getComment(commentId) {
+  if (!commentId) {
+    return { comment: null, error: { message: 'Comment ID is required' } };
+  }
 
-//   if (Object.keys(bookIdErrors).length > 0 || Object.keys(commentIdErrors).length > 0) {
-//     return { book: null, comment: null, error: { message: 'Invalid IDs', errors: { ...bookIdErrors, ...commentIdErrors } } };
-//   }
+  const { data: comment, error: fetchError } = await supabase
+    .from('comments')
+    .select('*, user_id') // Select user_id to check ownership
+    .eq('id', commentId)
+    .single();
 
-//   // const book = await Book.findById(id); // Replace with Supabase query
-//   // if (!book) {
-//   //   return { book: null, comment: null, error: { message: 'Book not found' } };
-//   // }
-
-//   // const comment = book.comments.id(commentId); // Replace with Supabase query
-//   // if (!comment) {
-//   //   return { book, comment: null, error: { message: 'Comment not found' } };
-//   // }
-//   // return { book, comment, error: null };
-//   return { book: null, comment: null, error: { message: 'TODO: Implement getBookAndComment with Supabase' } };
-// }
+  if (fetchError || !comment) {
+    return { comment: null, error: { message: 'Comment not found' } };
+  }
+  return { comment, error: null };
+}
 
 export const DELETE = protect(async (request, { params }) => {
-  const { id, commentId } = params;
-  // const { book, comment, error } = await getBookAndComment(id, commentId); // Replace with Supabase logic
+  const { commentId } = params;
 
-  // if (error) {
-  //   return NextResponse.json(error, { status: error.message === 'Book not found' || error.message === 'Comment not found' ? 404 : 400 });
-  // }
+  const { comment, error } = await getComment(commentId);
+  if (error) {
+    return NextResponse.json(error, { status: error.message === 'Comment not found' ? 404 : 400 });
+  }
 
-  // // Check if the user is the comment author or an admin
-  // if (request.user._id.toString() !== comment.user.toString() && request.user.role !== 'admin') {
-  //   return NextResponse.json({ message: 'Not authorized to delete this comment' }, { status: 403 });
-  // }
+  // Check if the user is the comment author or an admin
+  if (request.user._id !== comment.user_id && request.user.role !== 'admin') {
+    return NextResponse.json({ message: 'Not authorized to delete this comment' }, { status: 403 });
+  }
 
-  // try {
-  //   comment.deleteOne(); // Mongoose subdocument method - Replace with Supabase logic
-  //   await book.save(); // Replace with Supabase logic
-  //   return NextResponse.json({ message: 'Comment deleted successfully' });
-  // } catch (err) {
-  //   console.error('Error deleting comment:', err);
-  //   return NextResponse.json({ message: err.message }, { status: 500 });
-  // }
-  return NextResponse.json({ message: 'DELETE comment endpoint - TODO: Implement with Supabase' });
+  try {
+    const { error: deleteError } = await supabase
+      .from('comments')
+      .delete()
+      .eq('id', commentId);
+
+    if (deleteError) {
+      throw new Error(deleteError.message);
+    }
+
+    return NextResponse.json({ message: 'Comment deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting comment:', err);
+    return NextResponse.json({ message: err.message }, { status: 500 });
+  }
 });
 
 export const PATCH = protect(async (request, { params }) => {
-  const { id, commentId } = params;
-  // const { book, comment, error } = await getBookAndComment(id, commentId); // Replace with Supabase logic
+  const { commentId } = params;
+  const { comment, error } = await getComment(commentId);
+  if (error) {
+    return NextResponse.json(error, { status: error.message === 'Comment not found' ? 404 : 400 });
+  }
 
-  // if (error) {
-  //   return NextResponse.json(error, { status: error.message === 'Book not found' || error.message === 'Comment not found' ? 404 : 400 });
-  // }
+  try {
+    const userId = request.user._id;
+    let currentLikes = comment.likes || []; // Ensure it's an array
 
-  // try {
-  //   const userId = request.user._id;
-  //   const userLikedIndex = comment.likes.findIndex(id => id.toString() === userId.toString());
+    const userLikedIndex = currentLikes.indexOf(userId);
 
-  //   let liked = false;
-  //   if (userLikedIndex === -1) {
-  //     // User has not liked, so add like
-  //     comment.likes.push(userId);
-  //     liked = true;
-  //   } else {
-  //     // User has liked, so remove like
-  //     comment.likes.splice(userLikedIndex, 1);
-  //     liked = false;
-  //   }
+    let liked = false;
+    if (userLikedIndex === -1) {
+      // User has not liked, so add like
+      currentLikes.push(userId);
+      liked = true;
+    } else {
+      // User has liked, so remove like
+      currentLikes.splice(userLikedIndex, 1);
+      liked = false;
+    }
 
-  //   await book.save();
+    const { data: updatedComment, error: updateError } = await supabase
+      .from('comments')
+      .update({ likes: currentLikes })
+      .eq('id', commentId)
+      .select()
+      .single();
 
-  //   return NextResponse.json({ likes: comment.likes.length, liked });
-  // } catch (err) {
-  //   console.error('Error toggling like:', err);
-  //   return NextResponse.json({ message: err.message }, { status: 500 });
-  // }
-  return NextResponse.json({ message: 'PATCH comment endpoint - TODO: Implement with Supabase' });
+    if (updateError) {
+      throw new Error(updateError.message);
+    }
+
+    return NextResponse.json({ likes: updatedComment.likes.length, liked });
+  } catch (err) {
+    console.error('Error toggling like:', err);
+    return NextResponse.json({ message: err.message }, { status: 500 });
+  }
 });

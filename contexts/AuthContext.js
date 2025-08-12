@@ -32,12 +32,10 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // Initial check for user data (assuming user data is returned with login and stored in context)
-  // For HttpOnly cookies, the token is not accessible here, so we rely on API calls to determine auth status
+  // Initial check for user data (relying on /api/users/me endpoint which validates Supabase session)
   useEffect(() => {
     // This useEffect is primarily for re-hydrating user state if the page refreshes
-    // and the cookie is still valid. A simple way is to try fetching user data.
-    // In a real app, you might have a /me endpoint or similar.
+    // and the Supabase session is still valid. It fetches user data from the /api/users/me endpoint.
     const checkAuthStatus = async () => {
       try {
         // Attempt to fetch user data, which will succeed if the cookie is valid
@@ -74,7 +72,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await axios.post(`${API_URL}/api/users/login`, { email, password });
-      const { user: userData } = response.data; // Token is now in HttpOnly cookie
+      const { user: userData } = response.data; // User data from Supabase Auth via API route
       setIsLoggedIn(true);
       setUser(userData);
       toast.success("تم تسجيل الدخول بنجاح!");

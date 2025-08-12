@@ -55,24 +55,11 @@ export const POST = protect(async (request, { params }) => {
       throw new Error(updateError.message);
     }
 
-    // Increment favoriteCount in the books table
-    const { data: book, error: bookFetchError } = await supabase
-      .from('books')
-      .select('favoriteCount')
-      .eq('id', bookId)
-      .single();
+    // Increment favoriteCount in the books table atomically
+    const { error: incrementError } = await supabase.rpc('increment_favorite_count', { book_id_param: bookId });
 
-    if (bookFetchError || !book) {
-      console.warn(`Book with ID ${bookId} not found when incrementing favoriteCount.`);
-    } else {
-      const { error: incrementError } = await supabase
-        .from('books')
-        .update({ favoriteCount: book.favoriteCount + 1 })
-        .eq('id', bookId);
-
-      if (incrementError) {
-        console.error('Error incrementing favoriteCount:', incrementError.message);
-      }
+    if (incrementError) {
+      console.error('Error incrementing favoriteCount:', incrementError.message);
     }
 
     return NextResponse.json({ favorites: updatedFavorites });

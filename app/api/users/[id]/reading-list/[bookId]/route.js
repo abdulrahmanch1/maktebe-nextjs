@@ -100,25 +100,11 @@ export const DELETE = protect(async (request, { params }) => {
       throw new Error(updateError.message);
     }
 
-    // Decrement readCount in the books table
-    const { data: book, error: bookFetchError } = await supabase
-      .from('books')
-      .select('readCount')
-      .eq('id', bookId)
-      .single();
+    // Decrement readCount in the books table atomically
+    const { error: decrementError } = await supabase.rpc('decrement_read_count', { book_id_param: bookId });
 
-    if (bookFetchError || !book) {
-      console.warn(`Book with ID ${bookId} not found when decrementing readCount.`);
-    }
-    else {
-      const { error: decrementError } = await supabase
-        .from('books')
-        .update({ readCount: book.readCount - 1 })
-        .eq('id', bookId);
-
-      if (decrementError) {
-        console.error('Error decrementing readCount:', decrementError.message);
-      }
+    if (decrementError) {
+      console.error('Error decrementing readCount:', decrementError.message);
     }
 
     return NextResponse.json(updatedReadingList);

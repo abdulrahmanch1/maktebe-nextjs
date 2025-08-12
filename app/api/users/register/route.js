@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { validateRegister } from '@/lib/validation';
-import { sendVerificationEmail } from '@/lib/email'; // Assuming this is still needed for email verification
 import { supabase } from '@/lib/supabase'; // Import supabase client
 
 export const POST = async (request) => {
@@ -41,13 +40,13 @@ export const POST = async (request) => {
       // For now, we'll assume Supabase handles the email.
 
       // Optionally, if you need to store additional user profile data in a separate 'profiles' table:
-      // const { error: profileError } = await supabase.from('profiles').insert([
-      //   { id: data.user.id, username: username, email: email, role: 'user' }
-      // ]);
-      // if (profileError) {
-      //   console.error('Error creating user profile:', profileError.message);
-      //   // Handle rollback or notify admin if profile creation fails
-      // }
+      const { error: profileError } = await supabase.from('profiles').insert([
+        { id: data.user.id, username: username, email: email, role: 'user' }
+      ]);
+      if (profileError) {
+        console.error('Error creating user profile:', profileError.message);
+        // Handle rollback or notify admin if profile creation fails
+      }
 
       return NextResponse.json({
         message: 'Registration successful. Please check your email to verify your account.',

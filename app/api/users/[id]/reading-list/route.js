@@ -55,24 +55,11 @@ export const POST = protect(async (request, { params }) => {
       throw new Error(updateError.message);
     }
 
-    // Increment readCount in the books table
-    const { data: book, error: bookFetchError } = await supabase
-      .from('books')
-      .select('readCount')
-      .eq('id', bookId)
-      .single();
+    // Increment readCount in the books table atomically
+    const { error: incrementError } = await supabase.rpc('increment_read_count', { book_id_param: bookId });
 
-    if (bookFetchError || !book) {
-      console.warn(`Book with ID ${bookId} not found when incrementing readCount.`);
-    } else {
-      const { error: incrementError } = await supabase
-        .from('books')
-        .update({ readCount: book.readCount + 1 })
-        .eq('id', bookId);
-
-      if (incrementError) {
-        console.error('Error incrementing readCount:', incrementError.message);
-      }
+    if (incrementError) {
+      console.error('Error incrementing readCount:', incrementError.message);
     }
 
     return NextResponse.json(updatedReadingList, { status: 201 });

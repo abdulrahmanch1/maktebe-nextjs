@@ -1,11 +1,11 @@
 # دار القرَاء (نسخة Next.js)
 
-دار القرَاء هي مكتبة عربية تم إعادة بنائها باستخدام Next.js للواجهة الأمامية، مع الحفاظ على الواجهة الخلفية الأصلية المبنية بـ Node.js + Express + MongoDB.
+دار القرَاء هي مكتبة عربية تم إعادة بنائها باستخدام Next.js للواجهة الأمامية، وتستخدم Supabase للمصادقة وقاعدة البيانات (للكتب والتعليقات ورسائل الاتصال وميزات المستخدم). الواجهة الخلفية الأصلية المبنية بـ Node.js + Express + MongoDB قد تخدم أدوارًا تكميلية أو تاريخية.
 
 ## ️ المتطلبات
 - Node.js
-- MongoDB
 - npm
+- Supabase Project (for Authentication and Database)
 
 ---
 
@@ -13,9 +13,9 @@
 
 لتشغيل المشروع بالكامل، يجب تشغيل كل من الواجهة الخلفية والواجهة الأمامية.
 
-### ✅ الواجهة الخلفية (Backend)
+### ✅ الواجهة الخلفية (Backend) (الواجهة الخلفية الأصلية)
 
-الواجهة الخلفية موجودة في مجلد `maktebe` الأصلي. لتشغيلها:
+الواجهة الخلفية الأصلية موجودة في مجلد `maktebe` الأصلي. هذه الواجهة الخلفية قد تخدم أغراضًا تاريخية أو ميزات محددة لم يتم ترحيلها بالكامل إلى Supabase.
 
 ```bash
 # انتقل إلى مجلد المشروع الأصلي
@@ -28,7 +28,7 @@ npm install
 npm run dev
 ```
 
-تأكد من وجود ملف `.env` في مجلد `maktebe/backend` يحتوي على المتغيرات التالية:
+تأكد من وجود ملف `.env` في مجلد `maktebe/backend` يحتوي على المتغيرات التالية (إذا كانت الواجهة الخلفية لا تزال قيد الاستخدام):
 ```
 JWT_SECRET=your_jwt_secret_key
 MONGO_URI=mongodb://localhost:27017/maktebe
@@ -50,23 +50,28 @@ npm install
 npm run dev
 ```
 
-تأكد من وجود ملف `.env.local` في جذر المشروع (`maktebe-nextjs`) يحتوي على المتغير التالي:
+تأكد من وجود ملف `.env.local` في جذر المشروع (`maktebe-nextjs`) يحتوي على المتغيرات التالية:
 
 ```
-NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_API_URL=http://localhost:3000/api # إذا كنت تستخدم مسارات Next.js API كـ BFF
 ```
 
-بعد تشغيل كلا الجزأين، يمكنك فتح [http://localhost:3000](http://localhost:3000) في متصفحك لرؤية التطبيق.
+بعد تشغيل كلا الجزأين (إذا كانت الواجهة الخلفية الأصلية لا تزال قيد الاستخدام)، يمكنك فتح [http://localhost:3000](http://localhost:3000) في متصفحك لرؤية التطبيق.
 
 ---
 
 ## ✨ الميزات
 
 * واجهة عربية
-* تسجيل دخول JWT
-* عرض وإضافة كتب للمفضلة
-* CRUD للكتب
+* مصادقة المستخدم عبر Supabase (تسجيل، تسجيل دخول، تحقق من البريد الإلكتروني)
+* عرض وإضافة كتب للمفضلة (مدعومة بـ Supabase)
+* CRUD للكتب (مدعومة بـ Supabase)
 * صفحات ديناميكية مع توليد البيانات من الخادم (Server-Side Rendering) بفضل Next.js
+* إدارة قائمة القراءة
+* نظام التعليقات (مدعوم بـ Supabase)
+* نموذج الاتصال
 
 ---
 
@@ -74,4 +79,6 @@ NEXT_PUBLIC_API_URL=http://localhost:5000
 
 عند نشر المشروع على Vercel، ستحتاج فقط إلى نشر مشروع `maktebe-nextjs`. يجب عليك تعيين متغيرات البيئة التالية في إعدادات المشروع على Vercel:
 
-- `NEXT_PUBLIC_API_URL`: رابط الواجهة الخلفية (Backend) بعد نشرها.
+- `NEXT_PUBLIC_SUPABASE_URL`: رابط مشروع Supabase الخاص بك.
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: مفتاح Supabase Anon Key الخاص بك.
+- `NEXT_PUBLIC_API_URL`: رابط الواجهة الأمامية (Frontend) بعد نشرها (عادةً رابط Vercel الخاص بالمشروع نفسه إذا كنت تستخدم مسارات Next.js API كـ BFF).

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { validateContactMessage } from '@/lib/validation';
 import { supabase } from '@/lib/supabase'; // Import supabase client
+import { cookies } from 'next/headers';
 
 export async function POST(request) {
   try {
@@ -11,13 +12,25 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Validation failed', errors }, { status: 400 });
     }
 
+    let userId = null;
+    // Attempt to get user ID if authenticated (Supabase session)
+    const cookieStore = cookies();
+    const supabaseAccessToken = cookieStore.get('sb-access-token');
+    const supabaseRefreshToken = cookieStore.get('sb-refresh-token');
+
+    if (supabaseAccessToken && supabaseRefreshToken) {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (user && !userError) {
+        userId = user.id;
+      }
+    }
+
     const contactMessageData = {
       subject,
       message,
       email,
       username: username || 'Guest',
-      // Assuming 'user_id' column in contact_messages table for linking to users, if applicable
-      // user_id: request.user ? request.user._id : null,
+      user_id: userId, // Store user_id if available
     };
 
     const { data: newContactMessage, error: insertError } = await supabase
