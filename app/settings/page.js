@@ -214,12 +214,17 @@ const AccountSettings = () => {
   };
 
   const handleUsernameUpdate = async () => {
+    if (!newUsername.trim()) {
+      toast.error("اسم المستخدم لا يمكن أن يكون فارغًا.");
+      return;
+    }
     try {
       const res = await axios.patch(`${API_URL}/api/users/${user.id}`, { username: newUsername }, { headers: { Authorization: `Bearer ${session.access_token}` } });
       setUser({ ...user, username: res.data.username });
       toast.success("تم تحديث اسم المستخدم بنجاح!");
     } catch (err) {
       console.error(err);
+      toast.error(err.response?.data?.message || "فشل تحديث اسم المستخدم.");
     }
   };
 
