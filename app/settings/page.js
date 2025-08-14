@@ -167,7 +167,7 @@ const ContactUsSection = () => {
 
 const AccountSettings = () => {
   const { theme } = useContext(ThemeContext);
-  const { user, token, setUser } = useContext(AuthContext);
+  const { user, session, setUser } = useContext(AuthContext);
   const [newUsername, setNewUsername] = useState(user ? user.username : "");
   const fileInputRef = useRef(null);
 
@@ -192,10 +192,10 @@ const AccountSettings = () => {
 
       const profilePictureUrl = uploadResponse.data.url;
 
-      const res = await axios.patch(`${API_URL}/api/users/${user._id}/profile-picture`, {
+      const res = await axios.patch(`${API_URL}/api/users/${user.id}/profile-picture`, {
         profilePicture: profilePictureUrl,
       }, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       setUser({ ...user, profilePicture: res.data.profilePicture });
       toast.success("تم تحديث الصورة بنجاح!");
@@ -215,7 +215,7 @@ const AccountSettings = () => {
 
   const handleUsernameUpdate = async () => {
     try {
-      const res = await axios.patch(`${API_URL}/api/users/${user._id}`, { username: newUsername }, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.patch(`${API_URL}/api/users/${user.id}`, { username: newUsername }, { headers: { Authorization: `Bearer ${session.access_token}` } });
       setUser({ ...user, username: res.data.username });
       toast.success("تم تحديث اسم المستخدم بنجاح!");
     } catch (err) {
@@ -279,7 +279,7 @@ const AppearanceSettings = () => {
 
 const SecuritySettings = () => {
   const { theme } = useContext(ThemeContext);
-  const { user, token, logout } = useContext(AuthContext);
+  const { user, session, logout } = useContext(AuthContext);
   const router = useRouter();
 
   const [oldPassword, setOldPassword] = useState('');
@@ -287,25 +287,22 @@ const SecuritySettings = () => {
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
   const handleChangePassword = async () => {
-    if (!oldPassword || !newPassword || !confirmNewPassword) {
-      toast.error("الرجاء تعبئة جميع حقول كلمة المرور.");
-      return;
-    }
-    if (newPassword.length < 6) {
-      toast.error("يجب أن تكون كلمة المرور الجديدة 6 أحرف على الأقل.");
-      return;
-    }
-    if (newPassword !== confirmNewPassword) {
-      toast.error("كلمة المرور الجديدة وتأكيدها غير متطابقين.");
+    const errors = {};
+    if (!oldPassword) errors.oldPassword = 'كلمة المرور القديمة مطلوبة.';
+    if (!newPassword || newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) errors.password = 'يجب أن تكون كلمة المرور 8 أحرف على الأقل وتحتوي على حرف كبير وحرف صغير ورقم ورمز خاص.';
+    if (newPassword !== confirmNewPassword) errors.confirmNewPassword = "كلمة المرور الجديدة وتأكيدها غير متطابقين.";
+
+    if (Object.keys(errors).length > 0) {
+      Object.values(errors).forEach(error => toast.error(error));
       return;
     }
 
     try {
-      await axios.patch(`${API_URL}/api/users/${user._id}`, {
+      await axios.patch(`${API_URL}/api/users/${user.id}`, {
         oldPassword,
         password: newPassword,
       }, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       toast.success("تم تغيير كلمة المرور بنجاح!");
       setOldPassword('');
@@ -322,8 +319,8 @@ const SecuritySettings = () => {
       return;
     }
     try {
-      await axios.delete(`${API_URL}/api/users/${user._id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      await axios.delete(`${API_URL}/api/users/${user.id}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       toast.success("تم حذف حسابك بنجاح.");
       logout();

@@ -32,8 +32,7 @@ const useFetch = (url, dependencies = [], config = {}) => {
     return () => {
       controller.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, JSON.stringify(dependencies), JSON.stringify(config)]);
+  }, [url, ...dependencies, config]);
 
   return { data, loading, error };
 };

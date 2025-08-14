@@ -25,7 +25,7 @@ const HomePageClient = ({ initialBooks, initialCategories }) => {
     };
   }, [searchTerm]);
 
-  const { data: booksData, loading, error } = useFetch(`${API_URL}/api/books?search=${debouncedSearchTerm}`);
+  const { data: booksData, loading, error } = useFetch(`${API_URL}/api/books?query=${debouncedSearchTerm}`);
 
   useEffect(() => {
     if (booksData) {

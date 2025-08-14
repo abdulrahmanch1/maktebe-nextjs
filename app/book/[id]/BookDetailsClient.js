@@ -15,7 +15,7 @@ const BookDetailsClient = ({ params }) => {
   const { id } = params;
   const { theme } = useContext(ThemeContext);
   const { toggleFavorite, isFavorite } = useContext(FavoritesContext);
-  const { isLoggedIn, user, token, setUser } = useContext(AuthContext);
+  const { isLoggedIn, user, session, setUser } = useContext(AuthContext);
   const { data: bookData, loading, error } = useFetch(`${API_URL}/api/books/${id}`, [id]);
   const [book, setBook] = useState(null);
   const [isInReadingList, setIsInReadingList] = useState(false);
@@ -28,7 +28,7 @@ const BookDetailsClient = ({ params }) => {
       setBook(bookData);
       setBookComments(bookData.comments.map(comment => ({
         ...comment,
-        userLiked: user && comment.likes.some(id => id.toString() === user._id.toString()),
+        userLiked: user && comment.likes.some(likeId => likeId.toString() === user.id.toString()),
         likes: comment.likes.length,
       })) || []);
       if (user && user.readingList) {
@@ -46,7 +46,7 @@ const BookDetailsClient = ({ params }) => {
       toast.error("يجب تسجيل الدخول لإضافة الكتاب للمفضلة.");
       return;
     }
-    toggleFavorite(book._id);
+    toggleFavorite(book.id);
   };
 
   const handleAddToReadingList = async () => {
@@ -64,22 +64,22 @@ const BookDetailsClient = ({ params }) => {
 
     try {
       let updatedReadingList = user.readingList;
-      let bookInReadingList = user.readingList.find(item => item.book === book._id);
+      let bookInReadingList = user.readingList.find(item => item.book === book.id);
 
       if (!bookInReadingList) {
-        const addRes = await axios.post(`${API_URL}/api/users/${user._id}/reading-list`, { bookId: book._id }, {
-          headers: { Authorization: `Bearer ${token}` },
+        const addRes = await axios.post(`${API_URL}/api/users/${user.id}/reading-list`, { bookId: book.id }, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
         });
         updatedReadingList = addRes.data;
         setIsInReadingList(true);
         toast.success("تمت إضافة الكتاب إلى قائمة القراءة.");
       }
 
-      const currentBookItem = updatedReadingList.find(item => item.book === book._id);
+      const currentBookItem = updatedReadingList.find(item => item.book === book.id);
 
       if (currentBookItem && !currentBookItem.read) {
-        const patchRes = await axios.patch(`${API_URL}/api/users/${user._id}/reading-list/${book._id}`, { read: true }, {
-          headers: { Authorization: `Bearer ${token}` },
+        const patchRes = await axios.patch(`${API_URL}/api/users/${user.id}/reading-list/${book.id}`, { read: true }, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
         });
         updatedReadingList = patchRes.data;
         setIsRead(true);
@@ -95,8 +95,8 @@ const BookDetailsClient = ({ params }) => {
   const handleToggleReadStatus = async () => {
     if (!isLoggedIn) return;
     try {
-      const res = await axios.patch(`${API_URL}/api/users/${user._id}/reading-list/${book._id}`, { read: !isRead }, {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await axios.patch(`${API_URL}/api/users/${user.id}/reading-list/${book.id}`, { read: !isRead }, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       setUser({ ...user, readingList: res.data });
       setIsRead(!isRead);
@@ -110,8 +110,8 @@ const BookDetailsClient = ({ params }) => {
   const handleRemoveFromReadingList = async () => {
     if (!isLoggedIn) return;
     try {
-      const res = await axios.delete(`${API_URL}/api/users/${user._id}/reading-list/${book._id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await axios.delete(`${API_URL}/api/users/${user.id}/reading-list/${book.id}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       setUser({ ...user, readingList: res.data });
       setIsInReadingList(false);
@@ -124,7 +124,7 @@ const BookDetailsClient = ({ params }) => {
   };
 
   const handlePostComment = async () => {
-    if (!isLoggedIn || !user || !token) {
+    if (!isLoggedIn || !user || !session) {
       toast.error("يجب تسجيل الدخول لنشر تعليق.");
       return;
     }
@@ -134,8 +134,8 @@ const BookDetailsClient = ({ params }) => {
     }
 
     try {
-      const res = await axios.post(`${API_URL}/api/books/${book._id}/comments`, { text: commentText }, {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await axios.post(`${API_URL}/api/books/${book.id}/comments`, { text: commentText }, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
       setBookComments([...bookComments, res.data]);
       setCommentText('');
@@ -147,7 +147,7 @@ const BookDetailsClient = ({ params }) => {
   };
 
   const handleDeleteComment = async (commentId) => {
-    if (!isLoggedIn || !user || !token) {
+    if (!isLoggedIn || !user || !session) {
       toast.error("يجب تسجيل الدخول لحذف تعليق.");
       return;
     }
@@ -156,10 +156,10 @@ const BookDetailsClient = ({ params }) => {
     }
 
     try {
-      await axios.delete(`${API_URL}/api/books/${book._id}/comments/${commentId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      await axios.delete(`${API_URL}/api/books/${book.id}/comments/${commentId}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      setBookComments(bookComments.filter(comment => comment._id !== commentId));
+      setBookComments(bookComments.filter(comment => comment.id !== commentId));
       toast.success("تم حذف التعليق بنجاح!");
     } catch (err) {
       console.error("Error deleting comment:", err);
@@ -168,19 +168,19 @@ const BookDetailsClient = ({ params }) => {
   };
 
   const handleToggleLike = async (commentId) => {
-    if (!isLoggedIn || !user || !token) {
+    if (!isLoggedIn || !user || !session) {
       toast.error("يجب تسجيل الدخول للإعجاب بالتعليقات.");
       return;
     }
 
     try {
-      const res = await axios.patch(`${API_URL}/api/books/${book._id}/comments/${commentId}`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await axios.patch(`${API_URL}/api/books/${book.id}/comments/${commentId}`, {}, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
 
       setBookComments(prevComments =>
         prevComments.map(comment =>
-          comment._id === commentId
+          comment.id === commentId
             ? { ...comment, likes: res.data.likes, userLiked: res.data.liked }
             : comment
         )
@@ -203,7 +203,7 @@ const BookDetailsClient = ({ params }) => {
     return <div style={{ backgroundColor: theme.background, color: theme.primary, padding: "20px", textAlign: "center" }}>الكتاب غير موجود</div>;
   }
 
-  const isLiked = isFavorite(book._id);
+  const isLiked = isFavorite(book.id);
 
   return (
     <div style={{ backgroundColor: theme.background, color: theme.primary }} className="book-details-container">
@@ -294,7 +294,7 @@ const BookDetailsClient = ({ params }) => {
           <div style={{ marginTop: "20px" }}>
             {bookComments.length > 0 ? (
               bookComments.map((comment) => (
-                <div key={comment._id} className="comment-item" style={{ backgroundColor: theme.secondary }}>
+                <div key={comment.id} className="comment-item" style={{ backgroundColor: theme.secondary }}>
                   <Image
                     src={comment.user.profilePicture && (comment.user.profilePicture !== 'Untitled.jpg' && comment.user.profilePicture !== 'user.jpg') ? comment.user.profilePicture : '/imgs/user.jpg'}
                     alt={`صورة ملف ${comment.user.username}`}
@@ -309,7 +309,7 @@ const BookDetailsClient = ({ params }) => {
                     <p className="comment-date" style={{ color: theme.primary }}>{new Date(comment.createdAt).toLocaleDateString()}</p>
                     <div className="comment-actions">
                       <span
-                        onClick={() => handleToggleLike(comment._id)}
+                        onClick={() => handleToggleLike(comment.id)}
                         className={`comment-like-button ${comment.userLiked ? 'liked' : ''}`}
                         style={{ color: comment.userLiked ? "red" : theme.primary }}
                       >
@@ -317,9 +317,9 @@ const BookDetailsClient = ({ params }) => {
                       </span>
                     </div>
                   </div>
-                  {(isLoggedIn && user && (user._id === comment.user._id || user.role === 'admin')) && (
+                  {(isLoggedIn && user && (user.id === comment.user_id || user.role === 'admin')) && (
                     <button
-                      onClick={() => handleDeleteComment(comment._id)}
+                      onClick={() => handleDeleteComment(comment.id)}
                       className="comment-delete-button"
                       style={{ backgroundColor: '#dc3545' }}
                     >

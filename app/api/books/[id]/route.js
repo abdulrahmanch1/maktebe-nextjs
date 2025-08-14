@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { protect, admin } from '@/lib/middleware';
-import { validateBook } from '@/lib/validation'; // Removed validateMongoId
+import { validateBook, validateBookUpdate } from '@/lib/validation';
 import { supabase } from '@/lib/supabase'; // Import supabase client
 
 async function getBook(id) {

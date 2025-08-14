@@ -17,7 +17,7 @@ export const FavoritesProvider = ({ children }) => {
   const favorites = useMemo(() => user?.favorites || [], [user]);
 
   const toggleFavorite = useCallback(async (bookId) => {
-    if (!isLoggedIn || !user || !user._id || !token) {
+    if (!isLoggedIn || !user || !user.id || !session) {
       toast.error("يجب تسجيل الدخول لإضافة الكتاب للمفضلة.");
       return;
     }
@@ -25,14 +25,14 @@ export const FavoritesProvider = ({ children }) => {
     try {
       let updatedFavorites;
       if (favorites.includes(bookId)) {
-        const res = await axios.delete(`${API_URL}/api/users/${user._id}/favorites/${bookId}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const res = await axios.delete(`${API_URL}/api/users/${user.id}/favorites/${bookId}`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
         });
         updatedFavorites = res.data.favorites;
         toast.success("تمت إزالة الكتاب من المفضلة.");
       } else {
-        const res = await axios.post(`${API_URL}/api/users/${user._id}/favorites`, { bookId }, {
-          headers: { Authorization: `Bearer ${token}` },
+        const res = await axios.post(`${API_URL}/api/users/${user.id}/favorites`, { bookId }, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
         });
         updatedFavorites = res.data.favorites;
         toast.success("تمت إضافة الكتاب إلى المفضلة.");
@@ -42,7 +42,7 @@ export const FavoritesProvider = ({ children }) => {
       console.error("Failed to toggle favorite:", error);
       toast.error(error.response?.data?.message || "فشل تحديث المفضلة.");
     }
-  }, [favorites, isLoggedIn, user, token, setUser]);
+  }, [favorites, isLoggedIn, user, session, setUser]);
 
   const isFavorite = useCallback((bookId) => {
     return favorites.includes(bookId);

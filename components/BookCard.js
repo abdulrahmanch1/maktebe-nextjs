@@ -33,8 +33,8 @@ const BookCard = ({ book }) => {
         className="book-card-image"
         loading="lazy"
         onError={(e) => {
-          e.target.onerror = null;
-          e.target.src = "/imgs/no_cover_available.png";
+          e.currentTarget.onerror = null;
+          e.currentTarget.src = "/imgs/no_cover_available.png";
         }}
       />
       <h2 className="book-card-title" style={{ color: theme.accent }}>

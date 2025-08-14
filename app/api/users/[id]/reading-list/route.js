@@ -49,7 +49,7 @@ export const POST = protect(async (request, { params }) => {
     const { error: updateError } = await supabase
       .from('users')
       .update({ readingList: updatedReadingList })
-      .eq('id', userId);
+      .eq('id', id);
 
     if (updateError) {
       throw new Error(updateError.message);
@@ -65,6 +65,6 @@ export const POST = protect(async (request, { params }) => {
     return NextResponse.json(updatedReadingList, { status: 201 });
   } catch (err) {
     console.error("Error adding to reading list:", err);
-    return NextResponse.json({ message: err.message }, { status: 500 });
+    return NextResponse.json({ message: "خطأ في الإضافة إلى قائمة القراءة" }, { status: 500 });
   }
 });

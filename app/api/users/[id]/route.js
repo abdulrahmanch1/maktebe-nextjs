@@ -7,16 +7,16 @@ import bcrypt from 'bcryptjs'; // For password hashing/comparison
 async function getUser(id, includePassword = false) {
   // Removed validateMongoId call
   if (!id) { // Simple ID validation for Supabase (assuming UUID or integer)
-    return { user: null, error: { message: 'User ID is required' } };
+    return { user: null, error: { message: 'معرف المستخدم مطلوب' } };
   }
 
-  let query = supabase.from('users').select(includePassword ? '*' : '*, password'); // Select password if needed
+  let query = supabase.from('users').select(includePassword ? '*' : 'id,username,email,favorites,readingList,role');
   query = query.eq('id', id).single();
 
   const { data: user, error: userError } = await query;
 
   if (userError || !user) {
-    return { user: null, error: { message: 'User not found' } };
+    return { user: null, error: { message: 'لم يتم العثور على المستخدم' } };
   }
   return { user, error: null };
 }
@@ -132,6 +132,6 @@ export const DELETE = protect(admin(async (request, { params }) => {
     return NextResponse.json({ message: 'User deleted' });
   } catch (err) {
     console.error('Error deleting user:', err);
-    return NextResponse.json({ message: err.message }, { status: 500 });
+    return NextResponse.json({ message: "خطأ في حذف المستخدم" }, { status: 500 });
   }
 }));

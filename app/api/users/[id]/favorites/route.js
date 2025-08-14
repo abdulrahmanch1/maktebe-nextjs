@@ -49,7 +49,7 @@ export const POST = protect(async (request, { params }) => {
     const { error: updateError } = await supabase
       .from('users')
       .update({ favorites: updatedFavorites })
-      .eq('id', userId);
+      .eq('id', id);
 
     if (updateError) {
       throw new Error(updateError.message);
@@ -65,6 +65,6 @@ export const POST = protect(async (request, { params }) => {
     return NextResponse.json({ favorites: updatedFavorites });
   } catch (err) {
     console.error("Error adding favorite:", err);
-    return NextResponse.json({ message: err.message }, { status: 500 });
+    return NextResponse.json({ message: "خطأ في إضافة المفضلة" }, { status: 500 });
   }
 });

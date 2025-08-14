@@ -11,7 +11,7 @@ import './AdminPage.css';
 
 const AdminPageClient = () => {
   const { theme } = useContext(ThemeContext);
-  const { user, token, isLoggedIn } = useContext(AuthContext);
+  const { user, session, isLoggedIn } = useContext(AuthContext);
   const searchParams = useSearchParams();
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -137,7 +137,7 @@ const AdminPageClient = () => {
         pdfFile: pdfFileUrl,
       };
 
-      const url = editingBook ? `${API_URL}/api/books/${editingBook._id}` : `${API_URL}/api/books`;
+      const url = editingBook ? `${API_URL}/api/books/${editingBook.id}` : `${API_URL}/api/books`;
       const method = editingBook ? 'patch' : 'post';
       await axios({
         method,
@@ -145,6 +145,7 @@ const AdminPageClient = () => {
         data: bookData, // Send as JSON
         headers: {
           'Content-Type': 'application/json', // Specify JSON content type
+          Authorization: `Bearer ${session.access_token}`,
         },
       });
 
