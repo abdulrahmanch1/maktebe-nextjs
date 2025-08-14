@@ -29,7 +29,7 @@ export const GET = protect(async (request, { params }) => {
     return NextResponse.json(comments);
   } catch (err) {
     console.error('Error fetching comments:', err);
-    return NextResponse.json({ message: err.message }, { status: 500 });
+    return NextResponse.json({ message: "خطأ في جلب التعليقات" }, { status: 500 });
   }
 });
 
@@ -43,7 +43,7 @@ export const POST = protect(async (request, { params }) => {
   // }
   // Simple ID validation for Supabase (assuming UUID or integer)
   if (!id) {
-    return NextResponse.json({ message: 'Book ID is required' }, { status: 400 });
+    return NextResponse.json({ message: 'معرف الكتاب مطلوب' }, { status: 400 });
   }
 
   try {
@@ -53,7 +53,7 @@ export const POST = protect(async (request, { params }) => {
       .insert({
         book_id: id,
         text: text,
-        user_id: request.user._id, // Assuming request.user._id is the Supabase user ID
+        user_id: request.user.id, // Assuming request.user.id is the Supabase user ID
       })
       .select('*, users(username, profilePicture)') // Select the newly inserted comment and populate user details
       .single();
@@ -65,6 +65,6 @@ export const POST = protect(async (request, { params }) => {
     return NextResponse.json(newComment, { status: 201 });
   } catch (err) {
     console.error('Error adding comment:', err);
-    return NextResponse.json({ message: err.message }, { status: 500 });
+    return NextResponse.json({ message: "خطأ في إضافة التعليق" }, { status: 500 });
   }
 });

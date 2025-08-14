@@ -42,7 +42,7 @@ export const DELETE = protect(async (request, { params }) => {
       throw new Error(deleteError.message);
     }
 
-    return NextResponse.json({ message: 'Comment deleted successfully' });
+    return NextResponse.json({ message: 'تم حذف التعليق بنجاح' });
   } catch (err) {
     console.error('Error deleting comment:', err);
     return NextResponse.json({ message: err.message }, { status: 500 });
@@ -87,6 +87,6 @@ export const PATCH = protect(async (request, { params }) => {
     return NextResponse.json({ likes: updatedComment.likes.length, liked });
   } catch (err) {
     console.error('Error toggling like:', err);
-    return NextResponse.json({ message: err.message }, { status: 500 });
+    return NextResponse.json({ message: "خطأ في تبديل الإعجاب" }, { status: 500 });
   }
 });

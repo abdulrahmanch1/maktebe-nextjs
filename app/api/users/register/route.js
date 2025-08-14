@@ -43,9 +43,12 @@ export const POST = async (request) => {
       const { error: profileError } = await supabase.from('profiles').insert([
         { id: data.user.id, username: username, email: email, role: 'user' }
       ]);
+
       if (profileError) {
         console.error('Error creating user profile:', profileError.message);
-        // Handle rollback or notify admin if profile creation fails
+        // If profile creation fails, delete the user from Supabase Auth to roll back
+        await supabase.auth.admin.deleteUser(data.user.id);
+        return NextResponse.json({ message: 'An error occurred during registration. Please try again.' }, { status: 500 });
       }
 
       return NextResponse.json({
@@ -62,6 +65,6 @@ export const POST = async (request) => {
     }
   } catch (error) {
     console.error('Error registering user:', error);
-    return NextResponse.json({ message: 'Server error' }, { status: 500 });
+    return NextResponse.json({ message: 'خطأ في الخادم' }, { status: 500 });
   }
 };

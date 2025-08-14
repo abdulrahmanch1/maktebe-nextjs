@@ -66,6 +66,6 @@ export async function POST(request) {
     }
   } catch (err) {
     console.error("Error during login:", err);
-    return NextResponse.json({ message: err.message }, { status: 500 });
+    return NextResponse.json({ message: 'خطأ في الخادم' }, { status: 500 });
   }
 }

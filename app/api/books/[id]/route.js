@@ -59,17 +59,17 @@ export const PATCH = protect(admin(async (request, { params }) => {
       pdfFile,
     };
 
+    const errors = validateBookUpdate(bookData);
+    if (Object.keys(errors).length > 0) {
+      return NextResponse.json({ message: 'فشل التحقق', errors }, { status: 400 });
+    }
+
     // Filter out undefined values to only update provided fields
     Object.keys(bookData).forEach(key => {
       if (bookData[key] === undefined) {
         delete bookData[key];
       }
     });
-
-    const errors = validateBook(bookData);
-    if (Object.keys(errors).length > 0) {
-      return NextResponse.json({ message: 'Validation failed', errors }, { status: 400 });
-    }
 
     const { data: updatedBook, error: updateError } = await supabase
       .from('books')
@@ -109,6 +109,6 @@ export const DELETE = protect(admin(async (request, { params }) => {
     return NextResponse.json({ message: 'Book deleted' });
   } catch (error) {
     console.error('Error in DELETE /api/books/[id]:', error);
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json({ message: "فشل حذف الكتاب" }, { status: 500 });
   }
 }));
