@@ -97,6 +97,17 @@ export const PATCH = protect(async (request, { params }) => {
       throw new Error(updateError.message);
     }
 
+    // Update username in Supabase Auth user_metadata if it was changed
+    if (body.username != null && body.username !== user.username) {
+      const { error: authUpdateError } = await supabase.auth.updateUser({
+        data: { username: body.username },
+      });
+      if (authUpdateError) {
+        console.error('Error updating user_metadata in Supabase Auth:', authUpdateError.message);
+        // Decide how to handle this error: rollback, log, or ignore
+      }
+    }
+
     // Return user without password
     const userWithoutPassword = { ...updatedUser };
     delete userWithoutPassword.password;
