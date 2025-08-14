@@ -87,7 +87,7 @@ export const PATCH = protect(async (request, { params }) => {
     });
 
     const { data: updatedUser, error: updateError } = await supabase
-      .from('users')
+      .from('profiles')
       .update(userDataToUpdate)
       .eq('id', id)
       .select('*, password') // Select password to hash it if needed
@@ -132,7 +132,7 @@ export const DELETE = protect(admin(async (request, { params }) => {
 
   try {
     const { error: deleteError } = await supabase
-      .from('users')
+      .from('profiles')
       .delete()
       .eq('id', id);
 
