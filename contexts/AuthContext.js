@@ -58,6 +58,7 @@ export const AuthProvider = ({ children }) => {
       session,
       login,
       logout,
+      setUser,
     }),
     [isLoggedIn, user, session, login, logout]
   );

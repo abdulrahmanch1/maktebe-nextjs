@@ -12,7 +12,7 @@ export const FavoritesContext = createContext({
 });
 
 export const FavoritesProvider = ({ children }) => {
-  const { isLoggedIn, user, token, setUser } = useContext(AuthContext);
+  const { isLoggedIn, user, session, setUser } = useContext(AuthContext);
 
   const favorites = useMemo(() => user?.favorites || [], [user]);
 
