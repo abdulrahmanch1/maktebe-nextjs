@@ -9,7 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 export function Providers({ children }) {
   return (
     <ThemeProvider>
-      <AuthProvider>
+      {/* <AuthProvider> */}
         <FavoritesProvider>
           {children}
           <ToastContainer 
@@ -24,7 +24,7 @@ export function Providers({ children }) {
             pauseOnHover 
           />
         </FavoritesProvider>
-      </AuthProvider>
+      {/* </AuthProvider> */}
     </ThemeProvider>
   );
 }

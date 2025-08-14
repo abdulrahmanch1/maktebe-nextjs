@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 import { validateRegister } from '@/lib/validation';
-import { supabase } from '@/lib/supabase'; // Import supabase client
+import { createClient } from '@/utils/supabase/server';
 
 export const POST = async (request) => {
   const { username, email, password } = await request.json();
 
   const errors = validateRegister({ username, email, password });
   if (Object.keys(errors).length > 0) {
-    return NextResponse.json({ message: 'Validation failed', errors }, { status: 400 });
+    return NextResponse.json({ message: 'فشل التحقق', errors }, { status: 400 });
   }
+
+  const supabase = createClient();
 
   try {
     // Register user with Supabase Auth
@@ -26,7 +28,7 @@ export const POST = async (request) => {
     if (signUpError) {
       console.error('Supabase sign-up error:', signUpError.message);
       if (signUpError.message.includes('User already registered')) {
-        return NextResponse.json({ message: 'User with that email already exists' }, { status: 400 });
+        return NextResponse.json({ message: 'المستخدم بهذا البريد الإلكتروني موجود بالفعل' }, { status: 400 });
       }
       return NextResponse.json({ message: signUpError.message }, { status: 500 });
     }
@@ -45,14 +47,14 @@ export const POST = async (request) => {
       ]);
 
       if (profileError) {
-        console.error('Error creating user profile:', profileError.message);
+        console.error('Error creating user profile:', profileError.error_description || profileError.message);
         // If profile creation fails, delete the user from Supabase Auth to roll back
         await supabase.auth.admin.deleteUser(data.user.id);
-        return NextResponse.json({ message: 'An error occurred during registration. Please try again.' }, { status: 500 });
+        return NextResponse.json({ message: 'حدث خطأ أثناء التسجيل. الرجاء المحاولة مرة أخرى.' }, { status: 500 });
       }
 
       return NextResponse.json({
-        message: 'Registration successful. Please check your email to verify your account.',
+        message: 'تم التسجيل بنجاح. يرجى التحقق من بريدك الإلكتروني لتفعيل حسابك.',
         user: {
           id: data.user.id,
           email: data.user.email,
@@ -61,7 +63,7 @@ export const POST = async (request) => {
         },
       }, { status: 201 });
     } else {
-      return NextResponse.json({ message: 'Invalid user data' }, { status: 400 });
+      return NextResponse.json({ message: 'بيانات المستخدم غير صالحة' }, { status: 400 });
     }
   } catch (error) {
     console.error('Error registering user:', error);
