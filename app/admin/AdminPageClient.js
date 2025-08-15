@@ -9,6 +9,8 @@ import { toast } from 'react-toastify';
 import { API_URL } from "@/constants";
 import './AdminPage.css';
 
+import { createClient as createSupabaseClient } from "@/utils/supabase/client";
+
 const AdminPageClient = () => {
   const { theme } = useContext(ThemeContext);
   const { user, session, isLoggedIn } = useContext(AuthContext);
@@ -82,26 +84,48 @@ const AdminPageClient = () => {
     const uploadFile = async (file, type) => {
       if (!file) return null;
 
-      
+      const supabase = createSupabaseClient(); // Create Supabase client for direct upload
 
-      const formData = new FormData();
-      formData.append("file", file);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+
+      let publicUrl = "";
+
       try {
-        let uploadUrl = "";
         if (type === 'cover') {
-          uploadUrl = "/api/upload-book-cover"; // Use the new endpoint for covers
+          const formData = new FormData();
+          formData.append("file", file);
+          const response = await axios.post("/api/upload-book-cover", formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+          publicUrl = response.data.newUrl;
         } else if (type === 'pdf') {
-          uploadUrl = "/api/upload-blob"; // Keep existing for PDF for now, or create a new one if needed
+          const filePath = `book-pdfs/${fileName}`; // Define path for PDF in 'book-pdfs' bucket
+          const { data, error: uploadError } = await supabase.storage
+            .from('book-pdfs') // Assuming a 'book-pdfs' bucket
+            .upload(filePath, file, {
+              upsert: true,
+            });
+
+          if (uploadError) {
+            throw new Error(`Supabase PDF upload error: ${uploadError.message}`);
+          }
+
+          const { data: urlData } = supabase.storage
+            .from('book-pdfs')
+            .getPublicUrl(filePath);
+
+          if (!urlData || !urlData.publicUrl) {
+            throw new Error('Failed to get public URL for PDF.');
+          }
+          publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
         } else {
           throw new Error("Unknown file type for upload.");
         }
 
-        const response = await axios.post(uploadUrl, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        return response.data.newUrl; // The new endpoint returns 'newUrl'
+        return publicUrl;
       } catch (error) {
         const errorMessage = error.response?.data?.error || error.message;
         const detailedError = typeof errorMessage === 'object' ? JSON.stringify(errorMessage) : errorMessage;
