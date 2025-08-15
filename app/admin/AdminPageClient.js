@@ -82,10 +82,7 @@ const AdminPageClient = () => {
     const uploadFile = async (file, type) => {
       if (!file) return null;
 
-      // Check file size (4.5 MB limit for Vercel Hobby plan)
-      if (file.size > 4.5 * 1024 * 1024) {
-        throw new Error(`حجم الملف كبير جدًا. الحد الأقصى هو 4.5 ميجابايت.`);
-      }
+      
 
       const formData = new FormData();
       formData.append("file", file);
