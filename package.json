@@ -13,8 +13,6 @@
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.54.0",
     "axios": "^1.11.0",
-    "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2",
     "next": "15.4.6",
     "nodemailer": "^6.9.14",
     "react": "19.1.0",

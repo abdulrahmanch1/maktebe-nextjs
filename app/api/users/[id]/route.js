@@ -1,148 +1,103 @@
 import { NextResponse } from 'next/server';
 import { protect, admin } from '@/lib/middleware';
-import { validateUserUpdate } from '@/lib/validation'; // Removed validateMongoId
-import { supabase } from '@/lib/supabase'; // Import supabase client
-import bcrypt from 'bcryptjs'; // For password hashing/comparison
+import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/admin';
+// import { validateUserUpdate } from '@/lib/validation'; // This can be re-enabled if needed
 
-async function getUser(id, includePassword = false) {
-  // Removed validateMongoId call
-  if (!id) { // Simple ID validation for Supabase (assuming UUID or integer)
-    return { user: null, error: { message: 'معرف المستخدم مطلوب' } };
-  }
-
-  let query = supabase.from('users').select(includePassword ? '*' : 'id,username,email,favorites,readingList,role');
-  query = query.eq('id', id).single();
-
-  const { data: user, error: userError } = await query;
-
-  if (userError || !user) {
-    return { user: null, error: { message: 'لم يتم العثور على المستخدم' } };
-  }
-  return { user, error: null };
-}
-
+// GET handler to fetch a user's public profile
 export const GET = protect(async (request, { params }) => {
   const { id } = params;
-  const { user, error } = await getUser(id);
+  const supabase = createClient();
 
-  if (error) {
-    return NextResponse.json(error, { status: error.message === 'User not found' ? 404 : 400 });
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('id, username, email, role') // Select only public-safe fields
+    .eq('id', id)
+    .single();
+
+  if (error || !profile) {
+    return NextResponse.json({ message: 'لم يتم العثور على المستخدم' }, { status: 404 });
   }
 
-  // Remove password before sending response
-  const userWithoutPassword = { ...user };
-  delete userWithoutPassword.password;
-  return NextResponse.json(userWithoutPassword);
+  return NextResponse.json(profile);
 });
 
+// PATCH handler to update a user's profile or auth info
 export const PATCH = protect(async (request, { params }) => {
   const { id } = params;
   const body = await request.json();
+  const supabase = createClient();
 
-  // Fetch user with password if password is being updated
-  const { user, error } = await getUser(id, body.password != null);
-  if (error) {
-    return NextResponse.json(error, { status: error.message === 'User not found' ? 404 : 400 });
+  // The 'protect' middleware ensures we have a user.
+  // Now, check for authorization: user can only update themselves, unless they are an admin.
+  const { data: { user: requestingUser } } = await supabase.auth.getUser();
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', requestingUser.id).single();
+
+  if (profile?.role !== 'admin' && requestingUser.id !== id) {
+    return NextResponse.json({ message: 'غير مصرح لك بتحديث هذا المستخدم' }, { status: 403 });
   }
 
-  // Check if the user is authorized to update this user
-  if (request.user.role !== 'admin' && id !== request.user.id) {
-    return NextResponse.json({ message: 'Not authorized to update this user' }, { status: 403 });
+  const { password, username, ...otherProfileData } = body;
+
+  // --- Step 1: Update Auth Data (Password, etc.) ---
+  if (password) {
+    const { error: authError } = await supabase.auth.updateUser({ password });
+    if (authError) {
+      console.error('Supabase auth update error:', authError);
+      return NextResponse.json({ message: 'فشل تحديث كلمة المرور', error: authError.message }, { status: 400 });
+    }
+  }
+  
+  // --- Step 2: Update Auth Metadata (Username) ---
+  if (username) {
+      const { error: authMetaError } = await supabase.auth.updateUser({ data: { username } });
+      if (authMetaError) {
+          console.error('Supabase auth metadata update error:', authMetaError);
+          // Not returning here, as the profile update might still be important
+      }
   }
 
-  try {
-    const errors = validateUserUpdate(body);
-    if (Object.keys(errors).length > 0) {
-      return NextResponse.json({ message: 'Validation failed', errors }, { status: 400 });
-    }
-
-    let hashedPassword = user.password;
-    if (body.password != null) {
-      if (!body.oldPassword) {
-        return NextResponse.json({ message: 'Old password is required to change password.' }, { status: 400 });
-      }
-      // Compare old password
-      const isMatch = await bcrypt.compare(body.oldPassword, user.password);
-      if (!isMatch) {
-        return NextResponse.json({ message: 'Old password is incorrect.' }, { status: 400 });
-      }
-      // Hash new password
-      const salt = await bcrypt.genSalt(10);
-      hashedPassword = await bcrypt.hash(body.password, salt);
-    }
-
-    const userDataToUpdate = {
-      username: body.username ?? user.username,
-      email: body.email ?? user.email,
-      password: hashedPassword,
-      favorites: body.favorites ?? user.favorites,
-      readingList: body.readingList ?? user.readingList,
-    };
-
-    // Filter out undefined values to only update provided fields
-    Object.keys(userDataToUpdate).forEach(key => {
-      if (userDataToUpdate[key] === undefined) {
-        delete userDataToUpdate[key];
-      }
-    });
-
-    const { data: updatedUser, error: updateError } = await supabase
+  // --- Step 3: Update Public Profile Data ---
+  const profileDataToUpdate = { username, ...otherProfileData };
+  // Ensure we don't try to update the object with empty values if only password was changed
+  if (Object.keys(profileDataToUpdate).length > 0) {
+    const { data: updatedProfile, error: profileError } = await supabase
       .from('profiles')
-      .update(userDataToUpdate)
+      .update(profileDataToUpdate)
       .eq('id', id)
-      .select('*, password') // Select password to hash it if needed
+      .select('id, username, email, role')
       .single();
 
-    if (updateError) {
-      throw new Error(updateError.message);
+    if (profileError) {
+      console.error('Supabase profile update error:', profileError);
+      return NextResponse.json({ message: 'فشل تحديث الملف الشخصي', error: profileError.message }, { status: 400 });
     }
-
-    // Update username in Supabase Auth user_metadata if it was changed
-    if (body.username != null && body.username !== user.username) {
-      const { error: authUpdateError } = await supabase.auth.updateUser({
-        data: { username: body.username },
-      });
-      if (authUpdateError) {
-        console.error('Error updating user_metadata in Supabase Auth:', authUpdateError.message);
-        // Decide how to handle this error: rollback, log, or ignore
-      }
-    }
-
-    // Return user without password
-    const userWithoutPassword = { ...updatedUser };
-    delete userWithoutPassword.password;
-    return NextResponse.json(userWithoutPassword);
-  } catch (err) {
-    console.error('Error updating user:', err);
-    return NextResponse.json({ message: err.message }, { status: 400 });
+    return NextResponse.json(updatedProfile);
   }
+
+  // If only password was updated, just return a success message
+  return NextResponse.json({ message: 'تم تحديث بيانات المستخدم بنجاح' });
 });
 
+// DELETE handler to remove a user completely
 export const DELETE = protect(admin(async (request, { params }) => {
   const { id } = params;
-  const { user, error } = await getUser(id);
-  if (error) {
-    return NextResponse.json(error, { status: error.message === 'User not found' ? 404 : 400 });
+  
+  // For deletion, we need the admin client with the service role key
+  const supabaseAdmin = createAdminClient();
+
+  const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(id);
+
+  if (deleteError) {
+    console.error('Supabase admin delete error:', deleteError);
+    return NextResponse.json({ message: 'فشل حذف المستخدم', error: deleteError.message }, { status: 500 });
   }
 
-  // Check if the user is authorized to delete this user
-  if (request.user.role !== 'admin' && id !== request.user.id) {
-    return NextResponse.json({ message: 'Not authorized to delete this user' }, { status: 403 });
-  }
+  // Note: It's best practice to set up a trigger in your Supabase database
+  // to automatically delete the user's profile from the 'profiles' table
+  // when the user is deleted from 'auth.users'.
+  // Example: CREATE TRIGGER on_auth_user_deleted AFTER DELETE ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_delete_user();
+  // Where handle_delete_user is a function that runs: DELETE FROM public.profiles WHERE id = old.id;
 
-  try {
-    const { error: deleteError } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', id);
-
-    if (deleteError) {
-      throw new Error(deleteError.message);
-    }
-
-    return NextResponse.json({ message: 'User deleted' });
-  } catch (err) {
-    console.error('Error deleting user:', err);
-    return NextResponse.json({ message: "خطأ في حذف المستخدم" }, { status: 500 });
-  }
+  return NextResponse.json({ message: 'تم حذف المستخدم بنجاح' });
 }));
