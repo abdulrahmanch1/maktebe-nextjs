@@ -61,18 +61,22 @@ export const PATCH = protect(async (request, { params }) => {
   const profileDataToUpdate = { username, ...otherProfileData };
   // Ensure we don't try to update the object with empty values if only password was changed
   if (Object.keys(profileDataToUpdate).length > 0) {
-    const { data: updatedProfile, error: profileError } = await supabase
+    const { data: updatedProfiles, error: profileError } = await supabase
       .from('profiles')
       .update(profileDataToUpdate)
       .eq('id', id)
-      .select('id, username, email, role')
-      .single();
+      .select('id, username, email, role');
 
     if (profileError) {
       console.error('Supabase profile update error:', profileError);
       return NextResponse.json({ message: 'فشل تحديث الملف الشخصي', error: profileError.message }, { status: 400 });
     }
-    return NextResponse.json(updatedProfile);
+
+    if (!updatedProfiles || updatedProfiles.length === 0) {
+        return NextResponse.json({ message: 'لم يتم العثور على الملف الشخصي للتحديث' }, { status: 404 });
+    }
+
+    return NextResponse.json(updatedProfiles[0]);
   }
 
   // If only password was updated, just return a success message
