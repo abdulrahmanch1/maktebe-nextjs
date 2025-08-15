@@ -72,11 +72,15 @@ export const POST = async (request) => {
   const publicUrl = urlData.publicUrl;
   console.log('Public URL obtained:', publicUrl);
 
-  // 5. Update the user's profile with the new URL
+  // Append a cache-busting timestamp to the public URL
+  const publicUrlWithCacheBuster = `${publicUrl}?t=${Date.now()}`;
+  console.log('Public URL with cache buster:', publicUrlWithCacheBuster);
+
+  // 5. Update the user\'s profile with the new URL
   console.log('Attempting to update user profile with new URL.');
   const { error: profileUpdateError } = await supabaseAdmin
     .from('profiles')
-    .update({ profilepicture: publicUrl }) // Corrected column name to all lowercase
+    .update({ profilepicture: publicUrlWithCacheBuster }) // Use the URL with cache buster
     .eq('id', user.id);
 
   if (profileUpdateError) {
@@ -89,6 +93,6 @@ export const POST = async (request) => {
   console.log('--- Profile picture upload process completed successfully ---');
   return NextResponse.json({
     message: 'Profile picture updated successfully',
-    newUrl: publicUrl,
+    newUrl: publicUrlWithCacheBuster, // Return the URL with cache buster
   });
 };
