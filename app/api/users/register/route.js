@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { validateRegister } from '@/lib/validation';
 import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/admin'; // Import the admin client
 
 export const POST = async (request) => {
   const { username, email, password } = await request.json();
@@ -47,10 +48,12 @@ export const POST = async (request) => {
       ]);
 
       if (profileError) {
-        console.error('Error creating user profile:', profileError.error_description || profileError.message);
+        console.error('Error creating user profile:', profileError.message);
         // If profile creation fails, delete the user from Supabase Auth to roll back
-        await supabase.auth.admin.deleteUser(data.user.id);
-        return NextResponse.json({ message: 'حدث خطأ أثناء التسجيل. الرجاء المحاولة مرة أخرى.' }, { status: 500 });
+        // This requires admin privileges, so we use the admin client.
+        const supabaseAdmin = createAdminClient();
+        await supabaseAdmin.auth.admin.deleteUser(data.user.id);
+        return NextResponse.json({ message: 'حدث خطأ أثناء إنشاء الملف الشخصي. تم التراجع عن تسجيل المستخدم.' }, { status: 500 });
       }
 
       return NextResponse.json({
