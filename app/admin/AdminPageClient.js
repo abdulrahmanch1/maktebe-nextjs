@@ -90,15 +90,23 @@ const AdminPageClient = () => {
       const formData = new FormData();
       formData.append("file", file);
       try {
-        const response = await axios.post("/api/upload-blob", formData, {
+        let uploadUrl = "";
+        if (type === 'cover') {
+          uploadUrl = "/api/upload-book-cover"; // Use the new endpoint for covers
+        } else if (type === 'pdf') {
+          uploadUrl = "/api/upload-blob"; // Keep existing for PDF for now, or create a new one if needed
+        } else {
+          throw new Error("Unknown file type for upload.");
+        }
+
+        const response = await axios.post(uploadUrl, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
         });
-        return response.data.url;
+        return response.data.newUrl; // The new endpoint returns 'newUrl'
       } catch (error) {
         const errorMessage = error.response?.data?.error || error.message;
-        // Try to stringify the error if it's an object
         const detailedError = typeof errorMessage === 'object' ? JSON.stringify(errorMessage) : errorMessage;
         throw new Error(`Failed to upload ${type} file: ${detailedError}`);
       }
