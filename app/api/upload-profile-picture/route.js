@@ -30,7 +30,7 @@ export const POST = async (request) => {
   const filePath = `${user.id}/profile.png`; // Use a consistent name to overwrite the old picture
 
   const { error: uploadError } = await supabase.storage
-    .from('profile-pictures') // The bucket we created earlier
+    .from('profile-pictures') // The new bucket
     .upload(filePath, file, {
       upsert: true, // This will overwrite the file if it already exists
     });
@@ -43,7 +43,7 @@ export const POST = async (request) => {
   // 4. Get the public URL of the uploaded file
   const supabaseAdmin = createAdminClient(); // Use admin for subsequent steps for simplicity
   const { data: urlData } = supabaseAdmin.storage
-    .from('profile-pictures')
+    .from('avatars')
     .getPublicUrl(filePath);
 
   if (!urlData || !urlData.publicUrl) {
