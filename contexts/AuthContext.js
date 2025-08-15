@@ -18,14 +18,46 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
+    const fetchUserProfile = async (session) => {
+      if (session?.user) {
+        const authUser = session.user;
+
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching user profile:", error);
+          setUser({ ...authUser, username: authUser.user_metadata?.username });
+        } else {
+          const fullUser = {
+            ...authUser,
+            ...profile,
+            profilePicture: profile.avatar_url, // Map avatar_url to profilePicture
+          };
+          setUser(fullUser);
+        }
+        setSession(session);
+        setIsLoggedIn(true);
+      } else {
+        setSession(null);
+        setUser(null);
+        setIsLoggedIn(false);
+      }
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      fetchUserProfile(session);
+    });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ? { ...session.user, username: session.user.user_metadata?.username } : null);
-      setIsLoggedIn(!!session);
+      fetchUserProfile(session);
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase.auth]);
+  }, [supabase]);
 
   const login = async (email, password) => {
     try {

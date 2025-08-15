@@ -52,11 +52,9 @@ export const POST = async (request) => {
   const publicUrl = urlData.publicUrl;
 
   // 5. Update the user's profile with the new URL
-  // Note: The column name should be `profilePicture` as seen in previous files.
-  // The table is `profiles`, not `users`.
   const { error: profileUpdateError } = await supabaseAdmin
     .from('profiles')
-    .update({ profilePicture: publicUrl })
+    .update({ avatar_url: publicUrl }) // Corrected column name
     .eq('id', user.id);
 
   if (profileUpdateError) {
