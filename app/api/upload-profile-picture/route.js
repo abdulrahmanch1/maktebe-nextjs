@@ -43,7 +43,7 @@ export const POST = async (request) => {
   // 4. Get the public URL of the uploaded file
   const supabaseAdmin = createAdminClient(); // Use admin for subsequent steps for simplicity
   const { data: urlData } = supabaseAdmin.storage
-    .from('avatars')
+    .from('profile-pictures')
     .getPublicUrl(filePath);
 
   if (!urlData || !urlData.publicUrl) {
