@@ -84,9 +84,10 @@ const HomePageClient = ({ initialBooks, initialCategories }) => {
         <div style={{ textAlign: "center" }}>حدث خطأ أثناء تحميل الكتب.</div>
       ) : (
         <div className="books-display-container">
-          {filteredBooks.map((book) => (
-            <BookCard key={book.id} book={book} />
-          ))}
+          {filteredBooks.map((book) => {
+            console.log('Book object passed to BookCard:', book);
+            return <BookCard key={book.id} book={book} />;
+          })}
         </div>
       )}
     </div>
