@@ -9,10 +9,12 @@ import { toast } from 'react-toastify';
 import useFetch from "@/hooks/useFetch";
 import Image from "next/image";
 import { API_URL } from "@/constants";
+import { useRouter } from "next/navigation"; // Import useRouter
 import './BookDetailsPage.css';
 
 const BookDetailsClient = ({ params }) => {
-  const { id } = params;
+  const router = useRouter();
+  const id = router.pathname.split('/').pop(); // Extract ID from pathname
   const { theme } = useContext(ThemeContext);
   const { toggleFavorite, isFavorite } = useContext(FavoritesContext);
   const { isLoggedIn, user, session, setUser } = useContext(AuthContext);
