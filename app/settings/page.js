@@ -171,6 +171,11 @@ const AccountSettings = () => {
   const [newUsername, setNewUsername] = useState(user ? user.username : "");
   const fileInputRef = useRef(null);
 
+  // Custom loader for Supabase images
+  const supabaseLoader = ({ src }) => {
+    return src;
+  };
+
   useEffect(() => {
     if (user) {
       setNewUsername(user.username);
@@ -228,6 +233,7 @@ const AccountSettings = () => {
       <h2 style={{ borderColor: theme.accent, color: theme.primary }}>إعدادات الحساب</h2>
       <div className="profile-info-section">
         <Image
+          loader={supabaseLoader}
           src={user?.profilePicture || '/imgs/user.jpg'}
           alt="صورة الملف الشخصي"
           width={100}
