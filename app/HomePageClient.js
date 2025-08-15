@@ -25,19 +25,22 @@ const HomePageClient = ({ initialBooks, initialCategories }) => {
     };
   }, [searchTerm]);
 
-  const { data: booksData, loading, error } = useFetch(`${API_URL}/api/books?query=${debouncedSearchTerm}`);
+  const { data: booksData, loading, error } = useFetch(
+    debouncedSearchTerm ? `${API_URL}/api/books?query=${debouncedSearchTerm}` : null
+  );
 
   useEffect(() => {
-    if (booksData) {
-      setBooks(booksData);
-      if (debouncedSearchTerm) {
+    if (debouncedSearchTerm) { // Only update if there's an active search
+      if (booksData) {
+        setBooks(booksData);
         const uniqueCategories = ["الكل", ...new Set(booksData.map(book => book.category))];
         setCategories(uniqueCategories);
-      } else {
-        setCategories(initialCategories);
       }
+    } else { // If no search term, revert to initial data
+      setBooks(initialBooks);
+      setCategories(initialCategories);
     }
-  }, [booksData, debouncedSearchTerm, initialCategories]);
+  }, [booksData, debouncedSearchTerm, initialBooks, initialCategories]);
 
   const filteredBooks = books.filter((book) => {
     const matchesCategory = selectedCategory === "الكل" || book.category === selectedCategory;

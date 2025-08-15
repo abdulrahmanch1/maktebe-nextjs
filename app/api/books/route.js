@@ -41,7 +41,9 @@ export const GET = async (request) => {
 };
 
 export const POST = protect(admin(async (request) => {
+  console.log('--- Starting POST /api/books ---');
   const body = await request.json();
+  console.log('Received book data body:', body);
 
   const bookData = {
     title: body.title,
@@ -55,11 +57,14 @@ export const POST = protect(admin(async (request) => {
     cover: body.cover,
     pdfFile: body.pdfFile,
   };
+  console.log('Parsed bookData:', bookData);
 
   const errors = validateBook(bookData);
   if (Object.keys(errors).length > 0) {
+    console.log('Validation failed:', errors);
     return NextResponse.json({ message: 'Validation failed', errors }, { status: 400 });
   }
+  console.log('Validation passed.');
 
   try {
     const { data: newBook, error: insertError } = await supabase
@@ -69,12 +74,14 @@ export const POST = protect(admin(async (request) => {
       .single();
 
     if (insertError) {
+      console.error('Supabase insert error:', insertError);
       throw new Error(insertError.message);
     }
+    console.log('Book inserted successfully:', newBook);
 
     return NextResponse.json(newBook, { status: 201 });
   } catch (error) {
-    console.error('Error in POST /api/books:', error);
-    return NextResponse.json({ message: "فشل إنشاء الكتاب" }, { status: 500 });
+    console.error('Error in POST /api/books (catch block):', error);
+    return NextResponse.json({ message: `فشل إنشاء الكتاب: ${error.message}` }, { status: 500 });
   }
 }));
