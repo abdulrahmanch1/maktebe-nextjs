@@ -42,16 +42,15 @@ export const POST = async (request) => {
       // If you need to send a custom email, you'd get the verification URL from Supabase.
       // For now, we'll assume Supabase handles the email.
 
-      // Optionally, if you need to store additional user profile data in a separate 'profiles' table:
-      const { error: profileError } = await supabase.from('profiles').insert([
+      // Use the admin client to insert the profile, bypassing RLS for this trusted server-side operation.
+      const supabaseAdmin = createAdminClient();
+      const { error: profileError } = await supabaseAdmin.from('profiles').insert([
         { id: data.user.id, username: username, email: email, role: 'user' }
       ]);
 
       if (profileError) {
         console.error('Error creating user profile:', profileError.message);
-        // If profile creation fails, delete the user from Supabase Auth to roll back
-        // This requires admin privileges, so we use the admin client.
-        const supabaseAdmin = createAdminClient();
+        // If profile creation fails, the user already exists in auth, so we roll back.
         await supabaseAdmin.auth.admin.deleteUser(data.user.id);
         return NextResponse.json({ message: 'حدث خطأ أثناء إنشاء الملف الشخصي. تم التراجع عن تسجيل المستخدم.' }, { status: 500 });
       }
