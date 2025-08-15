@@ -184,20 +184,15 @@ const AccountSettings = () => {
     formData.append("file", file);
 
     try {
-      const uploadResponse = await axios.post("/api/upload-blob", formData, {
+      // Single API call to our new endpoint
+      const res = await axios.post("/api/upload-profile-picture", formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      const profilePictureUrl = uploadResponse.data.url;
-
-      const res = await axios.patch(`${API_URL}/api/users/${user.id}/profile-picture`, {
-        profilePicture: profilePictureUrl,
-      }, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      setUser({ ...user, profilePicture: res.data.profilePicture });
+      // Update the user state locally with the new URL from the response
+      setUser({ ...user, profilePicture: res.data.newUrl });
       toast.success("تم تحديث الصورة بنجاح!");
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (err) {
