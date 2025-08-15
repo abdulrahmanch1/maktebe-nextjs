@@ -54,7 +54,7 @@ export const POST = async (request) => {
   // 5. Update the user's profile with the new URL
   const { error: profileUpdateError } = await supabaseAdmin
     .from('profiles')
-    .update({ avatar_url: publicUrl }) // Corrected column name
+    .update({ profilepicture: publicUrl }) // Corrected column name to all lowercase
     .eq('id', user.id);
 
   if (profileUpdateError) {

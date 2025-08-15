@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
           const fullUser = {
             ...authUser,
             ...profile,
-            profilePicture: profile.avatar_url, // Map avatar_url to profilePicture
+            profilePicture: profile.profilepicture, // Map db lowercase to camelCase for frontend
           };
           setUser(fullUser);
         }
