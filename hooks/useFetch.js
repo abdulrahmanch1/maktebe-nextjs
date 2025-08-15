@@ -21,7 +21,12 @@ const useFetch = (url, dependencies = [], config = {}) => {
         setData(response.data);
       } catch (err) {
         if (err.name !== 'CanceledError') {
-          setError(err);
+          // Check if it's an Axios error with a response
+          if (err.response && err.response.data && err.response.data.message) {
+            setError({ message: err.response.data.message }); // Extract message from API response
+          } else {
+            setError({ message: err.message || 'An unknown error occurred' }); // Fallback
+          }
         }
       }
       setLoading(false);
