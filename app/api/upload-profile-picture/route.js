@@ -25,11 +25,11 @@ export const POST = async (request) => {
     return NextResponse.json({ error: `Invalid file type. Allowed: ${allowedTypes.join(', ')}` }, { status: 400 });
   }
 
-  // 3. Upload the file to Supabase Storage using the admin client
-  const supabaseAdmin = createAdminClient();
+  // 3. Upload the file to Supabase Storage. We use the user-impersonated client
+  // so that the file is correctly owned by the user, which satisfies RLS policies.
   const filePath = `${user.id}/profile.png`; // Use a consistent name to overwrite the old picture
 
-  const { error: uploadError } = await supabaseAdmin.storage
+  const { error: uploadError } = await supabase.storage
     .from('profile-pictures') // The bucket we created earlier
     .upload(filePath, file, {
       upsert: true, // This will overwrite the file if it already exists
@@ -41,6 +41,7 @@ export const POST = async (request) => {
   }
 
   // 4. Get the public URL of the uploaded file
+  const supabaseAdmin = createAdminClient(); // Use admin for subsequent steps for simplicity
   const { data: urlData } = supabaseAdmin.storage
     .from('profile-pictures')
     .getPublicUrl(filePath);
