@@ -106,7 +106,7 @@
 .favorite-icon {
   cursor: pointer;
   color: white; /* White by default, red when liked */
-  font-size: 32px; /* Increased font size */
+  font-size: 24px; /* Adjusted font size */
   background-color: var(--primary-color); /* Background for the heart icon */
   padding: 4px;
   margin-right: 10px;
@@ -127,5 +127,5 @@
 
 .favorite-icon.liked {
   color: red; /* Red when liked */
-  transform: scale(1.1); /* Slightly smaller scale for liked state */
+  transform: scale(1.05); /* Adjusted scale to fit within circle */
 }
