@@ -18,11 +18,16 @@ const BookDetailsClient = ({ initialBook }) => {
   const [isInReadingList, setIsInReadingList] = useState(false);
   const [isRead, setIsRead] = useState(false);
   const [commentText, setCommentText] = useState('');
-  const [bookComments, setBookComments] = useState(initialBook.comments.map(comment => ({
-    ...comment,
-    userLiked: user && comment.likes.some(likeId => likeId.toString() === user.id.toString()),
-    likes: comment.likes.length,
-  })) || []);
+  const [bookComments, setBookComments] = useState([]); // Initialize as empty array
+  useEffect(() => {
+    if (initialBook.comments) {
+      setBookComments(initialBook.comments.map(comment => ({
+        ...comment,
+        userLiked: user && comment.likes && comment.likes.some(likeId => likeId.toString() === user.id.toString()),
+        likes: comment.likes ? comment.likes.length : 0,
+      })));
+    }
+  }, [initialBook.comments, user]); // Recalculate when initial comments or user changes
 
   useEffect(() => {
     if (user && user.readingList) {
