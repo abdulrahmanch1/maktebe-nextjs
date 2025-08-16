@@ -40,7 +40,7 @@ export const DELETE = protect(async (request, { params }) => {
 
     // Update the user's favorites
     const { error: updateError } = await supabase
-      .from('users')
+      .from('profiles')
       .update({ favorites: updatedFavorites })
       .eq('id', id);
 
