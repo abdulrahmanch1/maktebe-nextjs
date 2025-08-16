@@ -1,13 +1,13 @@
 'use client';
 import React, { useState, useEffect, useCallback } from "react";
 import BookCard from "@/components/BookCard";
-// import { ThemeContext } from "@/contexts/ThemeContext";
+import { ThemeContext } from "@/contexts/ThemeContext";
 import useFetch from "@/hooks/useFetch";
 import { API_URL } from "@/constants";
 import './HomePage.css';
 
 const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultLimit }) => {
-  // const { theme } = React.useContext(ThemeContext);
+  const { theme } = React.useContext(ThemeContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(""); // Keep for debounce logic if needed elsewhere
   const [selectedCategory, setSelectedCategory] = useState("الكل");
@@ -115,8 +115,8 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
   };
 
   return (
-    <div className="homepage-container">
-      <h1 className="homepage-title">البحث عن الكتب</h1>
+    <div className="homepage-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
+      <h1 className="homepage-title" style={{ color: theme.primary }}>البحث عن الكتب</h1>
       <div className="search-filter-container">
         <input
           type="text"
@@ -125,12 +125,22 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
           onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"
           aria-label="البحث عن كتاب"
+          style={{
+            border: `1px solid ${theme.secondary}`,
+            backgroundColor: theme.background,
+            color: theme.primary,
+          }}
         />
         <select
           value={selectedCategory}
           onChange={handleCategoryChange}
           className="category-select"
           aria-label="اختر فئة الكتاب"
+          style={{
+            border: `1px solid ${theme.secondary}`,
+            backgroundColor: theme.background,
+            color: theme.primary,
+          }}
         >
           {categories.map(category => (
             <option key={category} value={category}>{category}</option>
@@ -153,6 +163,12 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
               onClick={handleLoadMore}
               disabled={loading}
               className="load-more-button"
+              style={{
+                backgroundColor: theme.accent,
+                color: theme.primary,
+                border: `1px solid ${theme.secondary}`,
+                cursor: loading ? 'not-allowed' : 'pointer',
+              }}
             >
               {loading ? 'جاري التحميل...' : 'تحميل المزيد'}
             </button>
