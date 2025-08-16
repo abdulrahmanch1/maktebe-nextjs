@@ -1,3 +1,10 @@
+'use client';
+import React, { useState, useEffect, useCallback } from "react";
+import BookCard from "@/components/BookCard";
+import { ThemeContext } from "@/contexts/ThemeContext";
+import useFetch from "@/hooks/useFetch";
+import { API_URL } from "@/constants";
+import './HomePage.css';
 
 const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultLimit }) => {
   const { theme } = React.useContext(ThemeContext);
@@ -91,7 +98,13 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
     const newCategory = e.target.value;
     setSelectedCategory(newCategory);
     setCurrentPage(1); // Reset page when category changes
-    const url = constructFetchUrl(1, searchTerm, newCategory);
+    const url = `${API_URL}/api/books?page=1&limit=${booksPerPage}`;
+    if (debouncedSearchTerm) {
+      url += `&query=${debouncedSearchTerm}`;
+    }
+    if (newCategory !== "الكل") {
+      url += `&category=${newCategory}`;
+    }
     refetch(url); // Trigger fetch for new category
   };
 
