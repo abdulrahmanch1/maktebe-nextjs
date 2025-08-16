@@ -1,16 +1,8 @@
 
-'use client';
-import React, { useState, useEffect, useCallback } from "react";
-import BookCard from "@/components/BookCard";
-import { ThemeContext } from "@/contexts/ThemeContext";
-import useFetch from "@/hooks/useFetch";
-import { API_URL } from "@/constants";
-import './HomePage.css';
-
 const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultLimit }) => {
   const { theme } = React.useContext(ThemeContext);
   const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(""); // Keep for debounce logic if needed elsewhere
   const [selectedCategory, setSelectedCategory] = useState("الكل");
   const [books, setBooks] = useState(initialBooks); // Start with initialBooks
   const [categories, setCategories] = useState(initialCategories); // Start with initialCategories
@@ -55,25 +47,42 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
 
       // Update categories based on fetched books (only if not actively searching)
       // This ensures category list updates with available categories for current filter
-      if (!debouncedSearchTerm) {
+      if (!searchTerm) { // Use searchTerm directly here as debouncedSearchTerm is for triggering
         const uniqueCategories = ["الكل", ...new Set(newBooks.map(book => book.category))];
         setCategories(uniqueCategories);
       }
     }
-  }, [fetchResponse, currentPage, booksPerPage, debouncedSearchTerm]);
+  }, [fetchResponse, currentPage, booksPerPage, searchTerm]); // Changed debouncedSearchTerm to searchTerm
 
+  // Function to construct the URL for fetching books
+  const constructFetchUrl = useCallback((page, query, category) => {
+    let url = `${API_URL}/api/books?page=${page}&limit=${booksPerPage}`;
+    if (query) {
+      url += `&query=${query}`;
+    }
+    if (category !== "الكل") {
+      url += `&category=${category}`;
+    }
+    return url;
+  }, [booksPerPage]); // booksPerPage is stable
+
+  const handleSearchSubmit = () => {
+    setCurrentPage(1); // Reset page for new search
+    const url = constructFetchUrl(1, searchTerm, selectedCategory);
+    refetch(url);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit();
+    }
+  };
 
   const handleLoadMore = () => {
     if (!loading && hasMore) {
       const nextPage = currentPage + 1;
       setCurrentPage(nextPage);
-      const url = `${API_URL}/api/books?page=${nextPage}&limit=${booksPerPage}`;
-      if (debouncedSearchTerm) {
-        url += `&query=${debouncedSearchTerm}`;
-      }
-      if (selectedCategory !== "الكل") {
-        url += `&category=${selectedCategory}`;
-      }
+      const url = constructFetchUrl(nextPage, searchTerm, selectedCategory);
       refetch(url); // Trigger fetch for next page
     }
   };
@@ -82,35 +91,9 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
     const newCategory = e.target.value;
     setSelectedCategory(newCategory);
     setCurrentPage(1); // Reset page when category changes
-    const url = `${API_URL}/api/books?page=1&limit=${booksPerPage}`;
-    if (debouncedSearchTerm) {
-      url += `&query=${debouncedSearchTerm}`;
-    }
-    if (newCategory !== "الكل") {
-      url += `&category=${newCategory}`;
-    }
+    const url = constructFetchUrl(1, searchTerm, newCategory);
     refetch(url); // Trigger fetch for new category
   };
-
-  // Trigger fetch when debouncedSearchTerm changes
-  useEffect(() => {
-    if (debouncedSearchTerm !== undefined) { // Ensure it's not initial undefined
-      const url = `${API_URL}/api/books?page=1&limit=${booksPerPage}`;
-      if (debouncedSearchTerm) {
-        url += `&query=${debouncedSearchTerm}`;
-      }
-      if (selectedCategory !== "الكل") {
-        url += `&category=${selectedCategory}`;
-      }
-      refetch(url); // Trigger fetch for new search term
-    }
-  }, [debouncedSearchTerm, booksPerPage, selectedCategory, refetch]); // Add refetch to dependencies
-
-
-  
-
-
-  
 
   return (
     <div className="homepage-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
@@ -121,6 +104,7 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
           placeholder="ابحث عن كتاب..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyDown={handleKeyDown} // Add onKeyDown
           className="search-input"
           aria-label="البحث عن كتاب"
           style={{
@@ -129,6 +113,19 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
             color: theme.primary,
           }}
         />
+        <button
+          onClick={handleSearchSubmit} // Add search button
+          className="search-button"
+          style={{
+            backgroundColor: theme.accent,
+            color: theme.primary,
+            border: `1px solid ${theme.secondary}`,
+            cursor: 'pointer',
+            marginLeft: '10px',
+          }}
+        >
+          بحث
+        </button>
         <select
           value={selectedCategory}
           onChange={handleCategoryChange}
