@@ -38,6 +38,7 @@ export const POST = protect(async (request, { params }) => {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
+    console.log('User favorites from DB:', user.favorites, 'Type:', typeof user.favorites, 'Is Array:', Array.isArray(user.favorites));
     // Ensure favorites is an array, initialize if null
     const currentFavorites = Array.isArray(user.favorites) ? user.favorites : [];
 
