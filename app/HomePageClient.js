@@ -28,6 +28,24 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
     refetch(url);
   }, [defaultPage, defaultLimit, refetch]); // Dependencies for initial fetch
 
+  // Debounce effect for search term
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // 500ms debounce delay
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
+
+  // Effect to trigger fetch when debouncedSearchTerm or selectedCategory changes
+  useEffect(() => {
+    setCurrentPage(1); // Reset page for new search/category
+    const url = constructFetchUrl(1, debouncedSearchTerm, selectedCategory);
+    refetch(url);
+  }, [debouncedSearchTerm, selectedCategory, refetch, constructFetchUrl]);
+
   // Effect to handle fetched data, append books for pagination, and update total count
   useEffect(() => {
     if (fetchResponse) {
@@ -54,12 +72,12 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
 
       // Update categories based on fetched books (only if not actively searching)
       // This ensures category list updates with available categories for current filter
-      if (!searchTerm) { // Use searchTerm directly here as debouncedSearchTerm is for triggering
+      if (!debouncedSearchTerm) {
         const uniqueCategories = ["الكل", ...new Set(newBooks.map(book => book.category))];
         setCategories(uniqueCategories);
       }
     }
-  }, [fetchResponse, currentPage, booksPerPage, searchTerm]); // Changed debouncedSearchTerm to searchTerm
+  }, [fetchResponse, currentPage, booksPerPage, debouncedSearchTerm]);
 
   // Function to construct the URL for fetching books
   const constructFetchUrl = useCallback((page, query, category) => {
@@ -72,18 +90,6 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
     }
     return url;
   }, [booksPerPage]); // booksPerPage is stable
-
-  const handleSearchSubmit = () => {
-    setCurrentPage(1); // Reset page for new search
-    const url = constructFetchUrl(1, searchTerm, selectedCategory);
-    refetch(url);
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      handleSearchSubmit();
-    }
-  };
 
   const handleLoadMore = () => {
     if (!loading && hasMore) {
@@ -117,7 +123,6 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
           placeholder="ابحث عن كتاب..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyDown={handleKeyDown} // Add onKeyDown
           className="search-input"
           aria-label="البحث عن كتاب"
           style={{
@@ -126,19 +131,6 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
             color: theme.primary,
           }}
         />
-        <button
-          onClick={handleSearchSubmit} // Add search button
-          className="search-button"
-          style={{
-            backgroundColor: theme.accent,
-            color: theme.primary,
-            border: `1px solid ${theme.secondary}`,
-            cursor: 'pointer',
-            marginLeft: '10px',
-          }}
-        >
-          بحث
-        </button>
         <select
           value={selectedCategory}
           onChange={handleCategoryChange}
