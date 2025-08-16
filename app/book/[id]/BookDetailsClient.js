@@ -277,17 +277,17 @@ const BookDetailsClient = ({ initialBook }) => {
               bookComments.map((comment) => (
                 <div key={comment.id} className="comment-item" style={{ backgroundColor: theme.secondary }}>
                   <Image
-                    src={comment.user?.profilepicture && (comment.user.profilepicture !== 'Untitled.jpg' && comment.user.profilepicture !== 'user.jpg') ? comment.user.profilepicture : '/imgs/user.jpg'}
-                    alt={`صورة ملف ${comment.user?.username || 'مستخدم غير معروف'}`}
+                    src={comment.profiles?.profilepicture && (comment.profiles.profilepicture !== 'Untitled.jpg' && comment.profiles.profilepicture !== 'user.jpg') ? comment.profiles.profilepicture : '/imgs/user.jpg'}
+                    alt={`صورة ملف ${comment.profiles?.username || 'مستخدم غير معروف'}`}
                     width={40}
                     height={40}
                     className="comment-user-avatar"
                     onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }}
                   />
                   <div className="comment-content">
-                    <p className="comment-username" style={{ color: theme.primary }}>{comment.user?.username || 'مستخدم غير معروف'}</p>
+                    <p className="comment-username" style={{ color: theme.primary }}>{comment.profiles?.username || 'مستخدم غير معروف'}</p>
                     <p className="comment-text" style={{ color: theme.primary }}>{comment.text}</p>
-                    <p className="comment-date" style={{ color: theme.primary }}>{new Date(comment.createdAt).toLocaleDateString()}</p>
+                    <p className="comment-date" style={{ color: theme.primary }}>{new Date(comment.created_at).toLocaleDateString()}</p>
                     <div className="comment-actions">
                       <span
                         onClick={() => handleToggleLike(comment.id)}

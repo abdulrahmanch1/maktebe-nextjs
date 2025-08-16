@@ -62,6 +62,7 @@ export const PATCH = protect(async (request, { params }) => {
   try {
     const userId = request.user.id;
     let currentLikes = comment.likes || []; // Ensure it's an array
+    console.log('Before like toggle - currentLikes:', currentLikes);
 
     const userLikedIndex = currentLikes.indexOf(userId);
 
@@ -75,6 +76,7 @@ export const PATCH = protect(async (request, { params }) => {
       currentLikes.splice(userLikedIndex, 1);
       liked = false;
     }
+    console.log('After like toggle - currentLikes (before DB update):', currentLikes);
 
     const { data: updatedComment, error: updateError } = await supabase
       .from('comments')
@@ -84,8 +86,10 @@ export const PATCH = protect(async (request, { params }) => {
       .single();
 
     if (updateError) {
+      console.error('Supabase update error for likes:', updateError);
       throw new Error(updateError.message);
     }
+    console.log('After DB update - updatedComment:', updatedComment);
 
     return NextResponse.json({ likes: updatedComment.likes.length, liked });
   } catch (err) {
