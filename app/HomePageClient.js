@@ -12,38 +12,8 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("الكل");
-  const [books, setBooks] = useState([]); // Start with empty array
-  const [categories, setCategories] = useState([]); // Start with empty array
-
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(defaultPage);
-  const [booksPerPage] = useState(defaultLimit);
-  const [totalBooksCount, setTotalBooksCount] = useState(0); // Will be updated from X-Total-Count header
-  const [hasMore, setHasMore] = useState(true);
-
-  // Effect to initialize books and categories from server-side props once
-  useEffect(() => {
-    if (initialBooks && initialBooks.length > 0) {
-      setBooks(initialBooks);
-      setCategories(initialCategories);
-      // Assuming initialBooks count is also available or can be derived
-      // For simplicity, let's assume initialBooks is the first page
-      setTotalBooksCount(initialBooks.length); // This is a placeholder, needs actual total from server
-      setHasMore(initialBooks.length === booksPerPage); // If initial books fill a page, assume more
-    }
-  }, []); // Empty dependency array means this runs only once on mount
-
-  // Debounce search term to limit API calls while typing
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-      setCurrentPage(1); // Reset page to 1 when search term changes
-    }, 500); // 500ms debounce time
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchTerm]);
+  const [books, setBooks] = useState(initialBooks); // Start with initialBooks
+  const [categories, setCategories] = useState(initialCategories); // Start with initialCategories
 
   const { data: fetchResponse, loading, error, refetch } = useFetch(null); // Pass null initially
 
@@ -134,16 +104,7 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
   
 
 
-  const handleLoadMore = () => {
-    if (!loading && hasMore) {
-      setCurrentPage((prevPage) => prevPage + 1);
-    }
-  };
-
-  const handleCategoryChange = (e) => {
-    setSelectedCategory(e.target.value);
-    setCurrentPage(1); // Reset page when category changes
-  };
+  
 
   return (
     <div className="homepage-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
