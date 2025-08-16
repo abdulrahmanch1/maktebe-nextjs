@@ -5,6 +5,7 @@ import { validateFavorite } from '@/lib/validation';
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
 export const POST = protect(async (request, { params }) => {
+  console.log('Favorites POST API hit for userId:', params.userId); // Added log
   const supabase = createClient(); // Instantiate supabase client
   const { userId } = params;
   const { bookId } = await request.json();
