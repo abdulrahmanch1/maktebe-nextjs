@@ -12,14 +12,26 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("الكل");
-  const [books, setBooks] = useState(initialBooks);
-  const [categories, setCategories] = useState(initialCategories);
+  const [books, setBooks] = useState([]); // Start with empty array
+  const [categories, setCategories] = useState([]); // Start with empty array
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(defaultPage);
   const [booksPerPage] = useState(defaultLimit);
   const [totalBooksCount, setTotalBooksCount] = useState(0); // Will be updated from X-Total-Count header
   const [hasMore, setHasMore] = useState(true);
+
+  // Effect to initialize books and categories from server-side props once
+  useEffect(() => {
+    if (initialBooks && initialBooks.length > 0) {
+      setBooks(initialBooks);
+      setCategories(initialCategories);
+      // Assuming initialBooks count is also available or can be derived
+      // For simplicity, let's assume initialBooks is the first page
+      setTotalBooksCount(initialBooks.length); // This is a placeholder, needs actual total from server
+      setHasMore(initialBooks.length === booksPerPage); // If initial books fill a page, assume more
+    }
+  }, []); // Empty dependency array means this runs only once on mount
 
   // Debounce search term to limit API calls while typing
   useEffect(() => {
