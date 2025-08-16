@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const useFetch = (url, dependencies = [], config = {}) => {
-  const [data, setData] = useState(null); // This will now store the full response object
+const useFetch = (url, dependencies = [], config = {}, shouldFetch = true) => {
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -10,7 +10,7 @@ const useFetch = (url, dependencies = [], config = {}) => {
     const controller = new AbortController();
 
     const fetchData = async () => {
-      if (!url) {
+      if (!url || !shouldFetch) {
         setLoading(false);
         return;
       }
@@ -18,14 +18,13 @@ const useFetch = (url, dependencies = [], config = {}) => {
       setError(null);
       try {
         const response = await axios.get(url, { ...config, signal: controller.signal });
-        setData(response); // Set data to the full response object
+        setData(response);
       } catch (err) {
         if (err.name !== 'CanceledError') {
-          // Check if it's an Axios error with a response
           if (err.response && err.response.data && err.response.data.message) {
-            setError({ message: err.response.data.message }); // Extract message from API response
+            setError({ message: err.response.data.message });
           } else {
-            setError({ message: err.message || 'An unknown error occurred' }); // Fallback
+            setError({ message: err.message || 'An unknown error occurred' });
           }
         }
       }
@@ -37,7 +36,7 @@ const useFetch = (url, dependencies = [], config = {}) => {
     return () => {
       controller.abort();
     };
-  }, [url, ...dependencies, config]);
+  }, [url, shouldFetch, ...dependencies, config]);
 
   return { data, loading, error };
 };

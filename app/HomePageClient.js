@@ -21,8 +21,6 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
   const [totalBooksCount, setTotalBooksCount] = useState(0); // Will be updated from X-Total-Count header
   const [hasMore, setHasMore] = useState(true);
 
-  const [urlToFetch, setUrlToFetch] = useState('');
-
   // Debounce search term to limit API calls while typing
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -35,8 +33,8 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
     };
   }, [searchTerm]);
 
-  // Effect to construct and update the URL for useFetch
-  useEffect(() => {
+  // Memoized URL construction for useFetch hook, includes pagination and filters
+  const fetchUrl = useCallback(() => {
     let url = `${API_URL}/api/books?page=${currentPage}&limit=${booksPerPage}`;
     if (debouncedSearchTerm) {
       url += `&query=${debouncedSearchTerm}`;
@@ -44,10 +42,10 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
     if (selectedCategory !== "الكل") {
       url += `&category=${selectedCategory}`;
     }
-    setUrlToFetch(url);
-  }, [currentPage, booksPerPage, debouncedSearchTerm, selectedCategory]); // Dependencies for URL construction
+    return url;
+  }, [currentPage, booksPerPage, debouncedSearchTerm, selectedCategory]);
 
-  const { data: fetchResponse, loading, error } = useFetch(urlToFetch); // useFetch now depends on urlToFetch string
+  const { data: fetchResponse, loading, error } = useFetch(fetchUrl(), [], {}, !!fetchUrl());
 
   // Effect to handle fetched data, append books for pagination, and update total count
   useEffect(() => {
