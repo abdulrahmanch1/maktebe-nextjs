@@ -41,10 +41,10 @@ export const POST = protect(async (request, { params }) => {
     }
 
     console.log('ReadingList POST API: User data from DB:', user);
-    console.log('ReadingList POST API: currentReadingList from DB:', user.readingList, 'Type:', typeof user.readingList, 'Is Array:', Array.isArray(user.readingList));
+    console.log('ReadingList POST API: currentReadingList from DB:', user.readinglist, 'Type:', typeof user.readinglist, 'Is Array:', Array.isArray(user.readinglist));
 
     // Ensure readingList is an array, initialize if null
-    const currentReadingList = Array.isArray(user.readingList) ? user.readingList : [];
+    const currentReadingList = Array.isArray(user.readinglist) ? user.readinglist : [];
 
     // Check if the book is already in reading list
     const bookExists = currentReadingList.some(item => item.book === bookId);

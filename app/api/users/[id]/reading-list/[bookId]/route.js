@@ -22,7 +22,7 @@ async function getUserAndReadingListItem(id, bookId) {
   }
 
   // Ensure readingList is an array, initialize if null
-  const currentReadingList = Array.isArray(user.readingList) ? user.readingList : [];
+  const currentReadingList = Array.isArray(user.readinglist) ? user.readinglist : [];
 
   const readingListItem = currentReadingList.find(item => item.book === bookId); // Assuming bookId is directly stored
   if (!readingListItem) {
@@ -56,7 +56,7 @@ export const PATCH = protect(async (request, { params }) => {
 
   try {
     // Ensure readingList is an array, initialize if null
-    const currentReadingList = Array.isArray(user.readingList) ? user.readingList : [];
+    const currentReadingList = Array.isArray(user.readinglist) ? user.readinglist : []; // Changed to readinglist
 
     // Update the read status in the readingList array
     const updatedReadingList = currentReadingList.map(item =>
@@ -98,7 +98,7 @@ export const DELETE = protect(async (request, { params }) => {
 
   try {
     // Ensure readingList is an array, initialize if null
-    const currentReadingList = Array.isArray(user.readingList) ? user.readingList : [];
+    const currentReadingList = Array.isArray(user.readinglist) ? user.readinglist : [];
 
     // Filter out the book from the readingList array
     const updatedReadingList = currentReadingList.filter(item => item.book !== bookId);
