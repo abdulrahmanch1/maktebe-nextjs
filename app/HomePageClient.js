@@ -74,20 +74,7 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
   }, [fetchResponse, currentPage, booksPerPage, debouncedSearchTerm]);
 
 
-  // Effect to handle initial books and categories passed from the Server Component
-  // This ensures the client-side state is initialized with server-rendered data
-  useEffect(() => {
-    if (initialBooks && initialBooks.length > 0 && currentPage === 1 && !debouncedSearchTerm && selectedCategory === "الكل") {
-      setBooks(initialBooks);
-      setCategories(initialCategories);
-      // Note: totalBooksCount and hasMore for initial load should ideally come from
-      // a header in the initial server fetch response, but for simplicity,
-      // we're making an assumption here. A more robust solution would pass totalCount
-      // from the server component.
-      setTotalBooksCount(initialBooks.length); // This is a placeholder, needs actual total from server
-      setHasMore(initialBooks.length === booksPerPage); // If initial books fill a page, assume more
-    }
-  }, [initialBooks, initialCategories, currentPage, debouncedSearchTerm, selectedCategory, booksPerPage]);
+  
 
 
   const handleLoadMore = () => {

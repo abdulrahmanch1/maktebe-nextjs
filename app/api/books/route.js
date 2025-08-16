@@ -16,25 +16,49 @@ export const GET = async (request) => {
   const endIndex = startIndex + limit - 1;
 
   try {
-    let supabaseQuery = supabase.from('books').select('*, count=exact'); // Request exact count
+    // First query: Get the total count
+    let countQuery = supabase.from('books').select('count', { count: 'exact' });
 
     if (query) {
-      supabaseQuery = supabaseQuery.or(`title.ilike.%${query}%,author.ilike.%${query}%,description.ilike.%${query}%`);
+      countQuery = countQuery.or(`title.ilike.%${query}%,author.ilike.%${query}%,description.ilike.%${query}%`);
     }
     if (category) {
-      supabaseQuery = supabaseQuery.eq('category', category);
+      countQuery = countQuery.eq('category', category);
     }
     if (author) {
-      supabaseQuery = supabaseQuery.ilike('author', `%${author}%`);
+      countQuery = countQuery.ilike('author', `%${author}%`);
     }
     if (ids) {
       const bookIds = ids.split(',');
-      supabaseQuery = supabaseQuery.in('id', bookIds);
+      countQuery = countQuery.in('id', bookIds);
     }
 
-    supabaseQuery = supabaseQuery.range(startIndex, endIndex);
+    const { count, error: countError } = await countQuery;
 
-    const { data: books, error: fetchError, count } = await supabaseQuery;
+    if (countError) {
+      throw new Error(countError.message);
+    }
+
+    // Second query: Get the paginated data
+    let dataQuery = supabase.from('books').select('*');
+
+    if (query) {
+      dataQuery = dataQuery.or(`title.ilike.%${query}%,author.ilike.%${query}%,description.ilike.%${query}%`);
+    }
+    if (category) {
+      dataQuery = dataQuery.eq('category', category);
+    }
+    if (author) {
+      dataQuery = dataQuery.ilike('author', `%${author}%`);
+    }
+    if (ids) {
+      const bookIds = ids.split(',');
+      dataQuery = dataQuery.in('id', bookIds);
+    }
+
+    dataQuery = dataQuery.range(startIndex, endIndex);
+
+    const { data: books, error: fetchError } = await dataQuery;
 
     if (fetchError) {
       throw new Error(fetchError.message);
