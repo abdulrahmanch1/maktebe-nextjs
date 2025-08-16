@@ -51,17 +51,24 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
   useEffect(() => {
     if (fetchResponse) {
       const newBooks = fetchResponse.data;
-      // Extract total count from response headers for pagination
       const totalCount = parseInt(fetchResponse.headers['x-total-count'], 10);
 
       setTotalBooksCount(totalCount);
       // Determine if there are more books to load
       setHasMore(currentPage * booksPerPage < totalCount);
 
-      if (currentPage === 1) {
-        setBooks(newBooks);
-      } else {
-        setBooks((prevBooks) => [...prevBooks, ...newBooks]);
+      // Only update books if new data is available
+      if (newBooks && newBooks.length > 0) {
+        if (currentPage === 1) {
+          // If it's the first page (new search or initial load), replace books
+          setBooks(newBooks);
+        } else {
+          // For subsequent pages (load more), append books
+          setBooks((prevBooks) => [...prevBooks, ...newBooks]);
+        }
+      } else if (currentPage === 1) {
+        // If no new books and it's the first page, clear the list (e.g., no results for search)
+        setBooks([]);
       }
 
       // Update categories based on fetched books (only if not actively searching)
