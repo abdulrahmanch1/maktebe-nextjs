@@ -20,7 +20,7 @@ export const GET = protect(async (request, { params }) => {
     // Fetch comments for the given book_id and populate user details
     const { data: comments, error: commentsError } = await supabase
       .from('comments')
-      .select('*, profiles(username, avatar_url)') // Assuming 'profiles' is the table for user details
+      .select('*, profiles(username, profilepicture)') // Assuming 'profiles' is the table for user details
       .eq('book_id', id); // Assuming comments table has a book_id column
 
     if (commentsError) {
@@ -57,7 +57,7 @@ export const POST = protect(async (request, { params }) => {
         text: text,
         user_id: request.user.id, // Assuming request.user.id is the Supabase user ID
       })
-      .select('*, profiles(username, avatar_url)') // Select the newly inserted comment and populate user details
+      .select('*, profiles(username, profilepicture)') // Select the newly inserted comment and populate user details
       .single();
 
     if (insertError) {
