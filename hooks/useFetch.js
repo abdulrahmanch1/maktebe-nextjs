@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const useFetch = (url, dependencies = [], config = {}) => {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(null); // This will now store the full response object
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -18,7 +18,7 @@ const useFetch = (url, dependencies = [], config = {}) => {
       setError(null);
       try {
         const response = await axios.get(url, { ...config, signal: controller.signal });
-        setData(response.data);
+        setData(response); // Set data to the full response object
       } catch (err) {
         if (err.name !== 'CanceledError') {
           // Check if it's an Axios error with a response
