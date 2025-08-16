@@ -5,14 +5,14 @@ import { createClient } from '@/utils/supabase/server'; // Correct import for se
 
 export const POST = protect(async (request, { params }) => {
   const supabase = createClient(); // Instantiate supabase client
-  const { userId } = params;
+  const { id } = params; // Changed userId to id
   const { bookId } = await request.json();
 
   // const userIdErrors = validateMongoId(userId); // Removed validateMongoId call
   // if (Object.keys(userIdErrors).length > 0) { // Removed this block
   //   return NextResponse.json({ message: 'Invalid User ID', errors: userIdErrors }, { status: 400 });
   // }
-  if (!userId) { // Simple ID validation for Supabase (assuming UUID or integer)
+  if (!id) { // Simple ID validation for Supabase (assuming UUID or integer)
     return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
   }
 
@@ -21,7 +21,7 @@ export const POST = protect(async (request, { params }) => {
     return NextResponse.json({ message: 'Invalid Book ID', errors: bookIdErrors }, { status: 400 });
   }
 
-  if (userId !== request.user.id) {
+  if (id !== request.user.id) {
     return NextResponse.json({ message: 'Not authorized to modify this user\'s reading list' }, { status: 403 });
   }
 
@@ -30,7 +30,7 @@ export const POST = protect(async (request, { params }) => {
     const { data: user, error: userError } = await supabase
       .from('profiles')
       .select('readingList') // Assuming 'readingList' is a JSONB column or similar
-      .eq('id', userId)
+      .eq('id', id)
       .single();
 
     if (userError || !user) {
@@ -53,7 +53,7 @@ export const POST = protect(async (request, { params }) => {
     const { error: updateError } = await supabase
       .from('users')
       .update({ readingList: updatedReadingList })
-      .eq('id', userId);
+      .eq('id', id);
 
     if (updateError) {
       throw new Error(updateError.message);
