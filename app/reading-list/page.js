@@ -16,19 +16,19 @@ const ReadingListPage = () => {
   const [readingListBooks, setReadingListBooks] = useState([]);
 
   const { data: userData, loading, error } = useFetch(
-    isLoggedIn && user && user._id ? `${API_URL}/api/users/${user._id}` : null,
+    isLoggedIn && user && user.id ? `${API_URL}/api/users/${user.id}` : null,
     [isLoggedIn, user, token]
   );
 
   useEffect(() => {
     const fetchBookDetails = async () => {
-      if (userData && userData.readingList && userData.readingList.length > 0) {
-        const bookIds = userData.readingList.map(item => item.book).join(',');
+      if (userData && userData.readinglist && userData.readinglist.length > 0) { // Changed readingList to readinglist
+        const bookIds = userData.readinglist.map(item => item.book).join(','); // Changed readingList to readinglist
         try {
           const response = await axios.get(`${API_URL}/api/books?ids=${bookIds}`);
-          const fetchedBooksMap = new Map(response.data.map(book => [book._id, book]));
+          const fetchedBooksMap = new Map(response.data.map(book => [book.id, book]));
 
-          const mergedBooks = userData.readingList.map(item => {
+          const mergedBooks = userData.readinglist.map(item => { // Changed readingList to readinglist
             const book = fetchedBooksMap.get(item.book);
             return book ? { ...book, read: item.read } : null;
           }).filter(Boolean);
@@ -101,7 +101,7 @@ const ReadingListPage = () => {
       <div className="reading-list-books-display">
         {booksToDisplay.length > 0 ? (
           booksToDisplay.map((book) => (
-            <BookCard key={book._id} book={book} />
+            <BookCard key={book.id} book={book} />
           ))
         ) : (
           <p>لا توجد كتب في هذه القائمة.</p>
