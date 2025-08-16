@@ -3,7 +3,12 @@ import { createClient } from "@/utils/supabase/server";
 
 async function getBooks(page = 1, limit = 10) {
   const supabase = createClient();
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  if (!baseUrl) {
+    throw new Error('NEXT_PUBLIC_API_URL is not defined. Please set it in your environment variables.');
+  }
+
   const url = `${baseUrl}/api/books?page=${page}&limit=${limit}`;
   const res = await fetch(url);
   if (!res.ok) {
