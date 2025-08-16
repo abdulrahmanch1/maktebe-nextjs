@@ -38,7 +38,7 @@ export const POST = protect(async (request, { params }) => {
     }
 
     // Ensure readingList is an array, initialize if null
-    const currentReadingList = user.readingList || [];
+    const currentReadingList = Array.isArray(user.readingList) ? user.readingList : [];
 
     // Check if the book is already in reading list
     const bookExists = currentReadingList.some(item => item.book === bookId);

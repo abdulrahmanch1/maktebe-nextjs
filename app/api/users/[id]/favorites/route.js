@@ -39,7 +39,7 @@ export const POST = protect(async (request, { params }) => {
     }
 
     // Ensure favorites is an array, initialize if null
-    const currentFavorites = user.favorites || [];
+    const currentFavorites = Array.isArray(user.favorites) ? user.favorites : [];
 
     // Check if the book is already in favorites
     if (currentFavorites.includes(bookId)) {

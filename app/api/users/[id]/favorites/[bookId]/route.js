@@ -33,7 +33,7 @@ export const DELETE = protect(async (request, { params }) => {
     }
 
     // Ensure favorites is an array, initialize if null
-    const currentFavorites = user.favorites || [];
+    const currentFavorites = Array.isArray(user.favorites) ? user.favorites : [];
 
     // Filter out the bookId from the favorites array
     const updatedFavorites = currentFavorites.filter(favId => favId !== bookId);
