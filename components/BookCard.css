@@ -106,7 +106,7 @@
 .favorite-icon {
   cursor: pointer;
   color: white; /* White by default, red when liked */
-  font-size: 28px; /* Increased font size */
+  font-size: 32px; /* Increased font size */
   background-color: var(--primary-color); /* Background for the heart icon */
   padding: 4px;
   margin-right: 10px;
@@ -114,9 +114,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px; /* Fixed width for circular background */
-  height: 30px; /* Fixed height for circular background */
-  transition: color 0.3s ease, background-color 0.3s ease, transform 0.2s ease-out; /* Faster transform transition */
+  width: 40px; /* Increased width for circular background */
+  height: 40px; /* Increased height for circular background */
+  transition: color 0.3s ease, background-color 0.3s ease, transform 0.2s ease-out;
+  border: none !important; /* Ensure no border */
+  outline: none; /* Remove outline on focus/click */
 }
 
 .favorite-icon:active {
