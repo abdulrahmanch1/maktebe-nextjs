@@ -12,13 +12,16 @@ const LoginPage = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false); // New loading state
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // Set loading to true
     const success = await login(email, password);
     if (success) {
       router.push("/");
     }
+    setLoading(false); // Set loading to false
   };
 
   return (
@@ -43,7 +46,9 @@ const LoginPage = () => {
           required
           style={{ backgroundColor: theme.background, color: theme.primary, borderColor: theme.accent }}
         />
-        <button type="submit" style={{ backgroundColor: theme.accent, color: theme.primary }}>دخول</button>
+        <button type="submit" disabled={loading} style={{ backgroundColor: theme.accent, color: theme.primary }}>
+          {loading ? 'جاري الدخول...' : 'دخول'}
+        </button>
       </form>
     </div>
   );

@@ -1,7 +1,8 @@
 import HomePageClient from "./HomePageClient";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/server";
 
 async function getBooks() {
+  const supabase = createClient();
   const { data, error } = await supabase.from('books').select('*');
   if (error) {
     console.error('Error fetching books:', error);
@@ -11,13 +12,14 @@ async function getBooks() {
 }
 
 async function getCategories() {
-  const { data, error } = await supabase.from('books').select('category');
+  const supabase = createClient();
+  const { data, error } = await supabase.from('books').select('category', { distinct: true });
   if (error) {
     console.error('Error fetching categories:', error);
     return ["الكل"];
   }
-  const uniqueCategories = ["الكل", ...new Set(data.map(item => item.category))];
-  return uniqueCategories;
+  const categories = data.map(item => item.category);
+  return ["الكل", ...categories];
 }
 
 

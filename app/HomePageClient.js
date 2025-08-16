@@ -26,7 +26,9 @@ const HomePageClient = ({ initialBooks, initialCategories }) => {
   }, [searchTerm]);
 
   const { data: booksData, loading, error } = useFetch(
-    debouncedSearchTerm ? `${API_URL}/api/books?query=${debouncedSearchTerm}` : null
+    (debouncedSearchTerm || selectedCategory !== "الكل")
+      ? `${API_URL}/api/books?query=${debouncedSearchTerm}&category=${selectedCategory === "الكل" ? '' : selectedCategory}`
+      : null
   );
 
   useEffect(() => {
@@ -85,7 +87,7 @@ const HomePageClient = ({ initialBooks, initialCategories }) => {
       ) : (
         <div className="books-display-container">
           {filteredBooks.map((book) => {
-            console.log('Book object passed to BookCard:', book);
+            
             return <BookCard key={book.id} book={book} />;
           })}
         </div>

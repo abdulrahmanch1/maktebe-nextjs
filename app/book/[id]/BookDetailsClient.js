@@ -6,42 +6,33 @@ import { FavoritesContext } from "@/contexts/FavoritesContext";
 import { AuthContext } from "@/contexts/AuthContext";
 import axios from "axios";
 import { toast } from 'react-toastify';
-import useFetch from "@/hooks/useFetch";
 import Image from "next/image";
 import { API_URL } from "@/constants";
-import { useRouter } from "next/navigation"; // Import useRouter
 import './BookDetailsPage.css';
 
-const BookDetailsClient = ({ params }) => {
-  const router = useRouter();
-  const id = router.pathname.split('/').pop(); // Extract ID from pathname
+const BookDetailsClient = ({ initialBook }) => {
   const { theme } = useContext(ThemeContext);
   const { toggleFavorite, isFavorite } = useContext(FavoritesContext);
   const { isLoggedIn, user, session, setUser } = useContext(AuthContext);
-  const { data: bookData, loading, error } = useFetch(`${API_URL}/api/books/${id}`, [id]);
-  const [book, setBook] = useState(null);
+  const [book, setBook] = useState(initialBook);
   const [isInReadingList, setIsInReadingList] = useState(false);
   const [isRead, setIsRead] = useState(false);
   const [commentText, setCommentText] = useState('');
-  const [bookComments, setBookComments] = useState([]);
+  const [bookComments, setBookComments] = useState(initialBook.comments.map(comment => ({
+    ...comment,
+    userLiked: user && comment.likes.some(likeId => likeId.toString() === user.id.toString()),
+    likes: comment.likes.length,
+  })) || []);
 
   useEffect(() => {
-    if (bookData) {
-      setBook(bookData);
-      setBookComments(bookData.comments.map(comment => ({
-        ...comment,
-        userLiked: user && comment.likes.some(likeId => likeId.toString() === user.id.toString()),
-        likes: comment.likes.length,
-      })) || []);
-      if (user && user.readingList) {
-        const item = user.readingList.find(item => item.book === id);
-        if (item) {
-          setIsInReadingList(true);
-          setIsRead(item.read);
-        }
+    if (user && user.readingList) {
+      const item = user.readingList.find(item => item.book === initialBook.id);
+      if (item) {
+        setIsInReadingList(true);
+        setIsRead(item.read);
       }
     }
-  }, [bookData, user, id]);
+  }, [user, initialBook.id]);
 
   const handleToggleFavorite = () => {
     if (!isLoggedIn) {
@@ -192,18 +183,6 @@ const BookDetailsClient = ({ params }) => {
       toast.error(err.response?.data?.message || "فشل الإعجاب بالتعليق.");
     }
   };
-
-  if (loading) {
-    return <div style={{ backgroundColor: theme.background, color: theme.primary, padding: "20px", textAlign: "center" }}>جاري تحميل تفاصيل الكتاب...</div>;
-  }
-
-  if (error) {
-    return <div style={{ backgroundColor: theme.background, color: theme.primary, padding: "20px", textAlign: "center", }}>{error.message}</div>;
-  }
-
-  if (!book) {
-    return <div style={{ backgroundColor: theme.background, color: theme.primary, padding: "20px", textAlign: "center" }}>الكتاب غير موجود</div>;
-  }
 
   const isLiked = isFavorite(book.id);
 

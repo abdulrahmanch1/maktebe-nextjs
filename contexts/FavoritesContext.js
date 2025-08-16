@@ -40,7 +40,7 @@ export const FavoritesProvider = ({ children }) => {
       setUser({ ...user, favorites: updatedFavorites });
     } catch (error) {
       console.error("Failed to toggle favorite:", error);
-      toast.error(error.response?.data?.message || "فشل تحديث المفضلة.");
+      toast.error("فشل تحديث المفضلة. يرجى المحاولة مرة أخرى.");
     }
   }, [favorites, isLoggedIn, user, session, setUser]);
 
