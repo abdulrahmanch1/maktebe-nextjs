@@ -3,7 +3,8 @@ import { createClient } from "@/utils/supabase/server";
 
 async function getBooks(page = 1, limit = 10) {
   const supabase = createClient();
-  const url = `/api/books?page=${page}&limit=${limit}`;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  const url = `${baseUrl}/api/books?page=${page}&limit=${limit}`;
   const res = await fetch(url);
   if (!res.ok) {
     console.error('Error fetching books:', res.statusText);
