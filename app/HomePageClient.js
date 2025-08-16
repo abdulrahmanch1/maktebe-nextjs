@@ -45,19 +45,13 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
     };
   }, [searchTerm]);
 
-  // Memoized URL construction for useFetch hook, includes pagination and filters
-  const fetchUrl = useCallback(() => {
-    let url = `${API_URL}/api/books?page=${currentPage}&limit=${booksPerPage}`;
-    if (debouncedSearchTerm) {
-      url += `&query=${debouncedSearchTerm}`;
-    }
-    if (selectedCategory !== "الكل") {
-      url += `&category=${selectedCategory}`;
-    }
-    return url;
-  }, [currentPage, booksPerPage, debouncedSearchTerm, selectedCategory]);
+  const { data: fetchResponse, loading, error, refetch } = useFetch(null); // Pass null initially
 
-  const { data: fetchResponse, loading, error } = useFetch(fetchUrl(), [], {}, !!fetchUrl());
+  // Effect to trigger initial fetch on component mount
+  useEffect(() => {
+    const url = `${API_URL}/api/books?page=${defaultPage}&limit=${defaultLimit}`;
+    refetch(url);
+  }, [defaultPage, defaultLimit, refetch]); // Dependencies for initial fetch
 
   // Effect to handle fetched data, append books for pagination, and update total count
   useEffect(() => {
@@ -91,6 +85,50 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
       }
     }
   }, [fetchResponse, currentPage, booksPerPage, debouncedSearchTerm]);
+
+
+  const handleLoadMore = () => {
+    if (!loading && hasMore) {
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      const url = `${API_URL}/api/books?page=${nextPage}&limit=${booksPerPage}`;
+      if (debouncedSearchTerm) {
+        url += `&query=${debouncedSearchTerm}`;
+      }
+      if (selectedCategory !== "الكل") {
+        url += `&category=${selectedCategory}`;
+      }
+      refetch(url); // Trigger fetch for next page
+    }
+  };
+
+  const handleCategoryChange = (e) => {
+    const newCategory = e.target.value;
+    setSelectedCategory(newCategory);
+    setCurrentPage(1); // Reset page when category changes
+    const url = `${API_URL}/api/books?page=1&limit=${booksPerPage}`;
+    if (debouncedSearchTerm) {
+      url += `&query=${debouncedSearchTerm}`;
+    }
+    if (newCategory !== "الكل") {
+      url += `&category=${newCategory}`;
+    }
+    refetch(url); // Trigger fetch for new category
+  };
+
+  // Trigger fetch when debouncedSearchTerm changes
+  useEffect(() => {
+    if (debouncedSearchTerm !== undefined) { // Ensure it's not initial undefined
+      const url = `${API_URL}/api/books?page=1&limit=${booksPerPage}`;
+      if (debouncedSearchTerm) {
+        url += `&query=${debouncedSearchTerm}`;
+      }
+      if (selectedCategory !== "الكل") {
+        url += `&category=${selectedCategory}`;
+      }
+      refetch(url); // Trigger fetch for new search term
+    }
+  }, [debouncedSearchTerm, booksPerPage, selectedCategory, refetch]); // Add refetch to dependencies
 
 
   
