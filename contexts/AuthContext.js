@@ -7,6 +7,7 @@ export const AuthContext = createContext({
   isLoggedIn: false,
   user: null,
   session: null,
+  isLoading: true,
   login: async () => {},
   logout: () => {},
 });
@@ -16,6 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserProfile = async (session) => {
@@ -52,16 +54,19 @@ export const AuthProvider = ({ children }) => {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       fetchUserProfile(session);
+      setIsLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       fetchUserProfile(session);
+      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, [supabase]);
 
   const login = async (email, password) => {
+    setIsLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
@@ -71,10 +76,13 @@ export const AuthProvider = ({ children }) => {
       console.error("Login failed:", error);
       toast.error(error.message || "فشل تسجيل الدخول.");
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const logout = async () => {
+    setIsLoading(true);
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
@@ -82,6 +90,8 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Error during logout:", error);
       toast.error(error.message || "فشل تسجيل الخروج.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -93,8 +103,9 @@ export const AuthProvider = ({ children }) => {
       login,
       logout,
       setUser,
+      isLoading,
     }),
-    [isLoggedIn, user, session, login, logout]
+    [isLoggedIn, user, session, login, logout, isLoading]
   );
 
   return (

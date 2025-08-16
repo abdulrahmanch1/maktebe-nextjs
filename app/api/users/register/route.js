@@ -31,7 +31,7 @@ export const POST = async (request) => {
       if (signUpError.message.includes('User already registered')) {
         return NextResponse.json({ message: 'المستخدم بهذا البريد الإلكتروني موجود بالفعل' }, { status: 400 });
       }
-      return NextResponse.json({ message: signUpError.message }, { status: 500 });
+      return NextResponse.json({ message: 'فشل التسجيل. يرجى المحاولة مرة أخرى.' }, { status: 500 });
     }
 
     // If sign-up is successful, data.user will be available

@@ -21,27 +21,40 @@ export const FavoritesProvider = ({ children }) => {
       toast.error("يجب تسجيل الدخول لإضافة الكتاب للمفضلة.");
       return;
     }
-    
+
+    const isCurrentlyFavorite = favorites.includes(bookId);
+    const previousFavorites = [...favorites]; // Capture current state
+
+    // Optimistic update
+    let newOptimisticFavorites;
+    if (isCurrentlyFavorite) {
+      newOptimisticFavorites = favorites.filter((id) => id !== bookId);
+      toast.success("تمت إزالة الكتاب من المفضلة."); // Show success immediately
+    } else {
+      newOptimisticFavorites = [...favorites, bookId];
+      toast.success("تمت إضافة الكتاب إلى المفضلة."); // Show success immediately
+    }
+    setUser({ ...user, favorites: newOptimisticFavorites }); // Update AuthContext immediately
 
     try {
-      let updatedFavorites;
-      if (favorites.includes(bookId)) {
-        const res = await axios.delete(`${API_URL}/api/users/${user.id}/favorites/${bookId}`, {
+      if (isCurrentlyFavorite) {
+        await axios.delete(`${API_URL}/api/users/${user.id}/favorites/${bookId}`, {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
-        updatedFavorites = res.data.favorites;
-        toast.success("تمت إزالة الكتاب من المفضلة.");
       } else {
-        const res = await axios.post(`${API_URL}/api/users/${user.id}/favorites`, { bookId }, {
+        await axios.post(`${API_URL}/api/users/${user.id}/favorites`, { bookId }, {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
-        updatedFavorites = res.data.favorites;
-        toast.success("تمت إضافة الكتاب إلى المفضلة.");
       }
-      setUser({ ...user, favorites: updatedFavorites });
+      // No need to update setUser again here, as it was done optimistically
+      // The API response might return the updated list, but we already updated it.
+      // If the API returns a different list, we might need to reconcile,
+      // but for simple toggle, optimistic update is usually sufficient.
     } catch (error) {
       console.error("Failed to toggle favorite:", error);
       toast.error("فشل تحديث المفضلة. يرجى المحاولة مرة أخرى.");
+      // Rollback on error
+      setUser({ ...user, favorites: previousFavorites });
     }
   }, [favorites, isLoggedIn, user, session, setUser]);
 

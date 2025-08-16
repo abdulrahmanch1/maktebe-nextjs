@@ -1,13 +1,13 @@
 
 'use client';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import BookCard from "@/components/BookCard";
 import { ThemeContext } from "@/contexts/ThemeContext";
 import useFetch from "@/hooks/useFetch";
 import { API_URL } from "@/constants";
 import './HomePage.css';
 
-const HomePageClient = ({ initialBooks, initialCategories }) => {
+const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultLimit }) => {
   const { theme } = React.useContext(ThemeContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -15,9 +15,17 @@ const HomePageClient = ({ initialBooks, initialCategories }) => {
   const [books, setBooks] = useState(initialBooks);
   const [categories, setCategories] = useState(initialCategories);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(defaultPage);
+  const [booksPerPage] = useState(defaultLimit);
+  const [totalBooksCount, setTotalBooksCount] = useState(0); // Will be updated from X-Total-Count header
+  const [hasMore, setHasMore] = useState(true);
+
+  // Debounce search term to limit API calls while typing
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1); // Reset page to 1 when search term changes
     }, 500); // 500ms debounce time
 
     return () => {
@@ -25,29 +33,73 @@ const HomePageClient = ({ initialBooks, initialCategories }) => {
     };
   }, [searchTerm]);
 
-  const { data: booksData, loading, error } = useFetch(
-    (debouncedSearchTerm || selectedCategory !== "الكل")
-      ? `${API_URL}/api/books?query=${debouncedSearchTerm}&category=${selectedCategory === "الكل" ? '' : selectedCategory}`
-      : null
-  );
+  // Memoized URL construction for useFetch hook, includes pagination and filters
+  const fetchUrl = useCallback(() => {
+    let url = `${API_URL}/api/books?page=${currentPage}&limit=${booksPerPage}`;
+    if (debouncedSearchTerm) {
+      url += `&query=${debouncedSearchTerm}`;
+    }
+    if (selectedCategory !== "الكل") {
+      url += `&category=${selectedCategory}`;
+    }
+    return url;
+  }, [currentPage, booksPerPage, debouncedSearchTerm, selectedCategory]);
 
+  const { data: fetchResponse, loading, error } = useFetch(fetchUrl());
+
+  // Effect to handle fetched data, append books for pagination, and update total count
   useEffect(() => {
-    if (debouncedSearchTerm) { // Only update if there's an active search
-      if (booksData) {
-        setBooks(booksData);
-        const uniqueCategories = ["الكل", ...new Set(booksData.map(book => book.category))];
+    if (fetchResponse) {
+      const newBooks = fetchResponse.data;
+      // Extract total count from response headers for pagination
+      const totalCount = parseInt(fetchResponse.headers['x-total-count'], 10);
+
+      setTotalBooksCount(totalCount);
+      // Determine if there are more books to load
+      setHasMore(currentPage * booksPerPage < totalCount);
+
+      if (currentPage === 1) {
+        setBooks(newBooks);
+      } else {
+        setBooks((prevBooks) => [...prevBooks, ...newBooks]);
+      }
+
+      // Update categories based on fetched books (only if not actively searching)
+      // This ensures category list updates with available categories for current filter
+      if (!debouncedSearchTerm) {
+        const uniqueCategories = ["الكل", ...new Set(newBooks.map(book => book.category))];
         setCategories(uniqueCategories);
       }
-    } else { // If no search term, revert to initial data
+    }
+  }, [fetchResponse, currentPage, booksPerPage, debouncedSearchTerm]);
+
+
+  // Effect to handle initial books and categories passed from the Server Component
+  // This ensures the client-side state is initialized with server-rendered data
+  useEffect(() => {
+    if (initialBooks && initialBooks.length > 0 && currentPage === 1 && !debouncedSearchTerm && selectedCategory === "الكل") {
       setBooks(initialBooks);
       setCategories(initialCategories);
+      // Note: totalBooksCount and hasMore for initial load should ideally come from
+      // a header in the initial server fetch response, but for simplicity,
+      // we're making an assumption here. A more robust solution would pass totalCount
+      // from the server component.
+      setTotalBooksCount(initialBooks.length); // This is a placeholder, needs actual total from server
+      setHasMore(initialBooks.length === booksPerPage); // If initial books fill a page, assume more
     }
-  }, [booksData, debouncedSearchTerm, initialBooks, initialCategories]);
+  }, [initialBooks, initialCategories, currentPage, debouncedSearchTerm, selectedCategory, booksPerPage]);
 
-  const filteredBooks = books.filter((book) => {
-    const matchesCategory = selectedCategory === "الكل" || book.category === selectedCategory;
-    return matchesCategory;
-  });
+
+  const handleLoadMore = () => {
+    if (!loading && hasMore) {
+      setCurrentPage((prevPage) => prevPage + 1);
+    }
+  };
+
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
+    setCurrentPage(1); // Reset page when category changes
+  };
 
   return (
     <div className="homepage-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
@@ -59,6 +111,7 @@ const HomePageClient = ({ initialBooks, initialCategories }) => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"
+          aria-label="البحث عن كتاب"
           style={{
             border: `1px solid ${theme.secondary}`,
             backgroundColor: theme.background,
@@ -67,8 +120,9 @@ const HomePageClient = ({ initialBooks, initialCategories }) => {
         />
         <select
           value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
+          onChange={handleCategoryChange}
           className="category-select"
+          aria-label="اختر فئة الكتاب"
           style={{
             border: `1px solid ${theme.secondary}`,
             backgroundColor: theme.background,
@@ -80,17 +134,33 @@ const HomePageClient = ({ initialBooks, initialCategories }) => {
           ))}
         </select>
       </div>
-      {loading ? (
+      {loading && currentPage === 1 ? ( // Show loading only for first page load
         <div style={{ textAlign: "center" }}>جاري تحميل الكتب...</div>
       ) : error ? (
         <div style={{ textAlign: "center" }}>حدث خطأ أثناء تحميل الكتب.</div>
       ) : (
-        <div className="books-display-container">
-          {filteredBooks.map((book) => {
-            
-            return <BookCard key={book.id} book={book} />;
-          })}
-        </div>
+        <>
+          <div className="books-display-container">
+            {books.map((book) => (
+              <BookCard key={book.id} book={book} />
+            ))}
+          </div>
+          {hasMore && (
+            <button
+              onClick={handleLoadMore}
+              disabled={loading}
+              className="load-more-button"
+              style={{
+                backgroundColor: theme.accent,
+                color: theme.primary,
+                border: `1px solid ${theme.secondary}`,
+                cursor: loading ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {loading ? 'جاري التحميل...' : 'تحميل المزيد'}
+            </button>
+          )}
+        </>
       )}
     </div>
   );

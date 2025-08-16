@@ -21,9 +21,10 @@ const BookCard = ({ book }) => {
 
   return (
     <div className="book-card" style={{
-      backgroundColor: theme.background,
-      color: theme.primary,
-      border: `1px solid ${theme.secondary}`,
+      '--background-color': theme.background,
+      '--primary-color': theme.primary,
+      '--secondary-color': theme.secondary,
+      '--accent-color': theme.accent,
     }}>
       <Image
         src={book.cover}
@@ -37,17 +38,13 @@ const BookCard = ({ book }) => {
           e.currentTarget.src = "/imgs/no_cover_available.png";
         }}
       />
-      <h2 className="book-card-title" style={{ color: theme.accent }}>
+      <h2 className="book-card-title">
         {book.title}
       </h2>
       <div className="book-card-actions">
         <button
             onClick={handleReadClick}
             className="read-button"
-            style={{
-              backgroundColor: theme.accent,
-              color: theme.primary,
-            }}
           >
             اقرأ
           </button>
@@ -61,11 +58,6 @@ const BookCard = ({ book }) => {
           }}
           className={`favorite-icon ${isLiked ? 'liked' : ''}`}
           aria-label={isLiked ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
-          style={{
-            backgroundColor: theme.primary,
-            border: 'none',
-            cursor: 'pointer'
-          }}
         >
           {isLiked ? '❤️' : '♡'}
         </button>

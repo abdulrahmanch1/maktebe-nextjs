@@ -1,13 +1,15 @@
 import HomePageClient from "./HomePageClient";
 import { createClient } from "@/utils/supabase/server";
 
-async function getBooks() {
+async function getBooks(page = 1, limit = 10) {
   const supabase = createClient();
-  const { data, error } = await supabase.from('books').select('*');
-  if (error) {
-    console.error('Error fetching books:', error);
+  const url = `/api/books?page=${page}&limit=${limit}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    console.error('Error fetching books:', res.statusText);
     return [];
   }
+  const data = await res.json();
   return data;
 }
 
@@ -24,10 +26,18 @@ async function getCategories() {
 
 
 const HomePage = async () => {
-  const initialBooks = await getBooks();
+  const defaultPage = 1;
+  const defaultLimit = 10; // Or whatever default limit you want
+
+  const initialBooks = await getBooks(defaultPage, defaultLimit);
   const initialCategories = await getCategories();
 
-  return <HomePageClient initialBooks={initialBooks} initialCategories={initialCategories} />;
+  return <HomePageClient
+    initialBooks={initialBooks}
+    initialCategories={initialCategories}
+    defaultPage={defaultPage}
+    defaultLimit={defaultLimit}
+  />;
 };
 
 export default HomePage;
