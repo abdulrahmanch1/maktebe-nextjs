@@ -37,6 +37,9 @@ export const POST = protect(async (request, { params }) => {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
+    console.log('ReadingList POST API: User data from DB:', user);
+    console.log('ReadingList POST API: currentReadingList from DB:', user.readingList, 'Type:', typeof user.readingList, 'Is Array:', Array.isArray(user.readingList));
+
     // Ensure readingList is an array, initialize if null
     const currentReadingList = Array.isArray(user.readingList) ? user.readingList : [];
 
@@ -48,16 +51,19 @@ export const POST = protect(async (request, { params }) => {
 
     // Add the new book to the readingList array
     const updatedReadingList = [...currentReadingList, { book: bookId, read: false }];
+    console.log('ReadingList POST API: updatedReadingList (before DB update):', updatedReadingList);
 
-    // Update the user's readingList
+    // Update the user\'s readingList
     const { error: updateError } = await supabase
-      .from('users')
+      .from('profiles') // Changed from 'users' to 'profiles'
       .update({ readingList: updatedReadingList })
       .eq('id', id);
 
     if (updateError) {
+      console.error('ReadingList POST API: Supabase update error:', updateError);
       throw new Error(updateError.message);
     }
+    console.log('ReadingList POST API: DB update successful.');
 
     // Increment readCount in the books table atomically
     const { error: incrementError } = await supabase.rpc('increment_read_count', { book_id_param: bookId });
@@ -69,6 +75,6 @@ export const POST = protect(async (request, { params }) => {
     return NextResponse.json(updatedReadingList, { status: 201 });
   } catch (err) {
     console.error("Error adding to reading list:", err);
-        return NextResponse.json({ message: "خطأ في الإضافة إلى قائمة القراءة" }, { status: 500 });
+    return NextResponse.json({ message: "خطأ في الإضافة إلى قائمة القراءة" }, { status: 500 });
   }
 });
