@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { protect } from '@/lib/middleware';
 // import { validateMongoId } from '@/lib/validation'; // Removed validateMongoId
 import { validateFavorite } from '@/lib/validation';
-import { supabase } from '@/lib/supabase'; // Import supabase client
+import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
 export const POST = protect(async (request, { params }) => {
+  const supabase = createClient(); // Instantiate supabase client
   const { userId } = params;
   const { bookId } = await request.json();
 
@@ -28,7 +29,7 @@ export const POST = protect(async (request, { params }) => {
   try {
     // Fetch the user
     const { data: user, error: userError } = await supabase
-      .from('users')
+      .from('profiles')
       .select('favorites') // Assuming 'favorites' is a JSONB column or similar
       .eq('id', userId)
       .single();
@@ -49,7 +50,7 @@ export const POST = protect(async (request, { params }) => {
     const { error: updateError } = await supabase
       .from('users')
       .update({ favorites: updatedFavorites })
-      .eq('id', id);
+      .eq('id', userId);
 
     if (updateError) {
       throw new Error(updateError.message);

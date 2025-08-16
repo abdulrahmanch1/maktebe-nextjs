@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { protect, admin } from '@/lib/middleware';
 import { validateBook, validateBookUpdate } from '@/lib/validation';
-import { supabase } from '@/lib/supabase'; // Import supabase client
+import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
 async function getBook(id) {
+  const supabase = createClient(); // Instantiate supabase client
   // Removed validateMongoId(id) call
   if (!id) { // Simple ID validation for Supabase (assuming UUID or integer)
     return { book: null, error: { message: 'Book ID is required' } };
@@ -24,6 +25,7 @@ async function getBook(id) {
 }
 
 export async function GET(request, { params }) {
+  const supabase = createClient(); // Instantiate supabase client
   const { id } = params;
   const { book, error } = await getBook(id);
 
@@ -35,6 +37,7 @@ export async function GET(request, { params }) {
 }
 
 export const PATCH = protect(admin(async (request, { params }) => {
+  const supabase = createClient(); // Instantiate supabase client
   const { id } = params;
   const body = await request.json();
 
@@ -85,11 +88,12 @@ export const PATCH = protect(admin(async (request, { params }) => {
     return NextResponse.json(updatedBook);
   } catch (error) {
     console.error('Error in PATCH /api/books/[id]:', error);
-    return NextResponse.json({ message: error.message }, { status: 400 });
+    return NextResponse.json({ message: "فشل تحديث الكتاب. يرجى المحاولة مرة أخرى." }, { status: 500 });
   }
 }));
 
 export const DELETE = protect(admin(async (request, { params }) => {
+  const supabase = createClient(); // Instantiate supabase client
   const { id } = params;
   const { book, error } = await getBook(id);
   if (error) {

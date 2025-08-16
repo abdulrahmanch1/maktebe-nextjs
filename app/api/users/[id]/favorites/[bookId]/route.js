@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { protect } from '@/lib/middleware';
 // import { validateMongoId } from '@/lib/validation'; // Removed validateMongoId
-import { supabase } from '@/lib/supabase'; // Import supabase client
+import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
 export const DELETE = protect(async (request, { params }) => {
+  const supabase = createClient(); // Instantiate supabase client
   const { id, bookId } = params;
 
   // const userIdErrors = validateMongoId(id); // Removed validateMongoId call
@@ -22,7 +23,7 @@ export const DELETE = protect(async (request, { params }) => {
   try {
     // Fetch the user
     const { data: user, error: userError } = await supabase
-      .from('users')
+      .from('profiles')
       .select('favorites') // Assuming 'favorites' is a JSONB column or similar
       .eq('id', id)
       .single();
@@ -54,6 +55,6 @@ export const DELETE = protect(async (request, { params }) => {
     return NextResponse.json({ favorites: updatedFavorites });
   } catch (err) {
     console.error("Error removing favorite:", err);
-    return NextResponse.json({ message: err.message }, { status: 500 });
+    return NextResponse.json({ message: "خطأ في إزالة المفضلة" }, { status: 500 });
   }
 });

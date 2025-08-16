@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { protect, admin } from '@/lib/middleware';
-import { supabase } from '@/lib/supabase'; // Import supabase client
+import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
 async function getComment(commentId) {
+  const supabase = createClient(); // Instantiate supabase client
   if (!commentId) {
     return { comment: null, error: { message: 'Comment ID is required' } };
   }
@@ -20,6 +21,7 @@ async function getComment(commentId) {
 }
 
 export const DELETE = protect(async (request, { params }) => {
+  const supabase = createClient(); // Instantiate supabase client
   const { commentId } = params;
 
   const { comment, error } = await getComment(commentId);
@@ -28,7 +30,7 @@ export const DELETE = protect(async (request, { params }) => {
   }
 
   // Check if the user is the comment author or an admin
-  if (request.user._id !== comment.user_id && request.user.role !== 'admin') {
+  if (request.user.id !== comment.user_id && request.user.role !== 'admin') {
     return NextResponse.json({ message: 'Not authorized to delete this comment' }, { status: 403 });
   }
 
@@ -45,11 +47,12 @@ export const DELETE = protect(async (request, { params }) => {
     return NextResponse.json({ message: 'تم حذف التعليق بنجاح' });
   } catch (err) {
     console.error('Error deleting comment:', err);
-    return NextResponse.json({ message: err.message }, { status: 500 });
+    return NextResponse.json({ message: "خطأ في حذف التعليق" }, { status: 500 });
   }
 });
 
 export const PATCH = protect(async (request, { params }) => {
+  const supabase = createClient(); // Instantiate supabase client
   const { commentId } = params;
   const { comment, error } = await getComment(commentId);
   if (error) {
@@ -57,7 +60,7 @@ export const PATCH = protect(async (request, { params }) => {
   }
 
   try {
-    const userId = request.user._id;
+    const userId = request.user.id;
     let currentLikes = comment.likes || []; // Ensure it's an array
 
     const userLikedIndex = currentLikes.indexOf(userId);

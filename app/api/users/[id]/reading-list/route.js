@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { protect } from '@/lib/middleware';
 import { validateReadingList } from '@/lib/validation'; // Removed validateMongoId
-import { supabase } from '@/lib/supabase'; // Import supabase client
+import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
 export const POST = protect(async (request, { params }) => {
+  const supabase = createClient(); // Instantiate supabase client
   const { userId } = params;
   const { bookId } = await request.json();
 
@@ -27,7 +28,7 @@ export const POST = protect(async (request, { params }) => {
   try {
     // Fetch the user
     const { data: user, error: userError } = await supabase
-      .from('users')
+      .from('profiles')
       .select('readingList') // Assuming 'readingList' is a JSONB column or similar
       .eq('id', userId)
       .single();
@@ -49,7 +50,7 @@ export const POST = protect(async (request, { params }) => {
     const { error: updateError } = await supabase
       .from('users')
       .update({ readingList: updatedReadingList })
-      .eq('id', id);
+      .eq('id', userId);
 
     if (updateError) {
       throw new Error(updateError.message);
@@ -65,6 +66,6 @@ export const POST = protect(async (request, { params }) => {
     return NextResponse.json(updatedReadingList, { status: 201 });
   } catch (err) {
     console.error("Error adding to reading list:", err);
-    return NextResponse.json({ message: "خطأ في الإضافة إلى قائمة القراءة" }, { status: 500 });
+        return NextResponse.json({ message: "خطأ في الإضافة إلى قائمة القراءة" }, { status: 500 });
   }
 });

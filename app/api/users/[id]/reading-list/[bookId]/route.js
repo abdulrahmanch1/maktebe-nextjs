@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { protect } from '@/lib/middleware';
 import { validateReadingStatus } from '@/lib/validation'; // Removed validateMongoId
-import { supabase } from '@/lib/supabase'; // Import supabase client
+import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
 async function getUserAndReadingListItem(id, bookId) {
+  const supabase = createClient(); // Instantiate supabase client
   // Removed validateMongoId calls
   if (!id || !bookId) { // Simple ID validation for Supabase (assuming UUID or integer)
     return { user: null, readingListItem: null, error: { message: 'User ID and Book ID are required' } };
@@ -11,7 +12,7 @@ async function getUserAndReadingListItem(id, bookId) {
 
   // Fetch the user and their reading list
   const { data: user, error: userError } = await supabase
-    .from('users')
+    .from('profiles')
     .select('readingList') // Assuming 'readingList' is a JSONB column or similar
     .eq('id', id)
     .single();
@@ -28,6 +29,7 @@ async function getUserAndReadingListItem(id, bookId) {
 }
 
 export const PATCH = protect(async (request, { params }) => {
+  const supabase = createClient(); // Instantiate supabase client
   const { id, bookId } = params;
   const { read } = await request.json();
 
@@ -56,7 +58,7 @@ export const PATCH = protect(async (request, { params }) => {
     );
 
     const { error: updateError } = await supabase
-      .from('users')
+      .from('profiles')
       .update({ readingList: updatedReadingList })
       .eq('id', id);
 
@@ -67,11 +69,12 @@ export const PATCH = protect(async (request, { params }) => {
     return NextResponse.json(updatedReadingList);
   } catch (err) {
     console.error('Error updating reading status:', err);
-    return NextResponse.json({ message: err.message }, { status: 500 });
+    return NextResponse.json({ message: "خطأ في تحديث حالة القراءة" }, { status: 500 });
   }
 });
 
 export const DELETE = protect(async (request, { params }) => {
+  const supabase = createClient(); // Instantiate supabase client
   const { id, bookId } = params;
 
   if (!id || !bookId) { // Simple ID validation for Supabase (assuming UUID or integer)
@@ -92,7 +95,7 @@ export const DELETE = protect(async (request, { params }) => {
     const updatedReadingList = user.readingList.filter(item => item.book !== bookId);
 
     const { error: updateError } = await supabase
-      .from('users')
+      .from('profiles')
       .update({ readingList: updatedReadingList })
       .eq('id', id);
 
@@ -110,6 +113,6 @@ export const DELETE = protect(async (request, { params }) => {
     return NextResponse.json(updatedReadingList);
   } catch (err) {
     console.error('Error deleting from reading list:', err);
-    return NextResponse.json({ message: err.message }, { status: 500 });
+    return NextResponse.json({ message: "خطأ في الإزالة من قائمة القراءة" }, { status: 500 });
   }
 });

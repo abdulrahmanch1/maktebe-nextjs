@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { protect } from '@/lib/middleware';
 // import { validateMongoId } from '@/lib/validation'; // Remove this import
-import { supabase } from '@/lib/supabase'; // Import supabase client
+import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
 export const GET = protect(async (request, { params }) => {
+  const supabase = createClient(); // Instantiate supabase client
   const { id } = params;
 
   // const bookIdErrors = validateMongoId(id); // Remove this line
@@ -19,7 +20,7 @@ export const GET = protect(async (request, { params }) => {
     // Fetch comments for the given book_id and populate user details
     const { data: comments, error: commentsError } = await supabase
       .from('comments')
-      .select('*, users(username, profilePicture)') // Assuming 'users' is the table for user details
+      .select('*, profiles(username, profilePicture)') // Assuming 'profiles' is the table for user details
       .eq('book_id', id); // Assuming comments table has a book_id column
 
     if (commentsError) {
@@ -34,6 +35,7 @@ export const GET = protect(async (request, { params }) => {
 });
 
 export const POST = protect(async (request, { params }) => {
+  const supabase = createClient(); // Instantiate supabase client
   const { id } = params;
   const { text } = await request.json();
 
@@ -55,7 +57,7 @@ export const POST = protect(async (request, { params }) => {
         text: text,
         user_id: request.user.id, // Assuming request.user.id is the Supabase user ID
       })
-      .select('*, users(username, profilePicture)') // Select the newly inserted comment and populate user details
+      .select('*, profiles(username, profilePicture)') // Select the newly inserted comment and populate user details
       .single();
 
     if (insertError) {
