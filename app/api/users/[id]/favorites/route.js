@@ -38,13 +38,16 @@ export const POST = protect(async (request, { params }) => {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
+    // Ensure favorites is an array, initialize if null
+    const currentFavorites = user.favorites || [];
+
     // Check if the book is already in favorites
-    if (user.favorites.includes(bookId)) {
+    if (currentFavorites.includes(bookId)) {
       return NextResponse.json({ message: 'Book already in favorites' }, { status: 400 });
     }
 
     // Add the bookId to the favorites array
-    const updatedFavorites = [...user.favorites, bookId];
+    const updatedFavorites = [...currentFavorites, bookId];
 
     // Update the user's favorites
     const { error: updateError } = await supabase

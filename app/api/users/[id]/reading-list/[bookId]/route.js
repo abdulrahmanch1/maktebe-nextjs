@@ -21,7 +21,10 @@ async function getUserAndReadingListItem(id, bookId) {
     return { user: null, readingListItem: null, error: { message: 'User not found' } };
   }
 
-  const readingListItem = user.readingList.find(item => item.book === bookId); // Assuming bookId is directly stored
+  // Ensure readingList is an array, initialize if null
+  const currentReadingList = user.readingList || [];
+
+  const readingListItem = currentReadingList.find(item => item.book === bookId); // Assuming bookId is directly stored
   if (!readingListItem) {
     return { user, readingListItem: null, error: { message: 'Book not found in reading list' } };
   }
@@ -52,8 +55,11 @@ export const PATCH = protect(async (request, { params }) => {
   }
 
   try {
+    // Ensure readingList is an array, initialize if null
+    const currentReadingList = user.readingList || [];
+
     // Update the read status in the readingList array
-    const updatedReadingList = user.readingList.map(item =>
+    const updatedReadingList = currentReadingList.map(item =>
       item.book === bookId ? { ...item, read: read } : item
     );
 
@@ -91,8 +97,11 @@ export const DELETE = protect(async (request, { params }) => {
   }
 
   try {
+    // Ensure readingList is an array, initialize if null
+    const currentReadingList = user.readingList || [];
+
     // Filter out the book from the readingList array
-    const updatedReadingList = user.readingList.filter(item => item.book !== bookId);
+    const updatedReadingList = currentReadingList.filter(item => item.book !== bookId);
 
     const { error: updateError } = await supabase
       .from('profiles')

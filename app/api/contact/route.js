@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { validateContactMessage } from '@/lib/validation';
-import { supabase } from '@/lib/supabase'; // Import supabase client
+import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 import { cookies } from 'next/headers';
 
 export async function POST(request) {
+  const supabase = createClient(); // Instantiate supabase client
   try {
     const { subject, message, email, username } = await request.json();
 

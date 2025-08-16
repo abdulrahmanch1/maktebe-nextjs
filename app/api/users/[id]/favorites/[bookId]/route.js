@@ -32,8 +32,11 @@ export const DELETE = protect(async (request, { params }) => {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
+    // Ensure favorites is an array, initialize if null
+    const currentFavorites = user.favorites || [];
+
     // Filter out the bookId from the favorites array
-    const updatedFavorites = user.favorites.filter(favId => favId !== bookId);
+    const updatedFavorites = currentFavorites.filter(favId => favId !== bookId);
 
     // Update the user's favorites
     const { error: updateError } = await supabase

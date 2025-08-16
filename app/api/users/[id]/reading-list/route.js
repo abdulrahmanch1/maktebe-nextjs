@@ -37,14 +37,17 @@ export const POST = protect(async (request, { params }) => {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
+    // Ensure readingList is an array, initialize if null
+    const currentReadingList = user.readingList || [];
+
     // Check if the book is already in reading list
-    const bookExists = user.readingList.some(item => item.book === bookId);
+    const bookExists = currentReadingList.some(item => item.book === bookId);
     if (bookExists) {
       return NextResponse.json({ message: 'Book already in reading list' }, { status: 400 });
     }
 
     // Add the new book to the readingList array
-    const updatedReadingList = [...user.readingList, { book: bookId, read: false }];
+    const updatedReadingList = [...currentReadingList, { book: bookId, read: false }];
 
     // Update the user's readingList
     const { error: updateError } = await supabase
