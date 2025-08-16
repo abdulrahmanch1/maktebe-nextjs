@@ -15,6 +15,12 @@ const HomePageClient = ({ initialBooks, initialCategories, defaultPage, defaultL
   const [books, setBooks] = useState(initialBooks); // Start with initialBooks
   const [categories, setCategories] = useState(initialCategories); // Start with initialCategories
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(defaultPage);
+  const [booksPerPage] = useState(defaultLimit);
+  const [totalBooksCount, setTotalBooksCount] = useState(0); // Will be updated from X-Total-Count header
+  const [hasMore, setHasMore] = useState(true);
+
   const { data: fetchResponse, loading, error, refetch } = useFetch(null); // Pass null initially
 
   // Effect to trigger initial fetch on component mount
