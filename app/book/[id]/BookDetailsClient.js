@@ -85,7 +85,10 @@ const BookDetailsClient = ({ initialBook }) => {
         setIsRead(true);
       }
 
+      console.log('handleAddToReadingList: updatedReadingList from API:', updatedReadingList);
+      console.log('handleAddToReadingList: user before setUser:', user);
       setUser({ ...user, readingList: updatedReadingList });
+      console.log('handleAddToReadingList: user after setUser (might not reflect immediately):', user);
     } catch (err) {
       console.error("Error handling reading list:", err);
       toast.error(err.response?.data?.message || "فشل تحديث قائمة القراءة.");
