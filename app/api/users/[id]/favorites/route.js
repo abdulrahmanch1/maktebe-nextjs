@@ -5,7 +5,7 @@ import { validateFavorite } from '@/lib/validation';
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
 export const POST = protect(async (request, { params }) => {
-  console.log('Favorites POST API hit for userId:', params.id); // Added log, changed to params.id
+  
   const supabase = createClient(); // Instantiate supabase client
   const { id } = params; // Changed userId to id
   const { bookId } = await request.json();
@@ -39,7 +39,7 @@ export const POST = protect(async (request, { params }) => {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    console.log('User favorites from DB:', user.favorites, 'Type:', typeof user.favorites, 'Is Array:', Array.isArray(user.favorites));
+    
     // Ensure favorites is an array, initialize if null
     const currentFavorites = Array.isArray(user.favorites) ? user.favorites : [];
 

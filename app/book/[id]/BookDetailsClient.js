@@ -30,8 +30,9 @@ const BookDetailsClient = ({ initialBook }) => {
   }, [initialBook.comments, user]); // Recalculate when initial comments or user changes
 
   useEffect(() => {
-    if (user && user.readingList) {
-      const item = user.readingList.find(item => item.book === initialBook.id);
+    const currentReadingList = Array.isArray(user?.readingList) ? user.readingList : [];
+    if (user) {
+      const item = currentReadingList.find(item => item.book === initialBook.id);
       if (item) {
         setIsInReadingList(true);
         setIsRead(item.read);
@@ -61,8 +62,9 @@ const BookDetailsClient = ({ initialBook }) => {
     }
 
     try {
-      let updatedReadingList = user.readingList;
-      let bookInReadingList = user.readingList.find(item => item.book === book.id);
+      const currentReadingList = Array.isArray(user?.readingList) ? user.readingList : [];
+      let updatedReadingList = currentReadingList;
+      let bookInReadingList = currentReadingList.find(item => item.book === book.id);
 
       if (!bookInReadingList) {
         const addRes = await axios.post(`${API_URL}/api/users/${user.id}/reading-list`, { bookId: book.id }, {
@@ -96,7 +98,10 @@ const BookDetailsClient = ({ initialBook }) => {
       const res = await axios.patch(`${API_URL}/api/users/${user.id}/reading-list/${book.id}`, { read: !isRead }, {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      setUser({ ...user, readingList: res.data });
+      // Ensure readingList is an array before updating
+      const currentReadingList = Array.isArray(user?.readingList) ? user.readingList : [];
+      const updatedReadingList = res.data; // Assuming res.data is the updated reading list
+      setUser({ ...user, readingList: updatedReadingList });
       setIsRead(!isRead);
       toast.success(`تم وضع علامة على الكتاب كـ ${!isRead ? "مقروء" : "غير مقروء"}.`);
     } catch (err) {
@@ -111,7 +116,10 @@ const BookDetailsClient = ({ initialBook }) => {
       const res = await axios.delete(`${API_URL}/api/users/${user.id}/reading-list/${book.id}`, {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      setUser({ ...user, readingList: res.data });
+      // Ensure readingList is an array before updating
+      const currentReadingList = Array.isArray(user?.readingList) ? user.readingList : [];
+      const updatedReadingList = res.data; // Assuming res.data is the updated reading list
+      setUser({ ...user, readingList: updatedReadingList });
       setIsInReadingList(false);
       setIsRead(false);
       toast.success("تمت إزالة الكتاب من قائمة القراءة.");

@@ -21,7 +21,7 @@ export const FavoritesProvider = ({ children }) => {
       toast.error("يجب تسجيل الدخول لإضافة الكتاب للمفضلة.");
       return;
     }
-    console.log('FavoritesContext: isLoggedIn:', isLoggedIn, 'user:', user, 'user.id:', user?.id, 'session:', session); // Added log
+    
 
     try {
       let updatedFavorites;
