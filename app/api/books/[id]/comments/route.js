@@ -27,6 +27,7 @@ export const GET = protect(async (request, { params }) => {
       throw new Error(commentsError.message);
     }
 
+    console.log('Fetched comments data:', comments);
     return NextResponse.json(comments);
   } catch (err) {
     console.error('Error fetching comments:', err);
@@ -64,6 +65,7 @@ export const POST = protect(async (request, { params }) => {
       throw new Error(insertError.message);
     }
 
+    console.log('New comment data:', newComment);
     return NextResponse.json(newComment, { status: 201 });
   } catch (err) {
     console.error('Error adding comment:', err);
