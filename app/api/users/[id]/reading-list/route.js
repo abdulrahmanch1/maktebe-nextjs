@@ -27,11 +27,14 @@ export const POST = protect(async (request, { params }) => {
 
   try {
     // Fetch the user
+    console.log('ReadingList POST API: Attempting to fetch user with ID:', id); // Added log
     const { data: user, error: userError } = await supabase
       .from('profiles')
       .select('readingList') // Assuming 'readingList' is a JSONB column or similar
       .eq('id', id)
       .single();
+
+    console.log('ReadingList POST API: User fetch result - user:', user, 'userError:', userError); // Added log
 
     if (userError || !user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
