@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
             ...profile,
             profilePicture: profile.profilepicture, // Map db lowercase to camelCase for frontend
             favorites: Array.isArray(profile.favorites) ? profile.favorites : [], // Ensure favorites is an array
-            readingList: Array.isArray(profile.readingList) ? profile.readingList : [], // Ensure readingList is an array
+            readingList: Array.isArray(profile.readinglist) ? profile.readinglist : [], // Ensure readingList is an array
           };
           setUser(fullUser);
         }
