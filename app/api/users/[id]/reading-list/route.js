@@ -30,7 +30,7 @@ export const POST = protect(async (request, { params }) => {
     console.log('ReadingList POST API: Attempting to fetch user with ID:', id); // Added log
     const { data: user, error: userError } = await supabase
       .from('profiles')
-      .select('readingList') // Assuming 'readingList' is a JSONB column or similar
+      .select('readinglist') // Assuming 'readinglist' is a JSONB column or similar
       .eq('id', id)
       .single();
 
@@ -59,7 +59,7 @@ export const POST = protect(async (request, { params }) => {
     // Update the user\'s readingList
     const { error: updateError } = await supabase
       .from('profiles') // Changed from 'users' to 'profiles'
-      .update({ readingList: updatedReadingList })
+      .update({ readinglist: updatedReadingList })
       .eq('id', id);
 
     if (updateError) {

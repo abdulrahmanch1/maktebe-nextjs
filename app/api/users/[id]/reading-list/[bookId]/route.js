@@ -13,7 +13,7 @@ async function getUserAndReadingListItem(id, bookId) {
   // Fetch the user and their reading list
   const { data: user, error: userError } = await supabase
     .from('profiles')
-    .select('readingList') // Assuming 'readingList' is a JSONB column or similar
+    .select('readinglist') // Assuming 'readinglist' is a JSONB column or similar
     .eq('id', id)
     .single();
 
@@ -65,7 +65,7 @@ export const PATCH = protect(async (request, { params }) => {
 
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ readingList: updatedReadingList })
+      .update({ readinglist: updatedReadingList })
       .eq('id', id);
 
     if (updateError) {
@@ -105,7 +105,7 @@ export const DELETE = protect(async (request, { params }) => {
 
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ readingList: updatedReadingList })
+      .update({ readinglist: updatedReadingList })
       .eq('id', id);
 
     if (updateError) {
