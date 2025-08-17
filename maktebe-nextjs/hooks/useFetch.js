@@ -37,7 +37,7 @@ const useFetch = (url, dependencies = [], config = {}) => {
     return () => {
       controller.abort();
     };
-  }, [url, ...dependencies, config]);
+  }, [url, ...dependencies]);
 
   return { data, loading, error };
 };
