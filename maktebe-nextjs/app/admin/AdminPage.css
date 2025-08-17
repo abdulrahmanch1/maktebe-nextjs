@@ -1,0 +1,90 @@
+.admin-page-container {
+  padding: 20px;
+}
+
+.admin-page-title {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.admin-form-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.admin-form-title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.admin-form-group {
+  margin-bottom: 15px;
+}
+
+.admin-form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.admin-form-group input,
+.admin-form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid;
+  box-sizing: border-box;
+}
+
+.admin-form-button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 4px;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.admin-form-button.cancel {
+  margin-top: 10px;
+}
+
+.admin-books-list-container {
+  margin-top: 40px;
+}
+
+.admin-books-list-title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.admin-book-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 15px; /* Add margin between items */
+}
+
+.admin-book-item p {
+  margin: 0;
+  font-weight: bold;
+}
+
+.admin-book-item button {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.admin-book-item button.delete {
+  background-color: #dc3545;
+  color: white;
+}
