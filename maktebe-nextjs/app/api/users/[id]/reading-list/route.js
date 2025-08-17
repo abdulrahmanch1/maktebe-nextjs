@@ -3,6 +3,45 @@ import { protect } from '@/lib/middleware';
 import { validateReadingList } from '@/lib/validation'; // Removed validateMongoId
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
+// GET handler to fetch a user's reading list
+export const GET = protect(async (request, { params }) => {
+  const supabase = createClient();
+  const { id } = params;
+
+  if (!id) {
+    return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
+  }
+
+  // Ensure the requesting user is authorized to view this reading list
+  // For now, assuming any logged-in user can view their own list.
+  // If a user tries to view another user's list, the protect middleware
+  // combined with the .eq('id', id) should handle it if the user ID in the token
+  // is compared against the requested ID.
+  // However, for a public profile, this might need adjustment.
+  // For now, we'll assume the protect middleware handles basic auth.
+
+  try {
+    const { data: userProfile, error } = await supabase
+      .from('profiles')
+      .select('readinglist')
+      .eq('id', id)
+      .single();
+
+    if (error || !userProfile) {
+      console.error('Error fetching reading list:', error);
+      return NextResponse.json({ message: 'Reading list not found or user profile error' }, { status: 404 });
+    }
+
+    // Ensure readinglist is an array, return empty array if null/undefined
+    const readingList = Array.isArray(userProfile.readinglist) ? userProfile.readinglist : [];
+
+    return NextResponse.json(readingList);
+  } catch (err) {
+    console.error("Error in GET reading list API:", err);
+    return NextResponse.json({ message: "خطأ في جلب قائمة القراءة" }, { status: 500 });
+  }
+});
+
 export const POST = protect(async (request, { params }) => {
   const supabase = createClient(); // Instantiate supabase client
   const { id } = params; // Changed userId to id

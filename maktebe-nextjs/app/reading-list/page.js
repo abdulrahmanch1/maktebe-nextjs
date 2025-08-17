@@ -15,8 +15,8 @@ const ReadingListPage = () => {
   const [showReadBooks, setShowReadBooks] = useState(false);
   const [readingListBooks, setReadingListBooks] = useState([]);
 
-  const { data: userData, loading, error } = useFetch(
-    isLoggedIn && user && user.id ? `${API_URL}/api/users/${user.id}` : null,
+  const { data: readingListData, loading, error } = useFetch(
+    isLoggedIn && user && user.id ? `${API_URL}/api/users/${user.id}/reading-list` : null,
     [isLoggedIn, user, token]
   );
 
@@ -25,12 +25,12 @@ const ReadingListPage = () => {
       setReadingListBooks([]);
       return;
     }
-    if (userData && userData.readinglist && userData.readinglist.length > 0) {
-      const bookIds = userData.readinglist.map(item => item.book).join(',');
+    if (readingListData && readingListData.length > 0) { // readingListData is now the array directly
+      const bookIds = readingListData.map(item => item.book).join(',');
       axios.get(`${API_URL}/api/books?ids=${bookIds}`)
         .then(response => {
           const fetchedBooksMap = new Map(response.data.map(book => [book.id, book]));
-          const mergedBooks = userData.readinglist.map(item => {
+          const mergedBooks = readingListData.map(item => { // Use readingListData here
             const book = fetchedBooksMap.get(item.book);
             return book ? { ...book, read: item.read } : null;
           }).filter(Boolean);
@@ -40,8 +40,11 @@ const ReadingListPage = () => {
           console.error("Error fetching reading list books:", bookError);
           setReadingListBooks([]);
         });
+    } else if (readingListData && readingListData.length === 0) {
+        // If reading list is empty, clear the books
+        setReadingListBooks([]);
     }
-  }, [userData, isLoggedIn]);
+  }, [readingListData, isLoggedIn]);
 
   const booksToDisplay = readingListBooks.filter(book => book.read === showReadBooks);
 
