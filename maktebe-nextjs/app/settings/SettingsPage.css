@@ -1,0 +1,249 @@
+/* SettingsPage.css */
+
+.settings-container {
+  display: flex;
+  min-height: calc(100vh - 120px); /* Adjust based on header/footer height */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.settings-sidebar {
+  width: 280px;
+  padding: 40px 20px;
+  border-right: 1px solid;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.settings-sidebar-item {
+  padding: 15px 25px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.settings-sidebar-item.active {
+  font-weight: bold;
+}
+
+.settings-content {
+  flex-grow: 1;
+  padding: 40px 50px;
+  overflow-y: auto;
+}
+
+.settings-section {
+  margin-bottom: 50px;
+}
+
+.settings-section h2 {
+  font-size: 2.2em;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 3px solid;
+}
+
+.form-group {
+  margin-bottom: 35px; /* Increased margin-bottom */
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Increased gap for more space between elements */
+  width: 100%;
+  max-width: 450px;
+}
+
+.form-group label {
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+.form-group input[type="text"],
+.form-group input[type="file"],
+.form-group select {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid;
+  font-size: 1em;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.button {
+  padding: 12px 25px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.form-group .button {
+  width: 100%;
+}
+
+.username-form-group input[type="text"] {
+  margin-bottom: 10px; /* Add margin-bottom specifically to the username input */
+}
+
+.button:hover {
+  transform: translateY(-2px);
+}
+
+.button-danger {
+  color: white;
+}
+
+.theme-options {
+  display: flex;
+  flex-direction: column; /* Stack the buttons vertically */
+  align-items: center; /* Center them horizontally */
+  gap: 15px;
+  width: 100%;
+}
+
+.theme-option {
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 2px solid transparent;
+  width: 90%;
+  max-width: 450px; /* Match the max-width of other form groups */
+  box-sizing: border-box; /* Ensure padding is included in the width */
+}
+
+.theme-option:hover {
+  transform: scale(1.05);
+}
+
+.theme-option.active {
+  box-shadow: 0 0 15px;
+}
+
+.profile-info-section {
+  display: flex;
+  flex-direction: column; /* Stack items vertically */
+  align-items: center; /* Center items horizontally */
+  gap: 15px; /* Space between items */
+  margin-bottom: 40px; /* Space below the section */
+}
+
+.profile-email {
+  font-size: 1em;
+}
+
+.change-picture-button {
+  width: 90%;
+  max-width: 300px; /* Optional: prevent button from becoming too large */
+}
+
+.profile-picture {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid;
+}
+
+/* Mobile Styles */
+.settings-mobile-header {
+  display: none; /* Hidden by default */
+  padding: 20px;
+  position: relative;
+}
+
+.settings-mobile-button {
+  width: 100%;
+  padding: 15px;
+  font-size: 1.2em;
+  font-weight: bold;
+  border-radius: 8px;
+  border: 2px solid;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  border: 2px solid;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.settings-dropdown-item {
+  padding: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1em;
+}
+
+.settings-dropdown-item.active {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+}
+
+.settings-dropdown-item:not(:last-child) {
+  border-bottom: 1px solid;
+}
+
+@media (max-width: 860px) {
+  .settings-container {
+    flex-direction: column;
+  }
+
+  .settings-sidebar {
+    display: none; /* Hide desktop sidebar */
+  }
+
+  .settings-mobile-header {
+    display: block; /* Show mobile header */
+  }
+
+  .settings-content {
+    padding: 20px;
+  }
+
+  .settings-section h2 {
+    font-size: 1.8em;
+  }
+
+  .profile-picture {
+    width: 120px;
+    height: 120px;
+  }
+
+  .form-group {
+    gap: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-section h2 {
+    font-size: 1.5em; /* Further reduce heading font size */
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 360px) {
+  .profile-picture {
+    width: 100px;
+    height: 100px;
+  }
+}
