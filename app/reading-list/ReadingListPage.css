@@ -1,0 +1,64 @@
+.reading-list-container {
+  padding: 0;
+}
+
+.reading-list-title {
+  text-align: center;
+}
+
+.reading-list-login-prompt {
+  text-align: center;
+  min-height: 80vh;
+}
+
+.reading-list-login-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.reading-list-login-button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.reading-list-toggle-buttons {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.reading-list-toggle-button {
+  margin: 0 10px;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+}
+
+.reading-list-books-display {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (max-width: 520px) {
+  .reading-list-title {
+    font-size: 1.8em;
+    margin-bottom: 15px;
+  }
+
+  .reading-list-toggle-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px; /* Add space between stacked buttons */
+  }
+
+  .reading-list-toggle-button {
+    width: 80%; /* Make buttons wider on small screens */
+    margin: 0; /* Remove horizontal margins */
+    font-size: 0.9em; /* Reduce font size for smaller screens */
+  }
+}

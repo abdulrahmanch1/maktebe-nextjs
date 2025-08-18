@@ -1,0 +1,73 @@
+.homepage-container {
+  padding: 20px;
+}
+
+.homepage-title {
+  text-align: center;
+}
+
+.search-filter-container {
+  text-align: center;
+  margin-bottom: 20px;
+  display: flex; /* Ensure they are side-by-side */
+  justify-content: center; /* Center them */
+  align-items: center;
+  flex-wrap: wrap; /* Allow wrapping if space is too tight */
+}
+
+.search-input {
+  padding: 10px;
+  max-width: 400px; /* Adjusted max-width for larger screens */
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.category-select {
+  padding: 7.5px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.books-display-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  min-height: 70vh;
+}
+
+@media (max-width: 344px) {
+  .homepage-container {
+    padding: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .search-filter-container {
+    width: 100%; /* Ensure container takes full width */
+    padding: 0 10px; /* Add some padding to the container */
+    box-sizing: border-box; /* Include padding in width */
+    flex-wrap: nowrap; /* Prevent wrapping on small screens */
+    gap: 10px; /* Fixed 10px gap */
+  }
+
+  .search-input {
+    width: calc(70% - 5px); /* 70% width minus half the gap */
+    max-width: none; /* Override max-width */
+    margin-right: 0; /* Remove individual margin */
+  }
+
+  .category-select {
+    width: calc(20% - 5px); /* 20% width minus half the gap */
+    margin-right: 0; /* Remove individual margin */
+  }
+}
+
+@media (max-width: 481px) {
+  .search-input {
+    width: calc(60% - 5px);
+  }
+
+  .category-select {
+    width: calc(30% - 5px);
+  }
+}

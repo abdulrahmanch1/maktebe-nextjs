@@ -1,0 +1,36 @@
+.favorites-container {
+  padding: 20px;
+}
+
+.favorites-title {
+  text-align: center;
+}
+
+.favorites-login-prompt {
+  text-align: center;
+  min-height: 80vh;
+}
+
+.favorites-login-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.favorites-login-button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.favorites-books-display {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.no-favorites-message {
+  text-align: center;
+  width: 100%;
+}

@@ -1,0 +1,24 @@
+.verify-email-container {
+  padding: 50px;
+  text-align: center;
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.verify-email-message {
+  font-size: 1.5em;
+  margin-bottom: 20px;
+}
+
+.verify-email-redirect-message {
+  font-size: 1.1em;
+}
+
+.verify-email-link {
+  text-decoration: none;
+  margin-top: 20px;
+  font-size: 1.1em;
+}
