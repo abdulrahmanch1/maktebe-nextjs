@@ -1,7 +1,6 @@
 'use client';
 import React, { useContext } from "react";
 import { useRouter } from "next/navigation";
-import { ThemeContext } from "@/contexts/ThemeContext";
 import { FavoritesContext } from "@/contexts/FavoritesContext";
 import { AuthContext } from "@/contexts/AuthContext";
 import { toast } from 'react-toastify';
@@ -9,7 +8,6 @@ import Image from 'next/image';
 import './BookCard.css';
 
 const BookCard = ({ book }) => {
-  const { theme } = useContext(ThemeContext);
   const { isFavorite, toggleFavorite } = useContext(FavoritesContext);
   const { isLoggedIn } = useContext(AuthContext);
   const router = useRouter();
@@ -20,11 +18,7 @@ const BookCard = ({ book }) => {
   };
 
   return (
-    <div className="book-card" style={{
-      backgroundColor: theme.background,
-      color: theme.primary,
-      border: `1px solid ${theme.secondary}`,
-    }}>
+    <div className="book-card">
       <Image
         src={book.cover}
         alt={`غلاف كتاب ${book.title}`}
@@ -37,17 +31,13 @@ const BookCard = ({ book }) => {
           e.currentTarget.src = "/imgs/no_cover_available.png";
         }}
       />
-      <h2 className="book-card-title" style={{ color: theme.accent }}>
+      <h2 className="book-card-title">
         {book.title}
       </h2>
       <div className="book-card-actions">
         <button
             onClick={handleReadClick}
             className="read-button"
-            style={{
-              backgroundColor: theme.accent,
-              color: theme.primary,
-            }}
           >
             اقرأ
           </button>
@@ -59,7 +49,9 @@ const BookCard = ({ book }) => {
             }
             toggleFavorite(book.id);
           }}
-          className={`favorite-icon ${isLiked ? 'liked' : ''} themed-favorite-icon`}
+          className={`favorite-icon ${isLiked ? 'liked' : ''}`}
+          aria-label={isLiked ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
+        >
           {isLiked ? '❤️' : '♡'}
         </button>
       </div>
