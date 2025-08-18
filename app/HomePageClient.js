@@ -68,7 +68,7 @@ const HomePageClient = ({ initialBooks, initialCategories }) => {
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="category-select themed-input"
+          className="category-select themed-input">
           {categories.map(category => (
             <option key={category} value={category}>{category}</option>
           ))}
