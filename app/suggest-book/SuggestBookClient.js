@@ -1,7 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import { createClient as createSupabaseClient } from "@/utils/supabase/client";
 
 const SuggestBookClient = () => {
   const [formData, setFormData] = useState({
@@ -13,18 +16,38 @@ const SuggestBookClient = () => {
     publishYear: '',
     language: 'العربية',
     keywords: '',
-    cover: '',
-    pdfFile: '',
   });
+  const [coverFile, setCoverFile] = useState(null);
+  const [pdfFile, setPdfFile] = useState(null);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  const coverInputRef = useRef(null);
+  const pdfFileInputRef = useRef(null);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    if (name === 'cover') {
+      setCoverFile(files[0]);
+    } else if (name === 'pdfFile') {
+      setPdfFile(files[0]);
+    }
+  };
+
+  const clearForm = () => {
+    setFormData({ title: '', author: '', category: '', description: '', pages: '', publishYear: '', language: 'العربية', keywords: '' });
+    setCoverFile(null);
+    setPdfFile(null);
+    if (coverInputRef.current) coverInputRef.current.value = '';
+    if (pdfFileInputRef.current) pdfFileInputRef.current.value = '';
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,45 +55,79 @@ const SuggestBookClient = () => {
     setError('');
     setMessage('');
 
-    // Basic validation
-    for (const key in formData) {
-      if (formData[key] === '' && key !== 'keywords' && key !== 'cover' && key !== 'pdfFile') {
-        setError(`يرجى ملء حقل "${key}"`);
-        setIsLoading(false);
-        return;
-      }
+    if (!coverFile) {
+      setError('يرجى اختيار صورة غلاف للكتاب.');
+      setIsLoading(false);
+      return;
     }
 
+    const uploadFile = async (file, type) => {
+      if (!file) return null;
+      const supabase = createSupabaseClient();
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      let publicUrl = "";
+
+      try {
+        if (type === 'cover') {
+          const formData = new FormData();
+          formData.append("file", file);
+          const response = await axios.post("/api/upload-book-cover", formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+          publicUrl = response.data.newUrl;
+        } else if (type === 'pdf') {
+          const filePath = `book-pdfs/${fileName}`;
+          const { error: uploadError } = await supabase.storage.from('book-pdfs').upload(filePath, file, { upsert: true });
+          if (uploadError) throw new Error(`Supabase PDF upload error: ${uploadError.message}`);
+          const { data: urlData } = supabase.storage.from('book-pdfs').getPublicUrl(filePath);
+          if (!urlData || !urlData.publicUrl) throw new Error('Failed to get public URL for PDF.');
+          publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+        }
+        return publicUrl;
+      } catch (error) {
+        const errorMessage = error.response?.data?.error || error.message;
+        throw new Error(`Failed to upload ${type} file: ${errorMessage}`);
+      }
+    };
+
     try {
+      let coverUrl = null;
+      let pdfFileUrl = null;
+
+      toast.info('بدأ رفع صورة الغلاف...');
+      coverUrl = await uploadFile(coverFile, 'cover');
+      toast.success('تم رفع صورة الغلاف بنجاح!');
+
+      if (pdfFile) {
+        toast.info('بدأ رفع ملف الكتاب...');
+        pdfFileUrl = await uploadFile(pdfFile, 'pdf');
+        toast.success('تم رفع ملف الكتاب بنجاح!');
+      }
+
+      const bookData = {
+        ...formData,
+        pages: parseInt(formData.pages, 10),
+        publishYear: parseInt(formData.publishYear, 10),
+        keywords: formData.keywords.split(',').map(k => k.trim()).filter(k => k),
+        cover: coverUrl,
+        pdfFile: pdfFileUrl,
+      };
+
       const response = await fetch('/api/books/suggest', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          pages: parseInt(formData.pages, 10),
-          publishYear: parseInt(formData.publishYear, 10),
-          keywords: formData.keywords.split(',').map(k => k.trim()),
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bookData),
       });
 
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'حدث خطأ ما');
-      }
+      if (!response.ok) throw new Error(data.message || 'حدث خطأ ما أثناء إرسال البيانات.');
 
       setMessage('شكراً لاقتراحك! ستتم مراجعة الكتاب من قبل الإدارة.');
-      setFormData({
-        title: '', author: '', category: '', description: '', pages: '', 
-        publishYear: '', language: 'العربية', keywords: '', cover: '', pdfFile: ''
-      });
-      // Optional: redirect after a delay
-      // setTimeout(() => router.push('/'), 3000);
+      clearForm();
 
     } catch (err) {
+      console.error("Submit Error:", err);
       setError(err.message);
+      toast.error(`فشل: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -118,19 +175,19 @@ const SuggestBookClient = () => {
           <input type="text" id="keywords" name="keywords" value={formData.keywords} onChange={handleChange} />
         </div>
         <div className="form-group">
-          <label htmlFor="cover">رابط صورة الغلاف (اختياري)</label>
-          <input type="url" id="cover" name="cover" value={formData.cover} onChange={handleChange} />
+          <label htmlFor="cover">صورة الغلاف (إجباري)</label>
+          <input type="file" id="cover" name="cover" accept="image/*" onChange={handleFileChange} ref={coverInputRef} required />
         </div>
         <div className="form-group">
-          <label htmlFor="pdfFile">رابط ملف الكتاب (PDF) (اختياري)</label>
-          <input type="url" id="pdfFile" name="pdfFile" value={formData.pdfFile} onChange={handleChange} />
+          <label htmlFor="pdfFile">ملف الكتاب (PDF) (اختياري)</label>
+          <input type="file" id="pdfFile" name="pdfFile" accept="application/pdf" onChange={handleFileChange} ref={pdfFileInputRef} />
         </div>
 
         {error && <p className="error-message">{error}</p>}
         {message && <p className="success-message">{message}</p>}
 
         <button type="submit" disabled={isLoading}>
-          {isLoading ? 'جار الإرسال...' : 'إرسال الاقتراح'}
+          {isLoading ? 'جار الرفع والإرسال...' : 'إرسال الاقتراح'}
         </button>
       </form>
     </div>
