@@ -1,4 +1,3 @@
-
 'use client';
 import React, { useState, useEffect } from "react";
 import BookCard from "@/components/BookCard";
@@ -50,8 +49,8 @@ const HomePageClient = ({ initialBooks, initialCategories }) => {
   });
 
   return (
-    <div className="homepage-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
-      <h1 className="homepage-title" style={{ color: theme.primary }}>البحث عن الكتب</h1>
+    <div className="homepage-container">
+      <h1 className="homepage-title">البحث عن الكتب</h1>
       <div className="search-filter-container">
         <input
           type="text"
@@ -59,16 +58,12 @@ const HomePageClient = ({ initialBooks, initialCategories }) => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"
-          style={{
-            border: `1px solid ${theme.secondary}`,
-            backgroundColor: theme.background,
-            color: theme.primary,
-          }}
         />
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="category-select themed-input">
+          className="category-select"
+        >
           {categories.map(category => (
             <option key={category} value={category}>{category}</option>
           ))}

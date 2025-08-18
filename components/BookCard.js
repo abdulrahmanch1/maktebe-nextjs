@@ -59,14 +59,7 @@ const BookCard = ({ book }) => {
             }
             toggleFavorite(book.id);
           }}
-          className={`favorite-icon ${isLiked ? 'liked' : ''}`}
-          aria-label={isLiked ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
-          style={{
-            backgroundColor: theme.primary,
-            border: 'none',
-            cursor: 'pointer'
-          }}
-        >
+          className={`favorite-icon ${isLiked ? 'liked' : ''} themed-favorite-icon`}
           {isLiked ? '❤️' : '♡'}
         </button>
       </div>

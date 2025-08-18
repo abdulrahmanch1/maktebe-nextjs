@@ -11,7 +11,6 @@ import Image from "next/image";
 import "./SettingsPage.css";
 
 const SettingsPage = () => {
-  const { theme } = useContext(ThemeContext);
   const { isLoggedIn } = useContext(AuthContext);
   const [activeSection, setActiveSection] = useState("account");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -55,16 +54,12 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="settings-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
-      <aside className="settings-sidebar" style={{ borderColor: theme.secondary, backgroundColor: theme.secondary }}>
+    <div className="settings-container">
+      <aside className="settings-sidebar">
         {sidebarItems.map(item => (
           <div
             key={item.key}
             className={`settings-sidebar-item ${activeSection === item.key ? "active" : ""}`}
-            style={{
-              color: activeSection === item.key ? theme.background : theme.primary,
-              backgroundColor: activeSection === item.key ? theme.primary : "transparent",
-            }}
             onClick={() => handleSectionChange(item.key)}
           >
             <span>{item.icon}</span>
@@ -74,21 +69,16 @@ const SettingsPage = () => {
       </aside>
 
       <div className="settings-mobile-header">
-        <button className="settings-mobile-button" onClick={() => setIsDropdownOpen(!isDropdownOpen)} style={{ backgroundColor: theme.secondary, color: theme.primary, borderColor: theme.accent }}>
+        <button className="settings-mobile-button" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
           <span>⚙️</span>
           <span>الملف الشخصي</span>
         </button>
         {isDropdownOpen && (
-          <div className="settings-dropdown" style={{ backgroundColor: theme.secondary, borderColor: theme.accent }}>
+          <div className="settings-dropdown">
             {sidebarItems.map(item => (
               <div
                 key={item.key}
-                className="settings-dropdown-item"
-                style={{
-                  color: activeSection === item.key ? theme.background : theme.primary,
-                  backgroundColor: activeSection === item.key ? theme.primary : "transparent",
-                  borderBottom: `1px solid ${theme.accent}`
-                }}
+                className={`settings-dropdown-item ${activeSection === item.key ? "active" : ""}`}
                 onClick={() => handleSectionChange(item.key)}
               >
                 <span>{item.icon}</span>
@@ -105,7 +95,6 @@ const SettingsPage = () => {
 };
 
 const ContactUsSection = () => {
-  const { theme } = useContext(ThemeContext);
   const { user } = useContext(AuthContext);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
@@ -133,31 +122,29 @@ const ContactUsSection = () => {
 
   return (
     <div className="settings-section">
-      <h2 style={{ borderColor: theme.accent, color: theme.primary }}>تواصل معنا</h2>
-      <form onSubmit={handleSubmit} style={{ backgroundColor: theme.background, padding: "20px", borderRadius: "8px", boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)" }}>
+      <h2>تواصل معنا</h2>
+      <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label style={{ color: theme.primary }}>الموضوع:</label>
+          <label>الموضوع:</label>
           <input
             type="text"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="موضوع الرسالة"
             required
-            style={{ borderColor: theme.secondary, backgroundColor: theme.background, color: theme.primary }}
           />
         </div>
         <div className="form-group">
-          <label style={{ color: theme.primary }}>رسالتك:</label>
+          <label>رسالتك:</label>
           <textarea
             rows="5"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="اكتب رسالتك هنا..."
             required
-            style={{ borderColor: theme.secondary, backgroundColor: theme.background, color: theme.primary }}
           ></textarea>
         </div>
-        <button type="submit" className="button" style={{ backgroundColor: theme.accent, color: theme.primary }}>
+        <button type="submit" className="button">
           إرسال الرسالة
         </button>
       </form>
@@ -166,12 +153,10 @@ const ContactUsSection = () => {
 };
 
 const AccountSettings = () => {
-  const { theme } = useContext(ThemeContext);
   const { user, session, setUser } = useContext(AuthContext);
   const [newUsername, setNewUsername] = useState(user ? user.username : "");
   const fileInputRef = useRef(null);
 
-  // Custom loader for Supabase images
   const supabaseLoader = ({ src }) => {
     return src;
   };
@@ -189,14 +174,11 @@ const AccountSettings = () => {
     formData.append("file", file);
 
     try {
-      // Single API call to our new endpoint
       const res = await axios.post("/api/upload-profile-picture", formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-
-      // Update the user state locally with the new URL from the response
       setUser({ ...user, profilePicture: res.data.newUrl });
       toast.success("تم تحديث الصورة بنجاح!");
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -230,7 +212,7 @@ const AccountSettings = () => {
 
   return (
     <div className="settings-section">
-      <h2 style={{ borderColor: theme.accent, color: theme.primary }}>إعدادات الحساب</h2>
+      <h2>إعدادات الحساب</h2>
       <div className="profile-info-section">
         <Image
           loader={supabaseLoader}
@@ -239,19 +221,18 @@ const AccountSettings = () => {
           width={100}
           height={100}
           className="profile-picture"
-          style={{ borderColor: theme.accent }}
           onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }}
         />
-        <span className="profile-email" style={{ color: theme.primary }}>{user ? user.email : "غير متاح"}</span>
+        <span className="profile-email">{user ? user.email : "غير متاح"}</span>
         <input type="file" onChange={handleImageChange} ref={fileInputRef} style={{ display: 'none' }} />
-        <button className="button change-picture-button" onClick={() => fileInputRef.current.click()} style={{ backgroundColor: theme.accent, color: theme.primary }}>
+        <button className="button change-picture-button" onClick={() => fileInputRef.current.click()}>
           تغيير الصورة
         </button>
       </div>
-      <div className="form-group username-form-group">
+      <div className="form-group">
         <label>اسم المستخدم</label>
-        <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} style={{ borderColor: theme.secondary, backgroundColor: theme.background, color: theme.primary }} />
-        <button className="button" onClick={handleUsernameUpdate} style={{ backgroundColor: theme.accent, color: theme.primary }}>
+        <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
+        <button className="button" onClick={handleUsernameUpdate}>
           تحديث اسم المستخدم
         </button>
       </div>
@@ -263,7 +244,7 @@ const AppearanceSettings = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
   return (
     <div className="settings-section">
-      <h2 style={{ borderColor: theme.accent, color: theme.primary }}>إعدادات المظهر</h2>
+      <h2>إعدادات المظهر</h2>
       <div className="form-group">
         <label>اختر ثيمًا:</label>
         <div className="theme-options">
@@ -284,7 +265,6 @@ const AppearanceSettings = () => {
 };
 
 const SecuritySettings = () => {
-  const { theme } = useContext(ThemeContext);
   const { user, session, logout } = useContext(AuthContext);
   const router = useRouter();
 
@@ -339,7 +319,7 @@ const SecuritySettings = () => {
 
   return (
     <div className="settings-section">
-      <h2 style={{ borderColor: theme.accent, color: theme.primary }}>إعدادات الأمان</h2>
+      <h2>إعدادات الأمان</h2>
       <div className="form-group">
         <label>كلمة المرور القديمة</label>
         <input
@@ -347,7 +327,6 @@ const SecuritySettings = () => {
           value={oldPassword}
           onChange={(e) => setOldPassword(e.target.value)}
           placeholder="أدخل كلمة المرور القديمة"
-          style={{ borderColor: theme.secondary, backgroundColor: theme.background, color: theme.primary }}
         />
         <label>كلمة المرور الجديدة</label>
         <input
@@ -355,7 +334,6 @@ const SecuritySettings = () => {
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
           placeholder="أدخل كلمة المرور الجديدة"
-          style={{ borderColor: theme.secondary, backgroundColor: theme.background, color: theme.primary }}
         />
         <label>تأكيد كلمة المرور الجديدة</label>
         <input
@@ -363,15 +341,14 @@ const SecuritySettings = () => {
           value={confirmNewPassword}
           onChange={(e) => setConfirmNewPassword(e.target.value)}
           placeholder="أعد إدخال كلمة المرور الجديدة"
-          style={{ borderColor: theme.secondary, backgroundColor: theme.background, color: theme.primary }}
         />
-        <button className="button" onClick={handleChangePassword} style={{ backgroundColor: theme.accent, color: theme.primary }}>
+        <button className="button" onClick={handleChangePassword}>
           تغيير كلمة المرور
         </button>
       </div>
       <div className="form-group">
         <label>حذف الحساب</label>
-        <button className="button button-danger" onClick={handleDeleteAccount} style={{ backgroundColor: "#e74c3c" }}>
+        <button className="button button-danger" onClick={handleDeleteAccount}>
           حذف الحساب نهائيًا
         </button>
       </div>

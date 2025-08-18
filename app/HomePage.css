@@ -1,31 +1,39 @@
 .homepage-container {
   padding: 20px;
+  background-color: var(--background-color);
+  color: var(--primary-color);
 }
 
 .homepage-title {
   text-align: center;
+  color: var(--primary-color);
 }
 
 .search-filter-container {
   text-align: center;
   margin-bottom: 20px;
-  display: flex; /* Ensure they are side-by-side */
-  justify-content: center; /* Center them */
+  display: flex;
+  justify-content: center;
   align-items: center;
-  flex-wrap: wrap; /* Allow wrapping if space is too tight */
+  flex-wrap: wrap;
+}
+
+.search-input,
+.category-select {
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  border: 1px solid var(--secondary-color);
+  background-color: var(--background-color);
+  color: var(--primary-color);
 }
 
 .search-input {
-  padding: 10px;
-  max-width: 400px; /* Adjusted max-width for larger screens */
-  border-radius: 5px;
-  margin-bottom: 10px;
+  max-width: 400px;
 }
 
 .category-select {
   padding: 7.5px;
-  border-radius: 5px;
-  margin-bottom: 10px;
 }
 
 .books-display-container {
@@ -43,22 +51,22 @@
 
 @media (max-width: 600px) {
   .search-filter-container {
-    width: 100%; /* Ensure container takes full width */
-    padding: 0 10px; /* Add some padding to the container */
-    box-sizing: border-box; /* Include padding in width */
-    flex-wrap: nowrap; /* Prevent wrapping on small screens */
-    gap: 10px; /* Fixed 10px gap */
+    width: 100%;
+    padding: 0 10px;
+    box-sizing: border-box;
+    flex-wrap: nowrap;
+    gap: 10px;
   }
 
   .search-input {
-    width: calc(70% - 5px); /* 70% width minus half the gap */
-    max-width: none; /* Override max-width */
-    margin-right: 0; /* Remove individual margin */
+    width: calc(70% - 5px);
+    max-width: none;
+    margin-right: 0;
   }
 
   .category-select {
-    width: calc(20% - 5px); /* 20% width minus half the gap */
-    margin-right: 0; /* Remove individual margin */
+    width: calc(20% - 5px);
+    margin-right: 0;
   }
 }
 
@@ -70,20 +78,4 @@
   .category-select {
     width: calc(30% - 5px);
   }
-}
-
-/* Themed styles for HomePageClient */
-.themed-page-container {
-  background-color: var(--background-color);
-  color: var(--primary-color);
-}
-
-.themed-title {
-  color: var(--primary-color);
-}
-
-.themed-input {
-  border: 1px solid var(--secondary-color);
-  background-color: var(--background-color);
-  color: var(--primary-color);
 }

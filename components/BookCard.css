@@ -129,3 +129,14 @@
   color: red; /* Red when liked */
   transform: scale(1.05); /* Adjusted scale to fit within circle */
 }
+
+/* Themed styles for BookCard */
+.themed-card {
+  background-color: var(--background-color);
+  color: var(--primary-color);
+  border: 1px solid var(--secondary-color);
+}
+
+.themed-favorite-icon {
+  background-color: var(--primary-color);
+}

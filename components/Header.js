@@ -19,26 +19,22 @@ const Header = () => {
   };
 
   return (
-    <header className="header themed-header">
+    <header className="header">
       <div className="header-content">
         <div className="menu-icon" onClick={toggleSidebar}>
-          <FaBars className="menu-icon themed-icon" />
+          <FaBars />
         </div>
         <nav className="header-nav">
-          <Link href="/" className="header-link themed-link">الرئيسية</Link>
-          {isLoggedIn && <Link href="/suggest-book" className="header-link themed-link">اقترح كتاباً</Link>}
-          <Link href="/settings" className="header-link themed-link">الإعدادات</Link>
-          <Link href="/favorites" className="header-link themed-link">المفضلة</Link>
-          <Link href="/reading-list" className="header-link themed-link">قائمة القراءة</Link>
-          {isLoggedIn && user && user.role === 'admin' && (
-            <Link href="/admin" className="header-link themed-link">لوحة التحكم</Link>
-          )}
+          <Link href="/" className="header-link">الرئيسية</Link>
+          <Link href="/settings" className="header-link">الإعدادات</Link>
+          <Link href="/favorites" className="header-link">المفضلة</Link>
+          <Link href="/reading-list" className="header-link">قائمة القراءة</Link>
         </nav>
         
         <div className="header-user-section">
           {isLoggedIn ? (
             <>
-              <Link href="/settings" className="header-link themed-link">{user ? user.username : "اسم المستخدم"}</Link>
+              <Link href="/settings" className="header-link">{user ? user.username : "اسم المستخدم"}</Link>
               <Image
                 src={user && user.profilePicture ? user.profilePicture : '/imgs/user.jpg'}
                 alt="صورة المستخدم"
@@ -46,12 +42,12 @@ const Header = () => {
                 height={40}
                 className="header-user-avatar"
               />
-              <button onClick={logout} className="header-button logout-button-header" style={{ backgroundColor: theme.accent, color: theme.primary }}>تسجيل الخروج</button>
+              <button onClick={logout} className="header-button logout-button-header">تسجيل الخروج</button>
             </>
           ) : (
             <>
-              <Link href="/login" className="header-link themed-link-fixed-color" style={{ marginLeft: "10px" }}>تسجيل الدخول</Link>
-              <Link href="/register" className="header-button header-link themed-button-accent">إنشاء حساب</Link>
+              <Link href="/login" className="header-link login-link">تسجيل الدخول</Link>
+              <Link href="/register" className="header-button header-link">إنشاء حساب</Link>
             </>
           )}
         </div>

@@ -70,3 +70,40 @@
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
+
+/* Themed styles for Sidebar */
+.themed-secondary-background {
+  background-color: var(--secondary-color);
+}
+
+.themed-primary-text {
+  color: var(--primary-color);
+}
+
+.sidebar-link {
+  padding: 10px 15px;
+  text-decoration: none;
+  font-size: 1.2em;
+  display: block;
+  transition: 0.3s;
+  width: 80%;
+  border-radius: 25px;
+  text-align: center;
+  font-weight: normal;
+}
+
+.sidebar-link-active {
+  color: var(--background-color);
+  background-color: var(--accent-color);
+  font-weight: bold;
+}
+
+.sidebar-link-inactive {
+  color: var(--primary-color);
+  background-color: transparent;
+}
+
+.themed-button-accent {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+}

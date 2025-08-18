@@ -3,6 +3,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color: var(--primary-color);
+  color: var(--background-color);
 }
 
 .header-content {
@@ -16,6 +18,7 @@
   display: none; /* Hidden by default */
   cursor: pointer;
   font-size: 1.5em;
+  color: var(--background-color);
 }
 
 .header-nav {
@@ -26,6 +29,7 @@
 .header-nav a {
   text-decoration: none;
   font-weight: bold;
+  color: var(--background-color);
 }
 
 .header-user-section {
@@ -45,10 +49,17 @@
   padding: 8px 12px;
   border-radius: 5px;
   cursor: pointer;
+  background-color: var(--accent-color);
+  color: var(--primary-color);
 }
 
 .header-link {
   text-decoration: none;
+  color: var(--background-color);
+}
+
+.login-link {
+  margin-left: 10px;
 }
 
 /* Media Query for smaller screens */
@@ -70,27 +81,4 @@
   .logout-button-header {
     display: none; /* Hide logout button on header for very small screens */
   }
-}
-
-/* Themed styles for Header */
-.themed-header {
-  background-color: var(--primary-color);
-  color: var(--background-color);
-}
-
-.themed-icon {
-  color: var(--background-color);
-}
-
-.themed-link {
-  color: var(--background-color);
-}
-
-.themed-link-fixed-color {
-  color: #FFFFFF; /* Fixed white color */
-}
-
-.themed-button-accent {
-  background-color: var(--accent-color);
-  color: var(--primary-color);
 }
