@@ -207,6 +207,9 @@ const AdminPageClient = () => {
         <Link href="/admin/contact-messages" style={{ backgroundColor: theme.accent, color: theme.primary, padding: "10px 20px", borderRadius: "5px", textDecoration: "none" }}>
           عرض رسائل التواصل
         </Link>
+        <Link href="/admin/suggested-books" style={{ backgroundColor: theme.accent, color: theme.primary, padding: "10px 20px", borderRadius: "5px", textDecoration: "none" }}>
+          إدارة الكتب المقترحة
+        </Link>
       </div>
 
       <div className="admin-form-container" style={{ backgroundColor: theme.secondary, color: theme.primary }}>

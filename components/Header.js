@@ -29,6 +29,7 @@ const Header = () => {
         </div>
         <nav className="header-nav">
           <Link href="/" className="header-link" style={{ color: theme.background }}>الرئيسية</Link>
+          {isLoggedIn && <Link href="/suggest-book" className="header-link" style={{ color: theme.background }}>اقترح كتاباً</Link>}
           <Link href="/settings" className="header-link" style={{ color: theme.background }}>الإعدادات</Link>
           <Link href="/favorites" className="header-link" style={{ color: theme.background }}>المفضلة</Link>
           <Link href="/reading-list" className="header-link" style={{ color: theme.background }}>قائمة القراءة</Link>

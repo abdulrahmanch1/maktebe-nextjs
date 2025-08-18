@@ -226,6 +226,16 @@ const BookDetailsClient = ({ initialBook }) => {
         <h2 className="book-description-title" style={{ color: theme.primary, borderTopColor: theme.secondary }}>الوصف:</h2>
         <p className="book-description-text">{book.description}</p>
 
+        {user?.role === 'admin' && book.status === 'suggested' && (
+          <div className="admin-actions-container">
+            <h3 className="admin-actions-title">إجراءات المشرف</h3>
+            <div className="admin-actions-buttons">
+              <button onClick={handleApproveBook} disabled={isProcessing} className="admin-action-button approve">موافقة ونشر</button>
+              <button onClick={handleRejectBook} disabled={isProcessing} className="admin-action-button reject">حذف الاقتراح</button>
+            </div>
+          </div>
+        )}
+
         {!isInReadingList && (
           <button
             onClick={handleAddToReadingList}

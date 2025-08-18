@@ -10,9 +10,18 @@ export const GET = async (request) => {
   const category = searchParams.get('category') || '';
   const author = searchParams.get('author') || '';
   const ids = searchParams.get('ids');
+  const status = searchParams.get('status');
 
   try {
     let supabaseQuery = supabase.from('books').select('*');
+
+    // Filter by status
+    if (status) {
+      supabaseQuery = supabaseQuery.eq('status', status);
+    } else {
+      // By default, only return approved books
+      supabaseQuery = supabaseQuery.eq('status', 'approved');
+    }
 
     if (query) {
       supabaseQuery = supabaseQuery.or(`title.ilike.%${query}%,author.ilike.%${query}%,description.ilike.%${query}%`);

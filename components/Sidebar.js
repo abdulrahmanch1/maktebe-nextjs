@@ -30,6 +30,7 @@ const Sidebar = ({ isOpen, toggle, isLoggedIn, logout }) => {
       </div>
       <nav className="sidebar-nav">
         <Link href="/" onClick={toggle} style={getLinkStyle('/')}>الرئيسية</Link>
+        {isLoggedIn && <Link href="/suggest-book" onClick={toggle} style={getLinkStyle('/suggest-book')}>اقترح كتاباً</Link>}
         <Link href="/settings" onClick={toggle} style={getLinkStyle('/settings')}>الإعدادات</Link>
         <Link href="/favorites" onClick={toggle} style={getLinkStyle('/favorites')}>المفضلة</Link>
         <Link href="/reading-list" onClick={toggle} style={getLinkStyle('/reading-list')}>قائمة القراءة</Link>
