@@ -1,13 +1,10 @@
 'use client';
-import React, { useContext } from "react";
-import { ThemeContext } from "@/contexts/ThemeContext";
+import React from "react";
 import './Footer.css'; // Import the CSS file
 
 const Footer = () => {
-  const { theme } = useContext(ThemeContext);
-
   return (
-    <footer className="footer themed-footer">
+    <footer className="footer">
       <p>جميع الحقوق محفوظة © 2025</p>
     </footer>
   );

@@ -6,6 +6,8 @@
   align-items: flex-start;
   gap: 40px;
   flex-wrap: wrap;
+  background-color: var(--background-color);
+  color: var(--primary-color);
 }
 
 .book-cover-section {
@@ -27,8 +29,9 @@
 }
 
 .book-title {
-  border-bottom: 2px solid;
+  border-bottom: 2px solid var(--accent-color);
   padding-bottom: 10px;
+  color: var(--primary-color);
 }
 
 .book-meta-item {
@@ -36,10 +39,19 @@
   margin-top: 20px;
 }
 
+.book-meta-item strong {
+  color: var(--primary-color);
+}
+
+.book-meta-item span {
+  color: var(--accent-color);
+}
+
 .book-description-title {
   margin-top: 30px;
-  border-top: 1px solid;
+  border-top: 1px solid var(--secondary-color);
   padding-top: 20px;
+  color: var(--primary-color);
 }
 
 .book-description-text {
@@ -57,10 +69,12 @@
   font-weight: bold;
   width: 100%;
   transition: background-color 0.3s ease;
+  background-color: var(--accent-color);
+  color: var(--primary-color);
 }
 
 .book-action-button.remove {
-  background-color: #dc3545; /* Red color for remove */
+  background-color: #dc3545;
   color: white;
 }
 
@@ -72,21 +86,24 @@
 
 .comments-section {
   margin-top: 30px;
-  border-top: 1px solid;
+  border-top: 1px solid var(--secondary-color);
   padding-top: 20px;
 }
 
 .comments-title {
   margin-bottom: 15px;
+  color: var(--primary-color);
 }
 
 .comment-textarea {
   width: 100%;
   padding: 10px;
   border-radius: 4px;
-  border: 1px solid;
   margin-bottom: 10px;
   box-sizing: border-box;
+  border: 1px solid var(--accent-color);
+  background-color: var(--background-color);
+  color: var(--primary-color);
 }
 
 .comment-post-button {
@@ -97,11 +114,14 @@
   font-size: 1em;
   font-weight: bold;
   transition: background-color 0.3s ease;
+  background-color: var(--accent-color);
+  color: var(--primary-color);
 }
 
 .no-comments-message {
   text-align: center;
   margin-bottom: 20px;
+  color: var(--primary-color);
 }
 
 .comment-item {
@@ -110,6 +130,7 @@
   margin-bottom: 15px;
   padding: 10px;
   border-radius: 8px;
+  background-color: var(--secondary-color);
 }
 
 .comment-user-avatar {
@@ -127,16 +148,19 @@
 .comment-username {
   margin: 0;
   font-weight: bold;
+  color: var(--primary-color);
 }
 
 .comment-text {
   margin: 5px 0 0 0;
+  color: var(--primary-color);
 }
 
 .comment-date {
   margin: 0;
   font-size: 0.8em;
   opacity: 0.7;
+  color: var(--primary-color);
 }
 
 .comment-actions {
@@ -150,6 +174,7 @@
   font-size: 20px;
   margin-right: 10px;
   transition: color 0.3s ease, transform 0.3s ease;
+  color: var(--primary-color);
 }
 
 .comment-like-button.liked {
@@ -164,54 +189,8 @@
   cursor: pointer;
   font-size: 0.8em;
   margin-left: 10px;
+  background-color: #dc3545;
 }
-
-/* Admin Actions */
-.admin-actions-container {
-  border: 2px solid #f0ad4e; /* Warning color */
-  border-radius: 8px;
-  padding: 15px;
-  margin: 20px 0;
-}
-
-.admin-actions-title {
-  text-align: center;
-  margin-bottom: 15px;
-  color: #f0ad4e;
-}
-
-.admin-actions-buttons {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-}
-
-.admin-action-button {
-  flex-grow: 1;
-  padding: 10px 15px;
-  border-radius: 5px;
-  border: none;
-  cursor: pointer;
-  font-size: 1em;
-  font-weight: bold;
-  transition: opacity 0.3s ease;
-}
-
-.admin-action-button.approve {
-  background-color: #5cb85c; /* Success color */
-  color: white;
-}
-
-.admin-action-button.reject {
-  background-color: #d9534f; /* Danger color */
-  color: white;
-}
-
-.admin-action-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 
 @media (max-width: 768px) {
   .book-details-container {
@@ -219,63 +198,4 @@
     align-items: center;
     gap: 20px;
   }
-}
-
-/* Themed styles for BookDetailsClient */
-.themed-page-container {
-  background-color: var(--background-color);
-  color: var(--primary-color);
-}
-
-.themed-title {
-  color: var(--primary-color);
-}
-
-.themed-border-bottom {
-  border-bottom-color: var(--accent-color);
-}
-
-.themed-accent-text {
-  color: var(--accent-color);
-}
-
-.themed-border-top-secondary {
-  border-top-color: var(--secondary-color);
-}
-
-.themed-button-accent {
-  background-color: var(--accent-color);
-  color: var(--primary-color);
-}
-
-.themed-read-status-button {
-  background-color: var(--accent-color);
-  color: var(--primary-color);
-}
-
-.themed-read-status-button.read {
-  background-color: var(--secondary-color);
-}
-
-.themed-primary-text {
-  color: var(--primary-color);
-}
-
-.themed-favorite-button {
-  background-color: var(--accent-color);
-  color: var(--primary-color);
-}
-
-.themed-favorite-button.liked {
-  background-color: var(--secondary-color);
-}
-
-.themed-input {
-  border-color: var(--accent-color);
-  background-color: var(--background-color);
-  color: var(--primary-color);
-}
-
-.themed-secondary-background {
-  background-color: var(--secondary-color);
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useContext, useEffect, useState } from "react";
-import { ThemeContext } from "@/contexts/ThemeContext";
 import { FavoritesContext } from "@/contexts/FavoritesContext";
 import { AuthContext } from "@/contexts/AuthContext";
 import axios from "axios";
@@ -11,14 +10,14 @@ import { API_URL } from "@/constants";
 import './BookDetailsPage.css';
 
 const BookDetailsClient = ({ initialBook }) => {
-  const { theme } = useContext(ThemeContext);
   const { toggleFavorite, isFavorite } = useContext(FavoritesContext);
   const { isLoggedIn, user, session, setUser } = useContext(AuthContext);
   const [book, setBook] = useState(initialBook);
   const [isInReadingList, setIsInReadingList] = useState(false);
   const [isRead, setIsRead] = useState(false);
   const [commentText, setCommentText] = useState('');
-  const [bookComments, setBookComments] = useState([]); // Initialize as empty array
+  const [bookComments, setBookComments] = useState([]);
+
   useEffect(() => {
     if (initialBook.comments) {
       setBookComments(initialBook.comments.map(comment => ({
@@ -27,7 +26,7 @@ const BookDetailsClient = ({ initialBook }) => {
         likes: comment.likes ? comment.likes.length : 0,
       })));
     }
-  }, [initialBook.comments, user]); // Recalculate when initial comments or user changes
+  }, [initialBook.comments, user]);
 
   useEffect(() => {
     const currentReadingList = Array.isArray(user?.readingList) ? user.readingList : [];
@@ -85,10 +84,7 @@ const BookDetailsClient = ({ initialBook }) => {
         setIsRead(true);
       }
 
-      console.log('handleAddToReadingList: updatedReadingList from API:', updatedReadingList);
-      console.log('handleAddToReadingList: user before setUser:', user);
       setUser({ ...user, readingList: updatedReadingList });
-      console.log('handleAddToReadingList: user after setUser (might not reflect immediately):', user);
     } catch (err) {
       console.error("Error handling reading list:", err);
       toast.error(err.response?.data?.message || "فشل تحديث قائمة القراءة.");
@@ -101,9 +97,7 @@ const BookDetailsClient = ({ initialBook }) => {
       const res = await axios.patch(`${API_URL}/api/users/${user.id}/reading-list/${book.id}`, { read: !isRead }, {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      // Ensure readingList is an array before updating
-      const currentReadingList = Array.isArray(user?.readingList) ? user.readingList : [];
-      const updatedReadingList = res.data; // Assuming res.data is the updated reading list
+      const updatedReadingList = res.data;
       setUser({ ...user, readingList: updatedReadingList });
       setIsRead(!isRead);
       toast.success(`تم وضع علامة على الكتاب كـ ${!isRead ? "مقروء" : "غير مقروء"}.`);
@@ -119,9 +113,7 @@ const BookDetailsClient = ({ initialBook }) => {
       const res = await axios.delete(`${API_URL}/api/users/${user.id}/reading-list/${book.id}`, {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      // Ensure readingList is an array before updating
-      const currentReadingList = Array.isArray(user?.readingList) ? user.readingList : [];
-      const updatedReadingList = res.data; // Assuming res.data is the updated reading list
+      const updatedReadingList = res.data;
       setUser({ ...user, readingList: updatedReadingList });
       setIsInReadingList(false);
       setIsRead(false);
@@ -203,7 +195,7 @@ const BookDetailsClient = ({ initialBook }) => {
   const isLiked = isFavorite(book.id);
 
   return (
-    <div className="book-details-container themed-page-container">
+    <div className="book-details-container">
       <div className="book-cover-section">
         <Image
           src={book.cover}
@@ -215,31 +207,21 @@ const BookDetailsClient = ({ initialBook }) => {
         />
       </div>
       <div className="book-info-section">
-        <h1 className="book-title themed-title themed-border-bottom">{book.title}</h1>
-        <p className="book-meta-item"><strong>المؤلف:</strong> <span className="themed-accent-text">{book.author}</span></p>
+        <h1 className="book-title">{book.title}</h1>
+        <p className="book-meta-item"><strong>المؤلف:</strong> <span>{book.author}</span></p>
         <p className="book-meta-item"><strong>التصنيف:</strong> {book.category}</p>
         <p className="book-meta-item"><strong>سنة النشر:</strong> {book.publishYear}</p>
         <p className="book-meta-item"><strong>عدد الصفحات:</strong> {book.pages}</p>
         <p className="book-meta-item"><strong>اللغة:</strong> {book.language}</p>
         <p className="book-meta-item"><strong>عدد القراءات:</strong> {book.readCount || 0}</p>
         <p className="book-meta-item"><strong>عدد الإعجابات:</strong> {book.favoriteCount || 0}</p>
-        <h2 className="book-description-title themed-title themed-border-top-secondary">الوصف:</h2>
+        <h2 className="book-description-title">الوصف:</h2>
         <p className="book-description-text">{book.description}</p>
-
-        {user?.role === 'admin' && book.status === 'suggested' && (
-          <div className="admin-actions-container">
-            <h3 className="admin-actions-title">إجراءات المشرف</h3>
-            <div className="admin-actions-buttons">
-              <button onClick={handleApproveBook} disabled={isProcessing} className="admin-action-button approve">موافقة ونشر</button>
-              <button onClick={handleRejectBook} disabled={isProcessing} className="admin-action-button reject">حذف الاقتراح</button>
-            </div>
-          </div>
-        )}
 
         {!isInReadingList && (
           <button
             onClick={handleAddToReadingList}
-            className="book-action-button themed-button-accent"
+            className="book-action-button"
           >
             اقرأ الكتاب
           </button>
@@ -249,13 +231,14 @@ const BookDetailsClient = ({ initialBook }) => {
           <div className="reading-list-buttons-group">
             <button
               onClick={handleToggleReadStatus}
-              className="book-action-button themed-read-status-button"
+              className="book-action-button"
+              style={{ backgroundColor: isRead ? 'var(--secondary-color)' : 'var(--accent-color)' }}
             >
               {isRead ? "وضع علامة كغير مقروء" : "وضع علامة كمقروء"}
             </button>
             <button
               onClick={handleRemoveFromReadingList}
-              className="book-action-button remove themed-primary-text"
+              className="book-action-button remove"
             >
               إزالة من قائمة القراءة
             </button>
@@ -264,13 +247,14 @@ const BookDetailsClient = ({ initialBook }) => {
 
         <button
           onClick={handleToggleFavorite}
-          className="book-action-button themed-favorite-button"
+          className="book-action-button"
+          style={{ backgroundColor: isLiked ? 'var(--secondary-color)' : 'var(--accent-color)' }}
         >
           {isLiked ? "إزالة من المفضلة" : "إضافة إلى المفضلة"}
         </button>
 
-        <div className="comments-section themed-border-top-secondary">
-          <h2 className="comments-title themed-title">التعليقات</h2>
+        <div className="comments-section">
+          <h2 className="comments-title">التعليقات</h2>
           {isLoggedIn ? (
             <>
               <textarea
@@ -278,24 +262,24 @@ const BookDetailsClient = ({ initialBook }) => {
                 rows="4"
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
-                className="comment-textarea themed-input"
+                className="comment-textarea"
               ></textarea>
               <button
                 onClick={handlePostComment}
-                className="comment-post-button themed-button-accent"
+                className="comment-post-button"
               >
                 نشر تعليق
               </button>
             </>
           ) : (
-            <p className="no-comments-message themed-primary-text">
+            <p className="no-comments-message">
               يجب تسجيل الدخول لكتابة تعليق.
             </p>
           )}
           <div style={{ marginTop: "20px" }}>
             {bookComments.length > 0 ? (
               bookComments.map((comment) => (
-                <div key={comment.id} className="comment-item themed-secondary-background">
+                <div key={comment.id} className="comment-item">
                   <Image
                     src={comment.profiles?.profilepicture && (comment.profiles.profilepicture !== 'Untitled.jpg' && comment.profiles.profilepicture !== 'user.jpg') ? comment.profiles.profilepicture : '/imgs/user.jpg'}
                     alt={`صورة ملف ${comment.profiles?.username || 'مستخدم غير معروف'}`}
@@ -305,13 +289,14 @@ const BookDetailsClient = ({ initialBook }) => {
                     onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }}
                   />
                   <div className="comment-content">
-                    <p className="comment-username themed-primary-text">{comment.profiles?.username || 'مستخدم غير معروف'}</p>
-                    <p className="comment-text themed-primary-text">{comment.text}</p>
-                    <p className="comment-date themed-primary-text">{new Date(comment.created_at).toLocaleDateString()}</p>
+                    <p className="comment-username">{comment.profiles?.username || 'مستخدم غير معروف'}</p>
+                    <p className="comment-text">{comment.text}</p>
+                    <p className="comment-date">{new Date(comment.created_at).toLocaleDateString()}</p>
                     <div className="comment-actions">
                       <span
                         onClick={() => handleToggleLike(comment.id)}
-                        className={`comment-like-button ${comment.userLiked ? 'liked' : 'themed-primary-text'}`}
+                        className={`comment-like-button ${comment.userLiked ? 'liked' : ''}`}
+                        style={{ color: comment.userLiked ? "red" : 'var(--primary-color)' }}
                       >
                         {comment.userLiked ? '❤️' : '♡'} <span style={{ fontSize: "0.8em" }}>({comment.likes})</span>
                       </span>
@@ -321,7 +306,6 @@ const BookDetailsClient = ({ initialBook }) => {
                     <button
                       onClick={() => handleDeleteComment(comment.id)}
                       className="comment-delete-button"
-                      style={{ backgroundColor: '#dc3545' }}
                     >
                       حذف
                     </button>
@@ -329,7 +313,7 @@ const BookDetailsClient = ({ initialBook }) => {
                 </div>
               ))
             ) : (
-              <p className="themed-primary-text" style={{ textAlign: "center" }}>لا توجد تعليقات حتى الآن. كن أول من يعلق!</p>
+              <p style={{ textAlign: "center" }}>لا توجد تعليقات حتى الآن. كن أول من يعلق!</p>
             )}
           </div>
         </div>
