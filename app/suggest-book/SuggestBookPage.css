@@ -1,7 +1,64 @@
+.suggest-book-page {
+  padding: 20px;
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}
+
+.form-container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+}
+
+.form-container h1 {
+  text-align: center;
+  color: var(--primary-color);
+  margin-bottom: 20px;
+}
+
+.form-container p {
+  text-align: center;
+  margin-bottom: 30px;
+  color: var(--primary-color);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--accent-color);
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}
 
 .form-group textarea {
   min-height: 100px;
   resize: vertical;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--placeholder-color, #a9a9a9);
 }
 
 .error-message {
@@ -25,6 +82,8 @@ button[type="submit"] {
   font-size: 18px;
   font-weight: bold;
   transition: opacity 0.3s ease;
+  background-color: var(--accent-color);
+  color: var(--primary-color);
 }
 
 button[type="submit"]:disabled {
@@ -43,31 +102,29 @@ button[type="submit"]:hover:not(:disabled) {
   justify-content: center;
   width: 100%;
   padding: 10px 15px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--accent-color);
   border-radius: 4px;
   font-size: 16px;
   cursor: pointer;
-  background-color: #f0f0f0; /* Light background for button */
-  color: #333;
+  background-color: var(--background-color);
+  color: var(--primary-color);
   transition: background-color 0.3s ease;
   box-sizing: border-box;
 }
 
 .file-input-label:hover {
-  background-color: #e0e0e0;
+  background-color: var(--secondary-color);
 }
 
 .file-input {
-  display: none; /* Hide the actual file input */
+  display: none;
 }
 
-/* Fixed styles for suggest form inputs */
+/* Fixed styles for suggest form inputs - these will be overridden by theme variables */
 .suggest-form-input {
-  background-color: #ffffff; /* White background */
-  color: #333333; /* Dark gray text */
-  border-color: #cccccc; /* Light gray border */
+  /* These styles are now handled by the general input rules above */
 }
 
 .suggest-form-input::placeholder {
-  color: #999999; /* Lighter gray placeholder */
+  /* These styles are now handled by the general input rules above */
 }
