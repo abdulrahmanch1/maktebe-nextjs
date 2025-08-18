@@ -266,7 +266,7 @@ const AdminPageClient = () => {
           </div>
           <div className="admin-form-group">
             <label>الكلمات المفتاحية (افصل بينها بفاصلة)</label>
-            <input type="text" placeholder="أدخل كلمات مفتاحية" value={keywords} onChange={(e) => setKeywords(e.target.value)} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
+            <input type="text" placeholder="أدخل كلمات مفتاحية" value={keywords} onChange={(e) => setKeywords(e.target.value)} className="admin-form-input" />
           </div>
           <button type="submit" className="admin-form-button" style={{ backgroundColor: theme.accent, color: theme.primary }}>{editingBook ? "تحديث الكتاب" : "إضافة الكتاب"}</button>
           {editingBook && (

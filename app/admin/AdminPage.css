@@ -88,3 +88,14 @@
   background-color: #dc3545;
   color: white;
 }
+
+/* Fixed styles for admin form inputs */
+.admin-form-input {
+  background-color: #ffffff; /* White background */
+  color: #333333; /* Dark gray text */
+  border-color: #cccccc; /* Light gray border */
+}
+
+.admin-form-input::placeholder {
+  color: #999999; /* Lighter gray placeholder */
+}
