@@ -1,12 +1,13 @@
 'use client';
-
-import { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useRef, useContext } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { createClient as createSupabaseClient } from "@/utils/supabase/client";
+import { API_URL } from '@/constants';
+import { AuthContext } from '@/contexts/AuthContext'; // Assuming AuthContext is needed for API calls
 
 const SuggestBookClient = () => {
+  const { session, isLoggedIn } = useContext(AuthContext); // Get session for auth header
+
   const [formData, setFormData] = useState({
     title: '',
     author: '',
@@ -14,22 +15,24 @@ const SuggestBookClient = () => {
     description: '',
     pages: '',
     publishYear: '',
-    language: 'العربية',
+    language: 'العربية', // Default language
     keywords: '',
   });
   const [coverFile, setCoverFile] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null);
 
   const coverInputRef = useRef(null);
   const pdfFileInputRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
   const handleFileChange = (e) => {
@@ -41,93 +44,57 @@ const SuggestBookClient = () => {
     }
   };
 
-  const clearForm = () => {
-    setFormData({ title: '', author: '', category: '', description: '', pages: '', publishYear: '', language: 'العربية', keywords: '' });
-    setCoverFile(null);
-    setPdfFile(null);
-    if (coverInputRef.current) coverInputRef.current.value = '';
-    if (pdfFileInputRef.current) pdfFileInputRef.current.value = '';
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
-    setMessage('');
+    setError(null);
+    setMessage(null);
 
-    if (!coverFile) {
-      setError('يرجى اختيار صورة غلاف للكتاب.');
+    if (!isLoggedIn || !session) {
+      setError('يجب تسجيل الدخول لاقتراح كتاب.');
       setIsLoading(false);
       return;
     }
 
-    const uploadFile = async (file, type) => {
-      if (!file) return null;
-      const supabase = createSupabaseClient();
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      let publicUrl = "";
-
-      try {
-        if (type === 'cover') {
-          const formData = new FormData();
-          formData.append("file", file);
-          const response = await axios.post("/api/upload-book-cover", formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-          publicUrl = response.data.newUrl;
-        } else if (type === 'pdf') {
-          const filePath = `book-pdfs/${fileName}`;
-          const { error: uploadError } = await supabase.storage.from('book-pdfs').upload(filePath, file, { upsert: true });
-          if (uploadError) throw new Error(`Supabase PDF upload error: ${uploadError.message}`);
-          const { data: urlData } = supabase.storage.from('book-pdfs').getPublicUrl(filePath);
-          if (!urlData || !urlData.publicUrl) throw new Error('Failed to get public URL for PDF.');
-          publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-        }
-        return publicUrl;
-      } catch (error) {
-        const errorMessage = error.response?.data?.error || error.message;
-        throw new Error(`Failed to upload ${type} file: ${errorMessage}`);
-      }
-    };
+    const data = new FormData();
+    for (const key in formData) {
+      data.append(key, formData[key]);
+    }
+    if (coverFile) {
+      data.append('cover', coverFile);
+    }
+    if (pdfFile) {
+      data.append('pdfFile', pdfFile);
+    }
 
     try {
-      let coverUrl = null;
-      let pdfFileUrl = null;
-
-      toast.info('بدأ رفع صورة الغلاف...');
-      coverUrl = await uploadFile(coverFile, 'cover');
-      toast.success('تم رفع صورة الغلاف بنجاح!');
-
-      if (pdfFile) {
-        toast.info('بدأ رفع ملف الكتاب...');
-        pdfFileUrl = await uploadFile(pdfFile, 'pdf');
-        toast.success('تم رفع ملف الكتاب بنجاح!');
-      }
-
-      const bookData = {
-        ...formData,
-        pages: parseInt(formData.pages, 10),
-        publishYear: parseInt(formData.publishYear, 10),
-        keywords: formData.keywords.split(',').map(k => k.trim()).filter(k => k),
-        cover: coverUrl,
-        pdfFile: pdfFileUrl,
-      };
-
-      const response = await fetch('/api/books/suggest', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bookData),
+      // Assuming a new API endpoint for suggesting books
+      const response = await axios.post(`${API_URL}/api/suggest-books`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'حدث خطأ ما أثناء إرسال البيانات.');
-
-      setMessage('شكراً لاقتراحك! ستتم مراجعة الكتاب من قبل الإدارة.');
-      clearForm();
+      setMessage('تم إرسال اقتراحك بنجاح!');
+      // Clear form
+      setFormData({
+        title: '',
+        author: '',
+        category: '',
+        description: '',
+        pages: '',
+        publishYear: '',
+        language: 'العربية',
+        keywords: '',
+      });
+      setCoverFile(null);
+      setPdfFile(null);
+      if (coverInputRef.current) coverInputRef.current.value = '';
+      if (pdfFileInputRef.current) pdfFileInputRef.current.value = '';
 
     } catch (err) {
-      console.error("Submit Error:", err);
-      setError(err.message);
-      toast.error(`فشل: ${err.message}`);
+      console.error('Error suggesting book:', err);
+      setError(err.response?.data?.message || 'فشل إرسال الاقتراح.');
     } finally {
       setIsLoading(false);
     }
@@ -174,7 +141,7 @@ const SuggestBookClient = () => {
           <label htmlFor="keywords">كلمات مفتاحية (مفصولة بفاصلة)</label>
           <input type="text" id="keywords" name="keywords" value={formData.keywords} onChange={handleChange} className="suggest-form-input" />
         </div>
-        <div class="form-group">
+        <div className="form-group">
           <label htmlFor="cover">صورة الغلاف (إجباري)</label>
           <label className="file-input-label">
             <span>{coverFile ? coverFile.name : 'اختر صورة...'}</span>
@@ -192,7 +159,7 @@ const SuggestBookClient = () => {
         {error && <p className="error-message">{error}</p>}
         {message && <p className="success-message">{message}</p>}
 
-        <button type="submit" disabled={isLoading} className="themed-button-accent">
+        <button type="submit" disabled={isLoading}>
           {isLoading ? 'جار الرفع والإرسال...' : 'إرسال الاقتراح'}
         </button>
       </form>

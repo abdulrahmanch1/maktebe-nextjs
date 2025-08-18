@@ -26,6 +26,7 @@ const Header = () => {
         </div>
         <nav className="header-nav">
           <Link href="/" className="header-link">الرئيسية</Link>
+          {isLoggedIn && <Link href="/suggest-book" className="header-link">اقترح كتاباً</Link>}
           <Link href="/settings" className="header-link">الإعدادات</Link>
           <Link href="/favorites" className="header-link">المفضلة</Link>
           <Link href="/reading-list" className="header-link">قائمة القراءة</Link>
