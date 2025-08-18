@@ -220,3 +220,62 @@
     gap: 20px;
   }
 }
+
+/* Themed styles for BookDetailsClient */
+.themed-page-container {
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}
+
+.themed-title {
+  color: var(--primary-color);
+}
+
+.themed-border-bottom {
+  border-bottom-color: var(--accent-color);
+}
+
+.themed-accent-text {
+  color: var(--accent-color);
+}
+
+.themed-border-top-secondary {
+  border-top-color: var(--secondary-color);
+}
+
+.themed-button-accent {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+}
+
+.themed-read-status-button {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+}
+
+.themed-read-status-button.read {
+  background-color: var(--secondary-color);
+}
+
+.themed-primary-text {
+  color: var(--primary-color);
+}
+
+.themed-favorite-button {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+}
+
+.themed-favorite-button.liked {
+  background-color: var(--secondary-color);
+}
+
+.themed-input {
+  border-color: var(--accent-color);
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}
+
+.themed-secondary-background {
+  background-color: var(--secondary-color);
+}

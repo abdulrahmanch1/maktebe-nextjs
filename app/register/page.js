@@ -48,9 +48,9 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="auth-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
-      <h1 className="auth-title" style={{ color: theme.primary }}>إنشاء حساب</h1>
-      <form onSubmit={handleSubmit} className="auth-form" style={{ backgroundColor: theme.secondary, color: theme.primary }}>
+    <div className="auth-container themed-page-container">
+      <h1 className="auth-title themed-title">إنشاء حساب</h1>
+      <form onSubmit={handleSubmit} className="auth-form themed-secondary-background themed-primary-text">
         <label>اسم المستخدم:</label>
         <input
           type="text"
@@ -58,7 +58,7 @@ const RegisterPage = () => {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
-          style={{ backgroundColor: theme.background, color: theme.primary, borderColor: theme.accent }}
+          className="themed-input"
         />
         <label>البريد الإلكتروني:</label>
         <input
@@ -67,7 +67,7 @@ const RegisterPage = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={{ backgroundColor: theme.background, color: theme.primary, borderColor: theme.accent }}
+          className="themed-input"
         />
         <label>كلمة المرور:</label>
         <input
@@ -76,9 +76,9 @@ const RegisterPage = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{ backgroundColor: theme.background, color: theme.primary, borderColor: theme.accent }}
+          className="themed-input"
         />
-        <button type="submit" style={{ backgroundColor: theme.accent, color: theme.primary }}>إنشاء</button>
+        <button type="submit" className="themed-button-accent">إنشاء</button>
       </form>
     </div>
   );

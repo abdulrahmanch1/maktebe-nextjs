@@ -71,3 +71,26 @@
     display: none; /* Hide logout button on header for very small screens */
   }
 }
+
+/* Themed styles for Header */
+.themed-header {
+  background-color: var(--primary-color);
+  color: var(--background-color);
+}
+
+.themed-icon {
+  color: var(--background-color);
+}
+
+.themed-link {
+  color: var(--background-color);
+}
+
+.themed-link-fixed-color {
+  color: #FFFFFF; /* Fixed white color */
+}
+
+.themed-button-accent {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+}

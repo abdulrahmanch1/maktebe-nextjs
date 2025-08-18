@@ -203,7 +203,7 @@ const BookDetailsClient = ({ initialBook }) => {
   const isLiked = isFavorite(book.id);
 
   return (
-    <div style={{ backgroundColor: theme.background, color: theme.primary }} className="book-details-container">
+    <div className="book-details-container themed-page-container">
       <div className="book-cover-section">
         <Image
           src={book.cover}
@@ -215,15 +215,15 @@ const BookDetailsClient = ({ initialBook }) => {
         />
       </div>
       <div className="book-info-section">
-        <h1 className="book-title" style={{ color: theme.primary, borderBottomColor: theme.accent }}>{book.title}</h1>
-        <p className="book-meta-item"><strong>المؤلف:</strong> <span style={{ color: theme.accent }}>{book.author}</span></p>
+        <h1 className="book-title themed-title themed-border-bottom">{book.title}</h1>
+        <p className="book-meta-item"><strong>المؤلف:</strong> <span className="themed-accent-text">{book.author}</span></p>
         <p className="book-meta-item"><strong>التصنيف:</strong> {book.category}</p>
         <p className="book-meta-item"><strong>سنة النشر:</strong> {book.publishYear}</p>
         <p className="book-meta-item"><strong>عدد الصفحات:</strong> {book.pages}</p>
         <p className="book-meta-item"><strong>اللغة:</strong> {book.language}</p>
         <p className="book-meta-item"><strong>عدد القراءات:</strong> {book.readCount || 0}</p>
         <p className="book-meta-item"><strong>عدد الإعجابات:</strong> {book.favoriteCount || 0}</p>
-        <h2 className="book-description-title" style={{ color: theme.primary, borderTopColor: theme.secondary }}>الوصف:</h2>
+        <h2 className="book-description-title themed-title themed-border-top-secondary">الوصف:</h2>
         <p className="book-description-text">{book.description}</p>
 
         {user?.role === 'admin' && book.status === 'suggested' && (
@@ -239,8 +239,7 @@ const BookDetailsClient = ({ initialBook }) => {
         {!isInReadingList && (
           <button
             onClick={handleAddToReadingList}
-            className="book-action-button"
-            style={{ backgroundColor: theme.accent, color: theme.primary }}
+            className="book-action-button themed-button-accent"
           >
             اقرأ الكتاب
           </button>
@@ -250,15 +249,13 @@ const BookDetailsClient = ({ initialBook }) => {
           <div className="reading-list-buttons-group">
             <button
               onClick={handleToggleReadStatus}
-              className="book-action-button"
-              style={{ backgroundColor: isRead ? theme.secondary : theme.accent, color: theme.primary }}
+              className="book-action-button themed-read-status-button"
             >
               {isRead ? "وضع علامة كغير مقروء" : "وضع علامة كمقروء"}
             </button>
             <button
               onClick={handleRemoveFromReadingList}
-              className="book-action-button remove"
-              style={{ color: theme.primary }}
+              className="book-action-button remove themed-primary-text"
             >
               إزالة من قائمة القراءة
             </button>
@@ -267,14 +264,13 @@ const BookDetailsClient = ({ initialBook }) => {
 
         <button
           onClick={handleToggleFavorite}
-          className="book-action-button"
-          style={{ backgroundColor: isLiked ? theme.secondary : theme.accent, color: theme.primary }}
+          className="book-action-button themed-favorite-button"
         >
           {isLiked ? "إزالة من المفضلة" : "إضافة إلى المفضلة"}
         </button>
 
-        <div className="comments-section" style={{ borderTopColor: theme.secondary }}>
-          <h2 className="comments-title" style={{ color: theme.primary }}>التعليقات</h2>
+        <div className="comments-section themed-border-top-secondary">
+          <h2 className="comments-title themed-title">التعليقات</h2>
           {isLoggedIn ? (
             <>
               <textarea
@@ -282,26 +278,24 @@ const BookDetailsClient = ({ initialBook }) => {
                 rows="4"
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
-                className="comment-textarea"
-                style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }}
+                className="comment-textarea themed-input"
               ></textarea>
               <button
                 onClick={handlePostComment}
-                className="comment-post-button"
-                style={{ backgroundColor: theme.accent, color: theme.primary }}
+                className="comment-post-button themed-button-accent"
               >
                 نشر تعليق
               </button>
             </>
           ) : (
-            <p className="no-comments-message" style={{ color: theme.primary }}>
+            <p className="no-comments-message themed-primary-text">
               يجب تسجيل الدخول لكتابة تعليق.
             </p>
           )}
           <div style={{ marginTop: "20px" }}>
             {bookComments.length > 0 ? (
               bookComments.map((comment) => (
-                <div key={comment.id} className="comment-item" style={{ backgroundColor: theme.secondary }}>
+                <div key={comment.id} className="comment-item themed-secondary-background">
                   <Image
                     src={comment.profiles?.profilepicture && (comment.profiles.profilepicture !== 'Untitled.jpg' && comment.profiles.profilepicture !== 'user.jpg') ? comment.profiles.profilepicture : '/imgs/user.jpg'}
                     alt={`صورة ملف ${comment.profiles?.username || 'مستخدم غير معروف'}`}
@@ -311,14 +305,13 @@ const BookDetailsClient = ({ initialBook }) => {
                     onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }}
                   />
                   <div className="comment-content">
-                    <p className="comment-username" style={{ color: theme.primary }}>{comment.profiles?.username || 'مستخدم غير معروف'}</p>
-                    <p className="comment-text" style={{ color: theme.primary }}>{comment.text}</p>
-                    <p className="comment-date" style={{ color: theme.primary }}>{new Date(comment.created_at).toLocaleDateString()}</p>
+                    <p className="comment-username themed-primary-text">{comment.profiles?.username || 'مستخدم غير معروف'}</p>
+                    <p className="comment-text themed-primary-text">{comment.text}</p>
+                    <p className="comment-date themed-primary-text">{new Date(comment.created_at).toLocaleDateString()}</p>
                     <div className="comment-actions">
                       <span
                         onClick={() => handleToggleLike(comment.id)}
-                        className={`comment-like-button ${comment.userLiked ? 'liked' : ''}`}
-                        style={{ color: comment.userLiked ? "red" : theme.primary }}
+                        className={`comment-like-button ${comment.userLiked ? 'liked' : 'themed-primary-text'}`}
                       >
                         {comment.userLiked ? '❤️' : '♡'} <span style={{ fontSize: "0.8em" }}>({comment.likes})</span>
                       </span>
@@ -336,7 +329,7 @@ const BookDetailsClient = ({ initialBook }) => {
                 </div>
               ))
             ) : (
-              <p style={{ color: theme.primary, textAlign: "center" }}>لا توجد تعليقات حتى الآن. كن أول من يعلق!</p>
+              <p className="themed-primary-text" style={{ textAlign: "center" }}>لا توجد تعليقات حتى الآن. كن أول من يعلق!</p>
             )}
           </div>
         </div>

@@ -192,7 +192,7 @@ const SuggestBookClient = () => {
         {error && <p className="error-message">{error}</p>}
         {message && <p className="success-message">{message}</p>}
 
-        <button type="submit" disabled={isLoading}>
+        <button type="submit" disabled={isLoading} className="themed-button-accent">
           {isLoading ? 'جار الرفع والإرسال...' : 'إرسال الاقتراح'}
         </button>
       </form>

@@ -19,29 +19,26 @@ const Header = () => {
   };
 
   return (
-    <header className="header" style={{
-      backgroundColor: theme.primary,
-      color: theme.background,
-    }}>
+    <header className="header themed-header">
       <div className="header-content">
         <div className="menu-icon" onClick={toggleSidebar}>
-          <FaBars style={{ color: theme.background }} />
+          <FaBars className="menu-icon themed-icon" />
         </div>
         <nav className="header-nav">
-          <Link href="/" className="header-link" style={{ color: theme.background }}>الرئيسية</Link>
-          {isLoggedIn && <Link href="/suggest-book" className="header-link" style={{ color: theme.background }}>اقترح كتاباً</Link>}
-          <Link href="/settings" className="header-link" style={{ color: theme.background }}>الإعدادات</Link>
-          <Link href="/favorites" className="header-link" style={{ color: theme.background }}>المفضلة</Link>
-          <Link href="/reading-list" className="header-link" style={{ color: theme.background }}>قائمة القراءة</Link>
+          <Link href="/" className="header-link themed-link">الرئيسية</Link>
+          {isLoggedIn && <Link href="/suggest-book" className="header-link themed-link">اقترح كتاباً</Link>}
+          <Link href="/settings" className="header-link themed-link">الإعدادات</Link>
+          <Link href="/favorites" className="header-link themed-link">المفضلة</Link>
+          <Link href="/reading-list" className="header-link themed-link">قائمة القراءة</Link>
           {isLoggedIn && user && user.role === 'admin' && (
-            <Link href="/admin" className="header-link" style={{ color: theme.background }}>لوحة التحكم</Link>
+            <Link href="/admin" className="header-link themed-link">لوحة التحكم</Link>
           )}
         </nav>
         
         <div className="header-user-section">
           {isLoggedIn ? (
             <>
-              <Link href="/settings" className="header-link" style={{ color: theme.background }}>{user ? user.username : "اسم المستخدم"}</Link>
+              <Link href="/settings" className="header-link themed-link">{user ? user.username : "اسم المستخدم"}</Link>
               <Image
                 src={user && user.profilePicture ? user.profilePicture : '/imgs/user.jpg'}
                 alt="صورة المستخدم"
@@ -53,8 +50,8 @@ const Header = () => {
             </>
           ) : (
             <>
-              <Link href="/login" className="header-link" style={{ color: '#FFFFFF', marginLeft: "10px" }}>تسجيل الدخول</Link>
-              <Link href="/register" className="header-button header-link" style={{ backgroundColor: theme.accent, color: theme.primary }}>إنشاء حساب</Link>
+              <Link href="/login" className="header-link themed-link-fixed-color" style={{ marginLeft: "10px" }}>تسجيل الدخول</Link>
+              <Link href="/register" className="header-button header-link themed-button-accent">إنشاء حساب</Link>
             </>
           )}
         </div>

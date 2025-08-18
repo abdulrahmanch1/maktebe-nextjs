@@ -7,10 +7,7 @@ const Footer = () => {
   const { theme } = useContext(ThemeContext);
 
   return (
-    <footer className="footer" style={{
-      backgroundColor: theme.primary,
-      color: theme.background,
-    }}>
+    <footer className="footer themed-footer">
       <p>جميع الحقوق محفوظة © 2025</p>
     </footer>
   );

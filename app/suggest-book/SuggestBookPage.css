@@ -116,3 +116,23 @@ button[type="submit"]:hover:not(:disabled) {
 .suggest-form-input::placeholder {
   color: #999999; /* Lighter gray placeholder */
 }
+
+/* Themed styles for SuggestBookClient */
+.themed-secondary-background {
+  background-color: var(--secondary-color);
+}
+
+.themed-primary-text {
+  color: var(--primary-color);
+}
+
+.themed-input {
+  border-color: var(--accent-color);
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}
+
+.themed-button-accent {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+}

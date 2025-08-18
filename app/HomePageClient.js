@@ -68,13 +68,7 @@ const HomePageClient = ({ initialBooks, initialCategories }) => {
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="category-select"
-          style={{
-            border: `1px solid ${theme.secondary}`,
-            backgroundColor: theme.background,
-            color: theme.primary,
-          }}
-        >
+          className="category-select themed-input"
           {categories.map(category => (
             <option key={category} value={category}>{category}</option>
           ))}

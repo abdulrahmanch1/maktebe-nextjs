@@ -46,7 +46,7 @@ const LoginPage = () => {
           required
           style={{ backgroundColor: theme.background, color: theme.primary, borderColor: theme.accent }}
         />
-        <button type="submit" disabled={loading} style={{ backgroundColor: theme.accent, color: theme.primary }}>
+        <button type="submit" disabled={loading} className="themed-button-accent">
           {loading ? 'جاري الدخول...' : 'دخول'}
         </button>
       </form>

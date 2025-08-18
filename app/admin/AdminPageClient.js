@@ -270,7 +270,7 @@ const AdminPageClient = () => {
           </div>
           <button type="submit" className="admin-form-button" style={{ backgroundColor: theme.accent, color: theme.primary }}>{editingBook ? "تحديث الكتاب" : "إضافة الكتاب"}</button>
           {editingBook && (
-            <button type="button" onClick={clearForm} className="admin-form-button cancel" style={{ backgroundColor: theme.secondary, color: theme.primary }}>إلغاء التعديل</button>
+            <button type="button" onClick={clearForm} className="admin-form-button cancel themed-secondary-button">إلغاء التعديل</button>
           )}
         </form>
       </div>

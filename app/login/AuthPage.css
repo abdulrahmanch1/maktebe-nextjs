@@ -47,3 +47,32 @@
 .auth-form button:hover {
   opacity: 0.9;
 }
+
+/* Themed styles for AuthPage */
+.themed-page-container {
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}
+
+.themed-title {
+  color: var(--primary-color);
+}
+
+.themed-secondary-background {
+  background-color: var(--secondary-color);
+}
+
+.themed-primary-text {
+  color: var(--primary-color);
+}
+
+.themed-input {
+  background-color: var(--background-color);
+  color: var(--primary-color);
+  border-color: var(--accent-color);
+}
+
+.themed-button-accent {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+}

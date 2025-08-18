@@ -71,3 +71,19 @@
     width: calc(30% - 5px);
   }
 }
+
+/* Themed styles for HomePageClient */
+.themed-page-container {
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}
+
+.themed-title {
+  color: var(--primary-color);
+}
+
+.themed-input {
+  border: 1px solid var(--secondary-color);
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}

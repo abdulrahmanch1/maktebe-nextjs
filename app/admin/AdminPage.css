@@ -99,3 +99,37 @@
 .admin-form-input::placeholder {
   color: #999999; /* Lighter gray placeholder */
 }
+
+/* Themed styles for AdminPageClient */
+.themed-page-container {
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}
+
+.themed-title {
+  color: var(--primary-color);
+}
+
+.admin-nav-link {
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+}
+
+.themed-button-accent {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+}
+
+.themed-secondary-background {
+  background-color: var(--secondary-color);
+}
+
+.themed-primary-text {
+  color: var(--primary-color);
+}
+
+.themed-secondary-button {
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+}
