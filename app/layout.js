@@ -1,9 +1,9 @@
 import { Providers } from '@/contexts/Providers';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import ThemeBodyStyle from '@/components/ThemeBodyStyle';
 import '@/app/globals.css';
 import '@/components/MainLayout.css';
+import { cookies } from 'next/headers';
 
 export const metadata = {
   title: 'مكتبة الكتب | تصفح واقرأ آلاف الكتب والروايات',
@@ -16,11 +16,13 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const cookieStore = cookies();
+  const themeName = cookieStore.get('themeName')?.value || 'theme2'; // Default to theme2
+
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" data-theme={themeName}>
       <body>
         <Providers>
-          <ThemeBodyStyle />
           <div className="main-layout">
             <Header />
             <main className="main-content">{children}</main>

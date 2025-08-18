@@ -53,7 +53,7 @@ const Header = () => {
             </>
           ) : (
             <>
-              <Link href="/login" className="header-link" style={{ color: theme.background, marginLeft: "10px" }}>تسجيل الدخول</Link>
+              <Link href="/login" className="header-link" style={{ color: '#FFFFFF', marginLeft: "10px" }}>تسجيل الدخول</Link>
               <Link href="/register" className="header-button header-link" style={{ backgroundColor: theme.accent, color: theme.primary }}>إنشاء حساب</Link>
             </>
           )}

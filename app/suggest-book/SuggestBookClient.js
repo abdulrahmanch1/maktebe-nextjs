@@ -172,7 +172,7 @@ const SuggestBookClient = () => {
         </div>
         <div className="form-group">
           <label htmlFor="keywords">كلمات مفتاحية (مفصولة بفاصلة)</label>
-          <input type="text" id="keywords" name="keywords" value={formData.keywords} onChange={handleChange} />
+          <input type="text" id="keywords" name="keywords" value={formData.keywords} onChange={handleChange} className="suggest-form-input" />
         </div>
         <div class="form-group">
           <label htmlFor="cover">صورة الغلاف (إجباري)</label>

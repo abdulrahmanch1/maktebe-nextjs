@@ -95,7 +95,7 @@ button[type="submit"]:hover:not(:disabled) {
   background-color: #f0f0f0; /* Light background for button */
   color: #333;
   transition: background-color 0.3s ease;
-  box-sizing: border-box; /* Add this line */
+  box-sizing: border-box;
 }
 
 .file-input-label:hover {
@@ -104,4 +104,15 @@ button[type="submit"]:hover:not(:disabled) {
 
 .file-input {
   display: none; /* Hide the actual file input */
+}
+
+/* Fixed styles for suggest form inputs */
+.suggest-form-input {
+  background-color: #ffffff; /* White background */
+  color: #333333; /* Dark gray text */
+  border-color: #cccccc; /* Light gray border */
+}
+
+.suggest-form-input::placeholder {
+  color: #999999; /* Lighter gray placeholder */
 }
