@@ -80,3 +80,27 @@ button[type="submit"]:disabled {
 button[type="submit"]:hover:not(:disabled) {
   opacity: 0.9;
 }
+
+/* File input styling */
+.file-input-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #f0f0f0; /* Light background for button */
+  color: #333;
+  transition: background-color 0.3s ease;
+}
+
+.file-input-label:hover {
+  background-color: #e0e0e0;
+}
+
+.file-input {
+  display: none; /* Hide the actual file input */
+}

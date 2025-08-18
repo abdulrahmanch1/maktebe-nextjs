@@ -2,26 +2,28 @@
 import React, { createContext, useState, useMemo, useEffect } from "react";
 import { themes } from "@/data/themes";
 
-export const ThemeContext = createContext({ toggleTheme: (themeName) => {}, theme: themes.theme2 });
+export const ThemeContext = createContext({ toggleTheme: (themeName) => {}, theme: themes.theme2, currentThemeName: 'theme2' });
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => {
+  const [currentThemeName, setCurrentThemeName] = useState(() => {
     if (typeof window === 'undefined') {
-      return themes.theme2;
+      return 'theme2';
     }
-    const savedTheme = localStorage.getItem("theme");
-    return savedTheme ? JSON.parse(savedTheme) : themes.theme2;
+    const savedThemeName = localStorage.getItem("themeName");
+    return savedThemeName || 'theme2';
   });
 
+  const theme = useMemo(() => themes[currentThemeName], [currentThemeName]);
+
   useEffect(() => {
-    localStorage.setItem("theme", JSON.stringify(theme));
-  }, [theme]);
+    localStorage.setItem("themeName", currentThemeName);
+  }, [currentThemeName]);
 
   const toggleTheme = (themeName) => {
-    setTheme(themes[themeName]);
+    setCurrentThemeName(themeName);
   };
 
-  const themeValues = useMemo(() => ({ theme, toggleTheme }), [theme]);
+  const themeValues = useMemo(() => ({ theme, toggleTheme, currentThemeName }), [theme, currentThemeName]);
 
   return (
     <ThemeContext.Provider value={themeValues}>

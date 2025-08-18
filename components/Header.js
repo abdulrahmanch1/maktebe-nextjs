@@ -33,6 +33,9 @@ const Header = () => {
           <Link href="/settings" className="header-link" style={{ color: theme.background }}>الإعدادات</Link>
           <Link href="/favorites" className="header-link" style={{ color: theme.background }}>المفضلة</Link>
           <Link href="/reading-list" className="header-link" style={{ color: theme.background }}>قائمة القراءة</Link>
+          {isLoggedIn && user && user.role === 'admin' && (
+            <Link href="/admin" className="header-link" style={{ color: theme.background }}>لوحة التحكم</Link>
+          )}
         </nav>
         
         <div className="header-user-section">

@@ -4,15 +4,45 @@
   text-orientation: mixed;
   --border-color: #ccc;
   --box-shadow-color: rgba(0, 0, 0, 0.1);
-
-  /* Theme variables */
-  --primary-color: #000; /* Default */
-  --secondary-color: #eee; /* Default */
-  --accent-color: #007bff; /* Default */
-  --background-color: #fff; /* Default */
-  --placeholder-color: #a9a9a9; /* Default */
 }
 
+/* Default theme (theme2) */
+html[data-theme="theme2"] {
+  --primary-color: #3A506B;
+  --secondary-color: #A8DADC;
+  --accent-color: #F08A5D;
+  --background-color: #F1FAEE;
+  --placeholder-color: #a9a9a9;
+}
+
+/* theme1 */
+html[data-theme="theme1"] {
+  --primary-color: #8D6B94;
+  --secondary-color: #F7C5CC;
+  --accent-color: #F3D5A5;
+  --background-color: #FFF8F6;
+  --placeholder-color: #a9a9a9;
+}
+
+/* theme3 */
+html[data-theme="theme3"] {
+  --primary-color: #F1E3F3;
+  --secondary-color: #4A266A;
+  --accent-color: #D4AFB9;
+  --background-color: #2A1B3D;
+  --placeholder-color: #999;
+}
+
+/* theme4 */
+html[data-theme="theme4"] {
+  --primary-color: #EAEAEA;
+  --secondary-color: #1A2639;
+  --accent-color: #D97D54;
+  --background-color: #0D131A;
+  --placeholder-color: #999;
+}
+
+/* Apply variables to body */
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;

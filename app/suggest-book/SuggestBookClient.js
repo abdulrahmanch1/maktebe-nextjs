@@ -174,13 +174,19 @@ const SuggestBookClient = () => {
           <label htmlFor="keywords">كلمات مفتاحية (مفصولة بفاصلة)</label>
           <input type="text" id="keywords" name="keywords" value={formData.keywords} onChange={handleChange} />
         </div>
-        <div className="form-group">
+        <div class="form-group">
           <label htmlFor="cover">صورة الغلاف (إجباري)</label>
-          <input type="file" id="cover" name="cover" accept="image/*" onChange={handleFileChange} ref={coverInputRef} required />
+          <label className="file-input-label">
+            <span>{coverFile ? coverFile.name : 'اختر صورة...'}</span>
+            <input type="file" id="cover" name="cover" accept="image/*" onChange={handleFileChange} ref={coverInputRef} required className="file-input" />
+          </label>
         </div>
         <div className="form-group">
           <label htmlFor="pdfFile">ملف الكتاب (PDF) (اختياري)</label>
-          <input type="file" id="pdfFile" name="pdfFile" accept="application/pdf" onChange={handleFileChange} ref={pdfFileInputRef} />
+          <label className="file-input-label">
+            <span>{pdfFile ? pdfFile.name : 'اختر ملف PDF...'}</span>
+            <input type="file" id="pdfFile" name="pdfFile" accept="application/pdf" onChange={handleFileChange} ref={pdfFileInputRef} className="file-input" />
+          </label>
         </div>
 
         {error && <p className="error-message">{error}</p>}
