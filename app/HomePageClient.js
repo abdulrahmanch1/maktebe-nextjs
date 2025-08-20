@@ -19,14 +19,9 @@ const HomePageClient = () => { // No props received
   const [categories, setCategories] = useState(["الكل"]); // Keep "الكل" as initial category
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 500); // 500ms debounce time
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchTerm]);
+    console.log('The API_URL is:', API_URL); // Debugging line
+    const fetchBooks = async () => {
+      setIsLoading(true);
 
   const fetchUrl = `${API_URL_DEBUG}/api/books`;
   console.log('Fetching books from:', fetchUrl); // Debugging line
