@@ -58,19 +58,19 @@ const BookDetailsClient = ({ initialBook }) => {
   const [isProcessingAction, setIsProcessingAction] = useState(false); // New state for action processing
 
   // Function to re-fetch book details
-  const fetchBookDetails = useCallback(async (bookIdToFetch) => {
-    if (!bookIdToFetch) {
-      console.warn("Book ID is not available for fetching details.");
+  const fetchBookDetails = useCallback(async () => {
+    if (!book || !book.id) { // Add this check
+      console.warn("Book or Book ID is not available for fetching details.");
       return;
     }
     try {
-      const res = await axios.get(`${API_URL}/api/books/${bookIdToFetch}`);
+      const res = await axios.get(`${API_URL}/api/books/${book.id}`); // Assuming this API exists and returns full book details
       setBook(res.data);
     } catch (error) {
       console.error("Error re-fetching book details:", error);
       toast.error("فشل تحديث تفاصيل الكتاب.");
     }
-  }, [API_URL]);
+  }, [book]);
   const [commentText, setCommentText] = useState('');
   const [bookComments, setBookComments] = useState([]);
   const [isCommentBoxExpanded, setIsCommentBoxExpanded] = useState(false);
@@ -119,7 +119,7 @@ const BookDetailsClient = ({ initialBook }) => {
 
     try {
       await toggleFavorite(initialBook.id); // Await toggleFavorite to ensure API call completes
-      fetchBookDetails(initialBook.id); // Call to refresh book details to update favoritecount
+      fetchBookDetails(); // Call to refresh book details to update favoritecount
     } catch (error) {
       console.error('خطأ في تحديث المفضلة:', error);
       toast.error('حدث خطأ أثناء تحديث المفضلة.'); // Keep this error toast for network/other errors
@@ -162,7 +162,7 @@ const BookDetailsClient = ({ initialBook }) => {
             readingList: [...prevUser.readingList, { book: initialBook.id, read: false }]
           }));
         }
-        fetchBookDetails(initialBook.id); // Call to refresh book details
+        fetchBookDetails(); // Call to refresh book details
       } else {
         const errorData = await response.json();
         toast.error(`فشل في إضافة الكتاب إلى قائمة القراءة: ${errorData.message || response.statusText}`);
@@ -204,7 +204,7 @@ const BookDetailsClient = ({ initialBook }) => {
             readingList: prevUser.readingList.filter(item => item.book !== initialBook.id)
           }));
         }
-        fetchBookDetails(initialBook.id); // Call to refresh book details
+        fetchBookDetails(); // Call to refresh book details
       } else {
         const errorData = await response.json();
         toast.error(`فشل في إزالة الكتاب من قائمة القراءة: ${errorData.message || response.statusText}`);

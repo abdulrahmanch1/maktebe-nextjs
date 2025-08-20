@@ -38,7 +38,7 @@ const useFetch = (url, options = {}) => {
     return () => {
       controller.abort();
     };
-  }, [url, options]);
+  }, [url]);
 
   return { data, loading, error };
 };
