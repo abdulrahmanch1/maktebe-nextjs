@@ -1,38 +1,29 @@
 'use client';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import BookCard from "@/components/BookCard";
 import { ThemeContext } from "@/contexts/ThemeContext";
 import useFetch from "@/hooks/useFetch";
 import { API_URL } from "@/constants";
-const API_URL_DEBUG = "http://localhost:3000"; // Temporary for debugging
 import './HomePage.css';
 
-const HomePageClient = () => { // No props received
+const HomePageClient = () => {
   console.log('HomePageClient is rendering!'); // Debugging line
-  const { theme } = React.useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("الكل");
 
-  // Initial state for books and categories will be empty, then populated by useFetch
   const [books, setBooks] = useState([]);
-  const [categories, setCategories] = useState(["الكل"]); // Keep "الكل" as initial category
+  const [categories, setCategories] = useState(["الكل"]);
 
-  useEffect(() => {
-    console.log('The API_URL is:', API_URL); // Debugging line
-    const fetchBooks = async () => {
-      setIsLoading(true);
-
-  const fetchUrl = `${API_URL_DEBUG}/api/books`;
-  console.log('Fetching books from:', fetchUrl); // Debugging line
+  const fetchUrl = `${API_URL}/api/books`;
+  console.log('Fetching books from:', fetchUrl);
 
   const { data: booksData, loading, error } = useFetch(fetchUrl);
-  console.log('booksData from useFetch:', booksData);
 
   useEffect(() => {
     if (booksData) {
       setBooks(booksData);
-      // Extract unique categories from the fetched books
       const uniqueCategories = ["الكل"].concat(Array.from(new Set(booksData.map(book => book.category))));
       setCategories(uniqueCategories);
     }
@@ -42,7 +33,6 @@ const HomePageClient = () => { // No props received
 
   const displayLoading = loading;
   const displayError = error;
-
 
   return (
     <div className="homepage-container">
@@ -72,7 +62,6 @@ const HomePageClient = () => { // No props received
       ) : (
         <div className="books-display-container">
           {books.map((book, index) => {
-            
             return <BookCard key={book.id} book={book} isPriority={index < 4} />;
           })}
         </div>
