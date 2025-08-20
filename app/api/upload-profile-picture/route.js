@@ -3,7 +3,7 @@ import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 
 export const POST = async (request) => {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   console.log('--- Starting profile picture upload process ---');
 
