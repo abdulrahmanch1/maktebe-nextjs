@@ -10,7 +10,7 @@ const userSchema = z.object({
 });
 
 export async function POST(request) {
-    const supabase = createClient();
+    const supabase = await createClient();
     try {
         const body = await request.json();
         const { username, email, password } = userSchema.parse(body);
