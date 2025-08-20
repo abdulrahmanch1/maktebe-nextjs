@@ -1,5 +1,5 @@
 'use client';
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ThemeContext } from "@/contexts/ThemeContext";
 import { AuthContext } from "@/contexts/AuthContext";
@@ -34,6 +34,8 @@ const AdminBooksPage = () => {
         }
     }
   };
+
+  
 
   const handleEdit = (bookId) => {
     router.push(`/admin?edit=${bookId}`);

@@ -6,9 +6,12 @@ import { createClient } from '@/utils/supabase/server'; // Correct import for se
 
 export const POST = protect(async (request, { params }) => {
   
-  const supabase = createClient(); // Instantiate supabase client
-  const { id } = params; // Changed userId to id
+  const supabase = await createClient(); // Instantiate supabase client
+  const { id } = await params; // Changed userId to id
   const { bookId } = await request.json();
+  console.log('Received bookId in API:', bookId);
+  const bookIdErrors = validateFavorite({ bookId });
+  console.log('Validation errors for bookId:', bookIdErrors);
 
   // const userIdErrors = validateMongoId(id); // Removed validateMongoId call
   // if (Object.keys(userIdErrors).length > 0) { // Removed this block
@@ -18,10 +21,7 @@ export const POST = protect(async (request, { params }) => {
     return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
   }
 
-  const bookIdErrors = validateFavorite({ bookId });
-  if (Object.keys(bookIdErrors).length > 0) {
-    return NextResponse.json({ message: 'Invalid Book ID', errors: bookIdErrors }, { status: 400 });
-  }
+  
 
   if (id !== request.user.id) {
     return NextResponse.json({ message: 'Not authorized to modify these favorites' }, { status: 403 });
@@ -45,7 +45,7 @@ export const POST = protect(async (request, { params }) => {
 
     // Check if the book is already in favorites
     if (currentFavorites.includes(bookId)) {
-      return NextResponse.json({ message: 'Book already in favorites' }, { status: 400 });
+      return NextResponse.json({ message: 'Book already in favorites', favorites: currentFavorites, favoriteCount: user.favoritecount }, { status: 200 });
     }
 
     // Add the bookId to the favorites array
@@ -68,7 +68,24 @@ export const POST = protect(async (request, { params }) => {
       console.error('Error incrementing favoriteCount:', incrementError.message);
     }
 
-    return NextResponse.json({ favorites: updatedFavorites });
+    // Fetch the updated favoritecount for the book
+    const { data: updatedBook, error: fetchBookError } = await supabase
+      .from('books')
+      .select('favoritecount')
+      .eq('id', bookId)
+      .single();
+
+    console.log('POST API: updatedBook:', updatedBook, 'fetchBookError:', fetchBookError); // Debugging line
+
+    if (fetchBookError) {
+      console.error('Error fetching updated favoriteCount for book:', fetchBookError.message);
+      // Decide how to handle this error - perhaps return without favoritecount or with a default
+    }
+
+    return NextResponse.json({
+      favorites: updatedFavorites,
+      favoriteCount: updatedBook?.favoritecount || 0 // Use optional chaining and default to 0
+    });
   } catch (err) {
     console.error("Error adding favorite:", err);
     return NextResponse.json({ message: "خطأ في إضافة المفضلة" }, { status: 500 });

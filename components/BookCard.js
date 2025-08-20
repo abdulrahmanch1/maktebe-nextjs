@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 import Image from 'next/image';
 import './BookCard.css';
 
-const BookCard = ({ book }) => {
+const BookCard = ({ book, isPriority }) => {
   const { isFavorite, toggleFavorite } = useContext(FavoritesContext);
   const { isLoggedIn } = useContext(AuthContext);
   const router = useRouter();
@@ -25,7 +25,8 @@ const BookCard = ({ book }) => {
         width={200}
         height={300}
         className="book-card-image"
-        loading="lazy"
+        priority={isPriority}
+        loading={isPriority ? 'eager' : 'lazy'}
         onError={(e) => {
           e.currentTarget.onerror = null;
           e.currentTarget.src = "/imgs/no_cover_available.png";

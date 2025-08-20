@@ -5,17 +5,8 @@ import { protect, admin } from '@/lib/middleware';
 
 export const POST = protect(admin(async (request) => {
   const supabase = createClient();
-
-  // 1. Get the authenticated user
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError) {
-    console.error('Error getting user:', userError);
-    return NextResponse.json({ error: 'Authentication error.' }, { status: 401 });
-  }
-  if (!user) {
-    console.log('No authenticated user found.');
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // User is already authenticated by the protect middleware and available in request.user
+  const user = request.user;
 
   // 2. Parse the file from the FormData
   const formData = await request.formData();
@@ -38,7 +29,9 @@ export const POST = protect(admin(async (request) => {
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
   const filePath = `book-covers/${fileName}`;
 
-  const { error: uploadError } = await supabase.storage
+  const supabaseAdmin = createAdminClient();
+
+  const { error: uploadError } = await supabaseAdmin.storage
     .from('book-covers') // Assuming a 'book-covers' bucket
     .upload(filePath, file, {
       upsert: true,
@@ -50,7 +43,6 @@ export const POST = protect(admin(async (request) => {
   }
 
   // 4. Get the public URL of the uploaded file
-  const supabaseAdmin = createAdminClient();
   const { data: urlData, error: getUrlError } = supabaseAdmin.storage
     .from('book-covers')
     .getPublicUrl(filePath);

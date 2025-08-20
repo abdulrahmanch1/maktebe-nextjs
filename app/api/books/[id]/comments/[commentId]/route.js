@@ -3,7 +3,7 @@ import { protect, admin } from '@/lib/middleware';
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
 async function getComment(commentId) {
-  const supabase = createClient(); // Instantiate supabase client
+  const supabase = await createClient(); // Instantiate supabase client
   if (!commentId) {
     return { comment: null, error: { message: 'Comment ID is required' } };
   }
@@ -21,8 +21,8 @@ async function getComment(commentId) {
 }
 
 export const DELETE = protect(async (request, { params }) => {
-  const supabase = createClient(); // Instantiate supabase client
-  const { commentId } = params;
+  const supabase = await createClient(); // Instantiate supabase client
+  const { commentId } = await params;
 
   const { comment, error } = await getComment(commentId);
   if (error) {
@@ -52,8 +52,8 @@ export const DELETE = protect(async (request, { params }) => {
 });
 
 export const PATCH = protect(async (request, { params }) => {
-  const supabase = createClient(); // Instantiate supabase client
-  const { commentId } = params;
+  const supabase = await createClient(); // Instantiate supabase client
+  const { commentId } = await params;
   const { comment, error } = await getComment(commentId);
   if (error) {
     return NextResponse.json(error, { status: error.message === 'Comment not found' ? 404 : 400 });

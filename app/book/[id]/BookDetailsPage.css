@@ -1,201 +1,343 @@
-.book-details-container {
-  padding: 40px 20px;
-  display: flex;
-  flex-direction: row-reverse;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 40px;
-  flex-wrap: wrap;
+/* Main container for the entire page */
+.book-details-page-container {
+  padding: 2rem 1rem;
   background-color: var(--background-color);
   color: var(--primary-color);
+  max-width: 1200px;
+  margin: auto;
 }
 
-.book-cover-section {
-  flex: 1 1 300px;
-  max-width: 400px;
+/* Two-column layout for cover and info */
+.book-details-layout {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 3rem;
+  align-items: flex-start;
+}
+
+/* --- Left Column: Cover & Meta --- */
+.left-column {
+  position: sticky;
+  top: 2rem; /* Sticks to the top while scrolling */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .book-cover-image {
   width: 100%;
   height: auto;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  margin-bottom: 1.5rem;
+}
+
+.cover-meta-info {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  padding: 1rem;
+  background-color: var(--secondary-color);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  text-align: center;
 }
 
-.book-info-section {
-  flex: 2 1 500px;
-  max-width: 600px;
-  text-align: right;
+.meta-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
 }
 
-.book-title {
-  border-bottom: 2px solid var(--accent-color);
-  padding-bottom: 10px;
-  color: var(--primary-color);
-}
-
-.book-meta-item {
-  font-size: 1.3em;
-  margin-top: 20px;
-}
-
-.book-meta-item strong {
-  color: var(--primary-color);
-}
-
-.book-meta-item span {
+.meta-stat-value {
+  font-size: 1.2rem;
+  font-weight: bold;
   color: var(--accent-color);
 }
 
-.book-description-title {
-  margin-top: 30px;
-  border-top: 1px solid var(--secondary-color);
-  padding-top: 20px;
-  color: var(--primary-color);
+.meta-stat-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  opacity: 0.8;
 }
 
-.book-description-text {
-  font-size: 1.1em;
-  line-height: 1.8;
+/* --- Right Column: Info, Actions, Description --- */
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.book-title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.book-author {
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: var(--accent-color);
+  margin-top: -1rem; /* Pulls it closer to the title */
+}
+
+.book-meta-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.9rem;
+}
+
+.book-meta-item {
+  background-color: var(--secondary-color);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+}
+
+.book-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--secondary-color);
 }
 
 .book-action-button {
   padding: 12px 24px;
-  border-radius: 5px;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
-  margin-top: 10px;
-  font-size: 1.1em;
+  font-size: 1rem;
   font-weight: bold;
-  width: 100%;
-  transition: background-color 0.3s ease;
+  transition: all 0.2s ease;
+  flex-grow: 1;
+}
+
+.book-action-button.primary {
   background-color: var(--accent-color);
   color: var(--primary-color);
 }
 
-.book-action-button.remove {
-  background-color: #dc3545;
-  color: white;
+.book-action-button.secondary {
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
 }
 
-.reading-list-buttons-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
+.book-action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+.book-action-button.full-width-button {
+  flex-basis: 100%; /* Makes the button take full width */
+  margin-top: 1rem; /* Adds some space above it, pushing it to a new line */
+}
+
+.book-action-button.full-width-button {
+  flex-basis: 100%;
+}
+
+.book-description-title {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--accent-color);
+}
+
+.book-description-text {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  white-space: pre-wrap; /* Preserves line breaks in description */
+}
+
+/* --- Comments Section --- */
 .comments-section {
-  margin-top: 30px;
+  margin-top: 4rem;
+  padding-top: 2rem;
   border-top: 1px solid var(--secondary-color);
-  padding-top: 20px;
 }
 
 .comments-title {
-  margin-bottom: 15px;
-  color: var(--primary-color);
+  font-size: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* --- New Comment Input Area --- */
+.comment-input-area {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 2.5rem;
+}
+
+.comment-input-area .comment-user-avatar {
+  flex-shrink: 0; /* Prevent avatar from shrinking */
+}
+
+.comment-input-box {
+  width: 100%;
 }
 
 .comment-textarea {
   width: 100%;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 10px;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
   box-sizing: border-box;
-  border: 1px solid var(--accent-color);
-  background-color: var(--background-color);
+  border: 1px solid var(--secondary-color);
+  background-color: var(--secondary-color);
   color: var(--primary-color);
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: none;
+  transition: height 0.3s ease-in-out, border-color 0.2s ease; /* Slower, smoother height transition */
+  min-height: 2.5rem; /* Minimum height for collapsed state */
 }
 
-.comment-post-button {
-  padding: 10px 20px;
+.comment-textarea.expanded {
+  height: auto; /* Allow height to adjust to content */
+  max-height: 120px; /* Max height for expanded state */
+  overflow-y: auto; /* Show scrollbar when expanded and needed */
+}
+
+.comment-textarea.expanded {
+  height: auto; /* Allow height to adjust to content */
+  max-height: 120px; /* Max height for expanded state */
+  overflow-y: auto; /* Show scrollbar when expanded and needed */
+}
+
+.comment-textarea.expanded {
+  height: auto; /* Allow height to adjust to content */
+  max-height: 120px; /* Max height for expanded state */
+  overflow-y: auto; /* Show scrollbar when expanded and needed */
+}
+
+.comment-textarea:focus {
+  border-color: var(--accent-color);
+}
+
+.comment-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.comment-post-button, .comment-cancel-button {
+  padding: 8px 16px;
   border-radius: 5px;
   border: none;
   cursor: pointer;
-  font-size: 1em;
   font-weight: bold;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.2s ease;
+}
+
+.comment-post-button {
   background-color: var(--accent-color);
   color: var(--primary-color);
 }
 
-.no-comments-message {
-  text-align: center;
-  margin-bottom: 20px;
+.comment-cancel-button {
+  background-color: transparent;
   color: var(--primary-color);
 }
 
+/* --- Comments List --- */
 .comment-item {
   display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-  padding: 10px;
-  border-radius: 8px;
-  background-color: var(--secondary-color);
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--secondary-color);
 }
 
 .comment-user-avatar {
-  width: 40px;
-  height: 40px;
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
-  margin-right: 10px;
-  margin-left: 10px;
 }
 
-.comment-content {
+.comment-body {
   flex-grow: 1;
+  /* Removed background, padding, and border-radius for a flat design */
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
 }
 
 .comment-username {
-  margin: 0;
   font-weight: bold;
   color: var(--primary-color);
 }
 
-.comment-text {
-  margin: 5px 0 0 0;
-  color: var(--primary-color);
+.comment-date {
+  font-size: 0.8rem;
+  opacity: 0.7;
 }
 
-.comment-date {
-  margin: 0;
-  font-size: 0.8em;
-  opacity: 0.7;
+.comment-text {
+  margin-bottom: 0.75rem;
   color: var(--primary-color);
+  line-height: 1.6;
 }
 
 .comment-actions {
   display: flex;
   align-items: center;
-  margin-top: 5px;
+  gap: 1rem;
 }
 
 .comment-like-button {
   cursor: pointer;
-  font-size: 20px;
-  margin-right: 10px;
-  transition: color 0.3s ease, transform 0.3s ease;
+  font-size: 1rem;
   color: var(--primary-color);
+  transition: color 0.2s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
-.comment-like-button.liked {
-  color: red;
+.comment-like-button .like-icon {
+  font-size: 1.4rem;
+}
+
+.comment-like-button.liked .like-icon {
+  color: #e91e63;
   transform: scale(1.1);
 }
 
 .comment-delete-button {
   border: none;
-  border-radius: 4px;
-  padding: 5px 10px;
+  background: none;
+  color: #f44336;
   cursor: pointer;
-  font-size: 0.8em;
-  margin-left: 10px;
-  background-color: #dc3545;
+  font-size: 1.2rem; /* Icon size */
+  margin-left: auto; /* Pushes it to the end */
+  padding: 0.5rem;
 }
 
+/* Responsive Design */
 @media (max-width: 768px) {
-  .book-details-container {
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
+  .book-details-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .left-column {
+    position: static; /* Unstick on mobile */
+  }
+
+  .book-title {
+    font-size: 2rem;
+  }
+
+  .book-author {
+    font-size: 1.2rem;
   }
 }

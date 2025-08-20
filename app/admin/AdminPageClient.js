@@ -26,6 +26,8 @@ const AdminPageClient = () => {
   const [publishYear, setPublishYear] = useState("");
   const [language, setLanguage] = useState("");
   const [keywords, setKeywords] = useState("");
+  const [likes, setLikes] = useState(0); // New state for likes
+  const [reads, setReads] = useState(0); // New state for reads
   const [categories] = useState(["قصص أطفال", "كتب دينية", "كتب تجارية", "كتب رومانسية", "كتب بوليسية", "أدب", "تاريخ", "علوم", "فلسفة", "تكنولوجيا", "سيرة ذاتية", "شعر", "فن", "طبخ"]);
   const [editingBook, setEditingBook] = useState(null);
 
@@ -45,11 +47,43 @@ const AdminPageClient = () => {
     setPublishYear("");
     setLanguage("");
     setKeywords("");
+    setLikes(0); // Reset likes
+    setReads(0); // Reset reads
     setEditingBook(null);
     if (coverInputRef.current) coverInputRef.current.value = '';
     if (pdfFileInputRef.current) pdfFileInputRef.current.value = '';
     router.push('/admin');
   }, [router]);
+
+  const handleRateBook = (ratingType) => { // Removed bookId, no async
+    let likesRange, readsRange;
+
+    switch (ratingType) {
+      case 'normal':
+        likesRange = [5, 20];
+        readsRange = [5, 15];
+        break;
+      case 'average':
+        likesRange = [15, 40];
+        readsRange = [10, 20];
+        break;
+      case 'good':
+        likesRange = [30, 90];
+        readsRange = [20, 40];
+        break;
+      default:
+        return toast.error('نوع التقييم غير صالح.');
+    }
+
+    const generateRandom = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+    const randomLikes = generateRandom(likesRange[0], likesRange[1]);
+    const randomReads = generateRandom(readsRange[0], readsRange[1]);
+
+    setLikes(randomLikes);
+    setReads(randomReads);
+    toast.success(`تم تعيين التقييمات العشوائية (${ratingType}).`);
+  };
 
   useEffect(() => {
     if (editBookId) {
@@ -65,6 +99,9 @@ const AdminPageClient = () => {
           setPublishYear(book.publishYear);
           setLanguage(book.language);
           setKeywords(book.keywords ? book.keywords.join(', ') : '');
+          setLikes(book.favoritecount || 0); // Initialize likes
+          setReads(book.readcount || 0);     // Initialize reads
+          setPdfFile(book.pdffile); // Initialize pdfFile state from book.pdffile
         })
         .catch(error => {
           toast.error("الكتاب المراد تعديله غير موجود");
@@ -164,6 +201,8 @@ const AdminPageClient = () => {
         keywords: keywords.split(',').map(k => k.trim()).filter(k => k !== ''),
         cover: coverUrl,
         pdfFile: pdfFileUrl,
+        favoritecount: likes, // Add likes to bookData
+        readcount: reads,     // Add reads to bookData
       };
 
       const url = editingBook ? `${API_URL}/api/books/${editingBook.id}` : `${API_URL}/api/books`;
@@ -249,8 +288,8 @@ const AdminPageClient = () => {
             <input type="number" placeholder="أدخل عدد الصفحات" value={pages} onChange={(e) => setPages(e.target.value)} required style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
           </div>
           <div className="admin-form-group">
-            <label>سنة النشر</label>
-            <input type="number" placeholder="أدخل سنة النشر" value={publishYear} onChange={(e) => setPublishYear(e.target.value)} required style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
+            <label>سنة التأليف</label>
+            <input type="number" placeholder="أدخل سنة التأليف" value={publishYear} onChange={(e) => setPublishYear(e.target.value)} required style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
           </div>
           <div className="admin-form-group">
             <label>اللغة</label>
@@ -272,6 +311,23 @@ const AdminPageClient = () => {
           {editingBook && (
             <button type="button" onClick={clearForm} className="admin-form-button cancel themed-secondary-button">إلغاء التعديل</button>
           )}
+
+          {/* Display Likes and Reads */}
+          <div className="admin-form-group">
+            <label>الإعجابات</label>
+            <input type="number" value={likes} onChange={(e) => setLikes(parseInt(e.target.value) || 0)} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
+          </div>
+          <div className="admin-form-group">
+            <label>القراءات</label>
+            <input type="number" value={reads} onChange={(e) => setReads(parseInt(e.target.value) || 0)} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
+          </div>
+
+          {/* Rating Buttons - now unconditional */}
+          <div style={{ display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'center' }}>
+            <button type="button" onClick={() => handleRateBook('normal')} style={{ backgroundColor: '#4CAF50', color: 'white', padding: '10px 20px', borderRadius: '5px', border: 'none', cursor: 'pointer' }}>تقييم عادي</button>
+            <button type="button" onClick={() => handleRateBook('average')} style={{ backgroundColor: '#FFC107', color: 'black', padding: '10px 20px', borderRadius: '5px', border: 'none', cursor: 'pointer' }}>تقييم متوسط</button>
+            <button type="button" onClick={() => handleRateBook('good')} style={{ backgroundColor: '#2196F3', color: 'white', padding: '10px 20px', borderRadius: '5px', border: 'none', cursor: 'pointer' }}>تقييم كويس</button>
+          </div>
         </form>
       </div>
     </div>

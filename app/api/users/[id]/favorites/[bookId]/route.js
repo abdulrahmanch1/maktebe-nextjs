@@ -4,8 +4,8 @@ import { protect } from '@/lib/middleware';
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
 export const DELETE = protect(async (request, { params }) => {
-  const supabase = createClient(); // Instantiate supabase client
-  const { id, bookId } = params;
+  const supabase = await createClient(); // Instantiate supabase client
+  const { id, bookId } = await params;
 
   // const userIdErrors = validateMongoId(id); // Removed validateMongoId call
   // const bookIdErrors = validateMongoId(bookId); // Removed validateMongoId call
@@ -55,7 +55,24 @@ export const DELETE = protect(async (request, { params }) => {
       console.error('Error decrementing favoriteCount:', decrementError.message);
     }
 
-    return NextResponse.json({ favorites: updatedFavorites });
+    // Fetch the updated favoritecount for the book
+    const { data: updatedBook, error: fetchBookError } = await supabase
+      .from('books')
+      .select('favoritecount')
+      .eq('id', bookId)
+      .single();
+
+    console.log('DELETE API: updatedBook:', updatedBook, 'fetchBookError:', fetchBookError); // Debugging line
+
+    if (fetchBookError) {
+      console.error('Error fetching updated favoriteCount for book:', fetchBookError.message);
+      // Decide how to handle this error - perhaps return without favoritecount or with a default
+    }
+
+    return NextResponse.json({
+      favorites: updatedFavorites,
+      favoriteCount: updatedBook?.favoritecount || 0 // Use optional chaining and default to 0
+    });
   } catch (err) {
     console.error("Error removing favorite:", err);
     return NextResponse.json({ message: "خطأ في إزالة المفضلة" }, { status: 500 });

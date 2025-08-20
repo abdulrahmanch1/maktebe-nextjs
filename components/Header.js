@@ -1,6 +1,7 @@
 'use client';
 import React, { useContext, useState } from "react";
 import Link from "next/link";
+import { usePathname } from 'next/navigation'; // Added import
 import { ThemeContext } from "@/contexts/ThemeContext";
 import { AuthContext } from "@/contexts/AuthContext";
 import Image from 'next/image';
@@ -13,6 +14,7 @@ const Header = () => {
   const { theme } = useContext(ThemeContext);
   const { isLoggedIn, user, logout } = useContext(AuthContext);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname(); // Added usePathname
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
@@ -26,10 +28,13 @@ const Header = () => {
         </div>
         <nav className="header-nav">
           <Link href="/" className="header-link">الرئيسية</Link>
-          {isLoggedIn && <Link href="/suggest-book" className="header-link">اقترح كتاباً</Link>}
+          <Link href="/suggest-book" className="header-link">اقترح كتاباً</Link>
           <Link href="/settings" className="header-link">الإعدادات</Link>
           <Link href="/favorites" className="header-link">المفضلة</Link>
           <Link href="/reading-list" className="header-link">قائمة القراءة</Link>
+          {isLoggedIn && user?.role === 'admin' && (
+            <Link href="/admin" className="header-link">لوحة التحكم</Link>
+          )}
         </nav>
         
         <div className="header-user-section">
@@ -47,7 +52,7 @@ const Header = () => {
             </>
           ) : (
             <>
-              <Link href="/login" className="header-link login-link">تسجيل الدخول</Link>
+              <Link href="/login" className="header-link">تسجيل الدخول</Link>
               <Link href="/register" className="header-button header-link">إنشاء حساب</Link>
             </>
           )}

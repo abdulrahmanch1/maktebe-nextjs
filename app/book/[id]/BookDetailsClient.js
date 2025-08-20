@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import { FavoritesContext } from "@/contexts/FavoritesContext";
 import { AuthContext } from "@/contexts/AuthContext";
 import axios from "axios";
@@ -8,15 +8,77 @@ import { toast } from 'react-toastify';
 import Image from "next/image";
 import { API_URL } from "@/constants";
 import './BookDetailsPage.css';
+import { FaTrash } from 'react-icons/fa';
+
+// A small component to safely render dates only on the client-side
+const ClientOnlyDate = ({ dateString }) => {
+  const [formattedDate, setFormattedDate] = useState('');
+
+  useEffect(() => {
+    // This effect runs only on the client, after hydration
+    setFormattedDate(new Date(dateString).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }));
+  }, [dateString]);
+
+  return <span className="comment-date">{formattedDate}</span>;
+};
+
+// Custom Confirmation Toast Component
+const ConfirmationToast = ({ message, toastId, onConfirm, onCancel }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '10px' }}>
+    <div>{message}</div>
+    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+      <button
+        onClick={() => {
+          toast.dismiss(toastId);
+          onConfirm();
+        }}
+        style={{ padding: '8px 15px', borderRadius: '5px', border: 'none', backgroundColor: 'var(--accent-color)', color: 'var(--primary-color)', cursor: 'pointer' }}
+      >
+        نعم
+      </button>
+      <button
+        onClick={() => {
+          toast.dismiss(toastId);
+          onCancel();
+        }}
+        style={{ padding: '8px 15px', borderRadius: '5px', border: 'none', backgroundColor: 'var(--secondary-color)', color: 'var(--primary-color)', cursor: 'pointer' }}
+      >
+        إلغاء
+      </button>
+    </div>
+  </div>
+);
 
 const BookDetailsClient = ({ initialBook }) => {
   const { toggleFavorite, isFavorite } = useContext(FavoritesContext);
-  const { isLoggedIn, user, session, setUser } = useContext(AuthContext);
+  const { isLoggedIn, user, session, setUser, refreshUserProfile } = useContext(AuthContext);
   const [book, setBook] = useState(initialBook);
   const [isInReadingList, setIsInReadingList] = useState(false);
   const [isRead, setIsRead] = useState(false);
+  const [isProcessingAction, setIsProcessingAction] = useState(false); // New state for action processing
+
+  // Function to re-fetch book details
+  const fetchBookDetails = useCallback(async () => {
+    if (!book || !book.id) { // Add this check
+      console.warn("Book or Book ID is not available for fetching details.");
+      return;
+    }
+    try {
+      const res = await axios.get(`${API_URL}/api/books/${book.id}`); // Assuming this API exists and returns full book details
+      setBook(res.data);
+    } catch (error) {
+      console.error("Error re-fetching book details:", error);
+      toast.error("فشل تحديث تفاصيل الكتاب.");
+    }
+  }, [book]);
   const [commentText, setCommentText] = useState('');
   const [bookComments, setBookComments] = useState([]);
+  const [isCommentBoxExpanded, setIsCommentBoxExpanded] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     if (initialBook.comments) {
@@ -29,98 +91,129 @@ const BookDetailsClient = ({ initialBook }) => {
   }, [initialBook.comments, user]);
 
   useEffect(() => {
-    const currentReadingList = Array.isArray(user?.readingList) ? user.readingList : [];
-    if (user) {
+    if (hasMounted && user) {
+      const currentReadingList = Array.isArray(user?.readingList) ? user.readingList : [];
       const item = currentReadingList.find(item => item.book === initialBook.id);
       if (item) {
         setIsInReadingList(true);
         setIsRead(item.read);
+      } else {
+        setIsInReadingList(false);
+        setIsRead(false);
       }
+    } else if (hasMounted && !user) { // Reset state if user logs out
+      setIsInReadingList(false);
+      setIsRead(false);
     }
-  }, [user, initialBook.id]);
+  }, [user, initialBook.id, hasMounted, setUser]); // Added setUser to dependency array
 
-  const handleToggleFavorite = () => {
-    if (!isLoggedIn) {
-      toast.error("يجب تسجيل الدخول لإضافة الكتاب للمفضلة.");
+  const handleToggleFavorite = async () => {
+    if (isProcessingAction) return; // Prevent multiple clicks
+    setIsProcessingAction(true); // Set processing state
+
+    if (!user) {
+      toast.error('الرجاء تسجيل الدخول لإضافة الكتاب إلى المفضلة');
+      setIsProcessingAction(false); // Reset processing state
       return;
     }
-    toggleFavorite(book.id);
+
+    try {
+      await toggleFavorite(initialBook.id); // Await toggleFavorite to ensure API call completes
+      fetchBookDetails(); // Call to refresh book details to update favoritecount
+    } catch (error) {
+      console.error('خطأ في تحديث المفضلة:', error);
+      toast.error('حدث خطأ أثناء تحديث المفضلة.'); // Keep this error toast for network/other errors
+    } finally {
+      setIsProcessingAction(false); // Always reset processing state
+    }
   };
 
   const handleAddToReadingList = async () => {
-    if (book && book.pdfFile) {
-      window.open(book.pdfFile, '_blank');
-    } else {
-      toast.error("ملف الكتاب غير متوفر.");
+    if (isProcessingAction) return; // Prevent multiple clicks
+    setIsProcessingAction(true); // Set processing state
+
+    if (!user) {
+      toast.error('الرجاء تسجيل الدخول لإضافة الكتاب إلى قائمة القراءة');
+      setIsProcessingAction(false); // Reset processing state
       return;
     }
-
-    if (!isLoggedIn) {
-      toast.info("تم فتح الكتاب للقراءة. لتتبع تقدمك وإضافة تعليقات، يرجى تسجيل الدخول.");
+    if (isInReadingList) { // If already in reading list, do nothing or show a message
+      toast.info('الكتاب موجود بالفعل في قائمة القراءة.');
+      setIsProcessingAction(false); // Reset processing state
       return;
     }
 
     try {
-      const currentReadingList = Array.isArray(user?.readingList) ? user.readingList : [];
-      let updatedReadingList = currentReadingList;
-      let bookInReadingList = currentReadingList.find(item => item.book === book.id);
-
-      if (!bookInReadingList) {
-        const addRes = await axios.post(`${API_URL}/api/users/${user.id}/reading-list`, { bookId: book.id }, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
-        updatedReadingList = addRes.data;
-        setIsInReadingList(true);
-        toast.success("تمت إضافة الكتاب إلى قائمة القراءة.");
-      }
-
-      const currentBookItem = updatedReadingList.find(item => item.book === book.id);
-
-      if (currentBookItem && !currentBookItem.read) {
-        const patchRes = await axios.patch(`${API_URL}/api/users/${user.id}/reading-list/${book.id}`, { read: true }, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        });
-        updatedReadingList = patchRes.data;
-        setIsRead(true);
-      }
-
-      setUser({ ...user, readingList: updatedReadingList });
-    } catch (err) {
-      console.error("Error handling reading list:", err);
-      toast.error(err.response?.data?.message || "فشل تحديث قائمة القراءة.");
-    }
-  };
-
-  const handleToggleReadStatus = async () => {
-    if (!isLoggedIn) return;
-    try {
-      const res = await axios.patch(`${API_URL}/api/users/${user.id}/reading-list/${book.id}`, { read: !isRead }, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+      const response = await fetch(`/api/users/${user.id}/reading-list`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ bookId: initialBook.id }),
       });
-      const updatedReadingList = res.data;
-      setUser({ ...user, readingList: updatedReadingList });
-      setIsRead(!isRead);
-      toast.success(`تم وضع علامة على الكتاب كـ ${!isRead ? "مقروء" : "غير مقروء"}.`);
-    } catch (err) {
-      console.error("Error toggling read status:", err);
-      toast.error(err.response?.data?.message || "فشل تحديث حالة الكتاب.");
+
+      if (response.ok) {
+        setIsInReadingList(true);
+        toast.success('تمت إضافة الكتاب إلى قائمة القراءة بنجاح!');
+        // Optionally, update user's readingList in AuthContext if available
+        if (user && user.readingList) {
+          setUser(prevUser => ({
+            ...prevUser,
+            readingList: [...prevUser.readingList, { book: initialBook.id, read: false }]
+          }));
+        }
+        fetchBookDetails(); // Call to refresh book details
+      } else {
+        const errorData = await response.json();
+        toast.error(`فشل في إضافة الكتاب إلى قائمة القراءة: ${errorData.message || response.statusText}`);
+      }
+    } catch (error) {
+      console.error('خطأ في إضافة الكتاب إلى قائمة القراءة:', error);
+      toast.error('حدث خطأ أثناء إضافة الكتاب إلى قائمة القراءة.');
+    } finally {
+      setIsProcessingAction(false); // Always reset processing state
     }
   };
 
   const handleRemoveFromReadingList = async () => {
-    if (!isLoggedIn) return;
+    if (isProcessingAction) return; // Prevent multiple clicks
+    setIsProcessingAction(true); // Set processing state
+
+    if (!user) {
+      toast.error('الرجاء تسجيل الدخول لإزالة الكتاب من قائمة القراءة');
+      setIsProcessingAction(false); // Reset processing state
+      return;
+    }
+
     try {
-      const res = await axios.delete(`${API_URL}/api/users/${user.id}/reading-list/${book.id}`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+      const response = await fetch(`/api/users/${user.id}/reading-list/${initialBook.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
-      const updatedReadingList = res.data;
-      setUser({ ...user, readingList: updatedReadingList });
-      setIsInReadingList(false);
-      setIsRead(false);
-      toast.success("تمت إزالة الكتاب من قائمة القراءة.");
-    } catch (err) {
-      console.error("Error removing from reading list:", err);
-      toast.error(err.response?.data?.message || "فشل إزالة الكتاب من قائمة القراءة.");
+
+      if (response.ok) {
+        setIsInReadingList(false);
+        setIsRead(false); // Reset isRead when removed
+        toast.success('تمت إزالة الكتاب من قائمة القراءة بنجاح!');
+        // Optionally, update user's readingList in AuthContext if available
+        if (user && user.readingList) {
+          setUser(prevUser => ({
+            ...prevUser,
+            readingList: prevUser.readingList.filter(item => item.book !== initialBook.id)
+          }));
+        }
+        fetchBookDetails(); // Call to refresh book details
+      } else {
+        const errorData = await response.json();
+        toast.error(`فشل في إزالة الكتاب من قائمة القراءة: ${errorData.message || response.statusText}`);
+      }
+    } catch (error) {
+      console.error('خطأ في إزالة الكتاب من قائمة القراءة:', error);
+      toast.error('حدث خطأ أثناء إزالة الكتاب من قائمة القراءة.');
+    } finally {
+      setIsProcessingAction(false); // Always reset processing state
     }
   };
 
@@ -130,7 +223,7 @@ const BookDetailsClient = ({ initialBook }) => {
       return;
     }
     if (!commentText.trim()) {
-      toast.error("لا يمكن نشر تعليق فارغ.");
+      toast.error("لا يمكن نشر تعليق.");
       return;
     }
 
@@ -140,6 +233,7 @@ const BookDetailsClient = ({ initialBook }) => {
       });
       setBookComments([...bookComments, res.data]);
       setCommentText('');
+      setIsCommentBoxExpanded(false);
       toast.success("تم نشر التعليق بنجاح!");
     } catch (err) {
       console.error("Error posting comment:", err);
@@ -152,19 +246,41 @@ const BookDetailsClient = ({ initialBook }) => {
       toast.error("يجب تسجيل الدخول لحذف تعليق.");
       return;
     }
-    if (!window.confirm("هل أنت متأكد أنك تريد حذف هذا التعليق؟")) {
-      return;
-    }
+
+    const confirmDelete = new Promise((resolve, reject) => {
+      toast.warn(
+        ({ toastProps }) => (
+          <ConfirmationToast
+            message="هل أنت متأكد أنك تريد حذف هذا التعليق؟"
+            toastId={toastProps.id}
+            onConfirm={() => resolve(true)}
+            onCancel={() => reject(false)}
+          />
+        ),
+        {
+          autoClose: false,
+          closeButton: false,
+          closeOnClick: false,
+          draggable: false,
+        }
+      );
+    });
 
     try {
+      await confirmDelete; // Wait for user confirmation
+      // If confirmed, proceed with deletion
       await axios.delete(`${API_URL}/api/books/${book.id}/comments/${commentId}`, {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
       setBookComments(bookComments.filter(comment => comment.id !== commentId));
       toast.success("تم حذف التعليق بنجاح!");
     } catch (err) {
-      console.error("Error deleting comment:", err);
-      toast.error(err.response?.data?.message || "فشل حذف التعليق.");
+      if (err === false) { // User cancelled
+        toast.info("تم إلغاء حذف التعليق.");
+      } else {
+        console.error("Error deleting comment:", err);
+        toast.error(err.response?.data?.message || "فشل حذف التعليق.");
+      }
     }
   };
 
@@ -192,132 +308,158 @@ const BookDetailsClient = ({ initialBook }) => {
     }
   };
 
-  const isLiked = isFavorite(book.id);
+  const isLiked = hasMounted ? isFavorite(book.id) : false;
 
   return (
-    <div className="book-details-container">
-      <div className="book-cover-section">
-        <Image
-          src={book.cover}
-          alt={`غلاف كتاب ${book.title}`}
-          width={300}
-          height={450}
-          className="book-cover-image"
-          loading="lazy"
-        />
-      </div>
-      <div className="book-info-section">
-        <h1 className="book-title">{book.title}</h1>
-        <p className="book-meta-item"><strong>المؤلف:</strong> <span>{book.author}</span></p>
-        <p className="book-meta-item"><strong>التصنيف:</strong> {book.category}</p>
-        <p className="book-meta-item"><strong>سنة النشر:</strong> {book.publishYear}</p>
-        <p className="book-meta-item"><strong>عدد الصفحات:</strong> {book.pages}</p>
-        <p className="book-meta-item"><strong>اللغة:</strong> {book.language}</p>
-        <p className="book-meta-item"><strong>عدد القراءات:</strong> {book.readCount || 0}</p>
-        <p className="book-meta-item"><strong>عدد الإعجابات:</strong> {book.favoriteCount || 0}</p>
-        <h2 className="book-description-title">الوصف:</h2>
-        <p className="book-description-text">{book.description}</p>
-
-        {!isInReadingList && (
-          <button
-            onClick={handleAddToReadingList}
-            className="book-action-button"
-          >
-            اقرأ الكتاب
-          </button>
-        )}
-
-        {isInReadingList && (
-          <div className="reading-list-buttons-group">
-            <button
-              onClick={handleToggleReadStatus}
-              className="book-action-button"
-              style={{ backgroundColor: isRead ? 'var(--secondary-color)' : 'var(--accent-color)' }}
-            >
-              {isRead ? "وضع علامة كغير مقروء" : "وضع علامة كمقروء"}
-            </button>
-            <button
-              onClick={handleRemoveFromReadingList}
-              className="book-action-button remove"
-            >
-              إزالة من قائمة القراءة
-            </button>
+    <div className="book-details-page-container">
+      <div className="book-details-layout">
+        <div className="left-column">
+          <Image
+            src={book.cover}
+            alt={`غلاف كتاب ${book.title}`}
+            width={300}
+            height={450}
+            className="book-cover-image"
+            priority
+          />
+          <div className="cover-meta-info">
+            <div className="meta-stat">
+              <span className="meta-stat-value">{book.publishYear || 'N/A'}</span>
+              <span className="meta-stat-label">سنة التأليف</span>
+            </div>
+            <div className="meta-stat">
+              <span className="meta-stat-value">{book.readcount || 0}</span>
+              <span className="meta-stat-label">قرأوه</span>
+            </div>
+            <div className="meta-stat">
+              <span className="meta-stat-value">{book.favoritecount || 0}</span>
+              <span className="meta-stat-label">المفضلة</span>
+            
+            </div>
           </div>
-        )}
+        </div>
 
-        <button
-          onClick={handleToggleFavorite}
-          className="book-action-button"
-          style={{ backgroundColor: isLiked ? 'var(--secondary-color)' : 'var(--accent-color)' }}
-        >
-          {isLiked ? "إزالة من المفضلة" : "إضافة إلى المفضلة"}
-        </button>
+        <div className="right-column">
+          <h1 className="book-title">{book.title}</h1>
+          <h2 className="book-author">بواسطة {book.author}</h2>
+          
+          <ul className="book-meta-list">
+            <li className="book-meta-item"><strong>التصنيف:</strong> {book.category}</li>
+            <li className="book-meta-item"><strong>عدد الصفحات:</strong> {book.pages}</li>
+            <li className="book-meta-item"><strong>اللغة:</strong> {book.language}</li>
+          </ul>
 
-        <div className="comments-section">
-          <h2 className="comments-title">التعليقات</h2>
-          {isLoggedIn ? (
-            <>
-              <textarea
-                placeholder="اكتب تعليقك هنا..."
-                rows="4"
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                className="comment-textarea"
-              ></textarea>
-              <button
-                onClick={handlePostComment}
-                className="comment-post-button"
-              >
-                نشر تعليق
+          {hasMounted && (
+            <div className="book-actions">
+              {!isInReadingList && (
+                <button onClick={handleAddToReadingList} className="book-action-button primary" disabled={isProcessingAction}>
+                  ابدأ القراءة
+                </button>
+              )}
+              {isInReadingList && (
+                <button onClick={() => {
+                  if (book && book.pdfFile) { // Change book.file to book.pdffile
+                    window.open(book.pdfFile, '_blank');
+                  } else {
+                    toast.error('ملف الكتاب غير متوفر للقراءة.');
+                  }
+                }} className="book-action-button primary" disabled={isProcessingAction}>
+                  متابعة القراءة
+                </button>
+              )}
+              {isInReadingList && (
+                <button onClick={handleRemoveFromReadingList} className="book-action-button secondary full-width-button" disabled={isProcessingAction}>
+                  إزالة من قائمة القراءة
+                </button>
+              )}
+              <button onClick={handleToggleFavorite} className="book-action-button secondary" disabled={isProcessingAction}>
+                {isLiked ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
               </button>
-            </>
-          ) : (
-            <p className="no-comments-message">
-              يجب تسجيل الدخول لكتابة تعليق.
-            </p>
+            </div>
           )}
-          <div style={{ marginTop: "20px" }}>
+
+          <div>
+            <h3 className="book-description-title">الوصف</h3>
+            <p className="book-description-text">{book.description}</p>
+          </div>
+        </div>
+      </div>
+
+      {hasMounted && (
+        <div className="comments-section">
+          <h2 className="comments-title">التعليقات والمراجعات</h2>
+          
+          {isLoggedIn ? (
+            <div className="comment-input-area">
+              <Image 
+                src={user?.profile_picture || '/imgs/user.jpg'} 
+                alt="صورتك الشخصية" 
+                width={45} 
+                height={45} 
+                className="comment-user-avatar"
+                unoptimized
+              />
+              <div className="comment-input-box">
+                <textarea
+                  placeholder="أضف تعليقًا..."
+                  value={commentText}
+                  onFocus={() => setIsCommentBoxExpanded(true)}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  className={`comment-textarea ${isCommentBoxExpanded ? 'expanded' : ''}`}
+                ></textarea>
+                {isCommentBoxExpanded && (
+                  <div className="comment-buttons">
+                    <button onClick={() => {
+                      setIsCommentBoxExpanded(false);
+                      setCommentText('');
+                    }} className="comment-cancel-button">إلغاء</button>
+                    <button onClick={handlePostComment} className="comment-post-button">نشر</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p>يجب تسجيل الدخول لكتابة تعليق.</p>
+          )}
+
+          <div className="comments-list">
             {bookComments.length > 0 ? (
               bookComments.map((comment) => (
                 <div key={comment.id} className="comment-item">
                   <Image
                     src={comment.profiles?.profilepicture && (comment.profiles.profilepicture !== 'Untitled.jpg' && comment.profiles.profilepicture !== 'user.jpg') ? comment.profiles.profilepicture : '/imgs/user.jpg'}
                     alt={`صورة ملف ${comment.profiles?.username || 'مستخدم غير معروف'}`}
-                    width={40}
-                    height={40}
+                    width={45} 
+                    height={45} 
                     className="comment-user-avatar"
+                    unoptimized
                     onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }}
                   />
-                  <div className="comment-content">
-                    <p className="comment-username">{comment.profiles?.username || 'مستخدم غير معروف'}</p>
+                  <div className="comment-body">
+                    <div className="comment-header">
+                      <span className="comment-username">{comment.profiles?.username || 'مستخدم غير معروف'}</span>
+                      <ClientOnlyDate dateString={comment.created_at} />
+                    </div>
                     <p className="comment-text">{comment.text}</p>
-                    <p className="comment-date">{new Date(comment.created_at).toLocaleDateString()}</p>
                     <div className="comment-actions">
-                      <span
-                        onClick={() => handleToggleLike(comment.id)}
-                        className={`comment-like-button ${comment.userLiked ? 'liked' : ''}`}
-                        style={{ color: comment.userLiked ? "red" : 'var(--primary-color)' }}
-                      >
-                        {comment.userLiked ? '❤️' : '♡'} <span style={{ fontSize: "0.8em" }}>({comment.likes})</span>
+                      <span onClick={() => handleToggleLike(comment.id)} className={`comment-like-button ${comment.userLiked ? 'liked' : ''}`}>
+                        <span className="like-icon">{comment.userLiked ? '❤️' : '♡'}</span> {comment.likes}
                       </span>
+                      {(isLoggedIn && user && (user.id === comment.user_id || user.role === 'admin')) && (
+                        <button onClick={() => handleDeleteComment(comment.id)} className="comment-delete-button" title="حذف التعليق">
+                          <FaTrash />
+                        </button>
+                      )}
                     </div>
                   </div>
-                  {(isLoggedIn && user && (user.id === comment.user_id || user.role === 'admin')) && (
-                    <button
-                      onClick={() => handleDeleteComment(comment.id)}
-                      className="comment-delete-button"
-                    >
-                      حذف
-                    </button>
-                  )}
                 </div>
               ))
             ) : (
-              <p style={{ textAlign: "center" }}>لا توجد تعليقات حتى الآن. كن أول من يعلق!</p>
+              <p>لا توجد تعليقات حتى الآن. كن أول من يعلق!</p>
             )}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

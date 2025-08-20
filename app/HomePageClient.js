@@ -4,15 +4,19 @@ import BookCard from "@/components/BookCard";
 import { ThemeContext } from "@/contexts/ThemeContext";
 import useFetch from "@/hooks/useFetch";
 import { API_URL } from "@/constants";
+const API_URL_DEBUG = "http://localhost:3000"; // Temporary for debugging
 import './HomePage.css';
 
-const HomePageClient = ({ initialBooks, initialCategories }) => {
+const HomePageClient = () => { // No props received
+  console.log('HomePageClient is rendering!'); // Debugging line
   const { theme } = React.useContext(ThemeContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("الكل");
-  const [books, setBooks] = useState(initialBooks);
-  const [categories, setCategories] = useState(initialCategories);
+
+  // Initial state for books and categories will be empty, then populated by useFetch
+  const [books, setBooks] = useState([]);
+  const [categories, setCategories] = useState(["الكل"]); // Keep "الكل" as initial category
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -24,29 +28,26 @@ const HomePageClient = ({ initialBooks, initialCategories }) => {
     };
   }, [searchTerm]);
 
-  const { data: booksData, loading, error } = useFetch(
-    (debouncedSearchTerm || selectedCategory !== "الكل")
-      ? `${API_URL}/api/books?query=${debouncedSearchTerm}&category=${selectedCategory === "الكل" ? '' : selectedCategory}`
-      : null
-  );
+  const fetchUrl = `${API_URL_DEBUG}/api/books`;
+  console.log('Fetching books from:', fetchUrl); // Debugging line
+
+  const { data: booksData, loading, error } = useFetch(fetchUrl);
+  console.log('booksData from useFetch:', booksData);
 
   useEffect(() => {
-    if (debouncedSearchTerm) { // Only update if there's an active search
-      if (booksData) {
-        setBooks(booksData);
-        const uniqueCategories = ["الكل", ...new Set(booksData.map(book => book.category))];
-        setCategories(uniqueCategories);
-      }
-    } else { // If no search term, revert to initial data
-      setBooks(initialBooks);
-      setCategories(initialCategories);
+    if (booksData) {
+      setBooks(booksData);
+      // Extract unique categories from the fetched books
+      const uniqueCategories = ["الكل"].concat(Array.from(new Set(booksData.map(book => book.category))));
+      setCategories(uniqueCategories);
     }
-  }, [booksData, debouncedSearchTerm, initialBooks, initialCategories]);
+  }, [booksData]);
 
-  const filteredBooks = books.filter((book) => {
-    const matchesCategory = selectedCategory === "الكل" || book.category === selectedCategory;
-    return matchesCategory;
-  });
+  console.log('Current books state:', books);
+
+  const displayLoading = loading;
+  const displayError = error;
+
 
   return (
     <div className="homepage-container">
@@ -69,15 +70,15 @@ const HomePageClient = ({ initialBooks, initialCategories }) => {
           ))}
         </select>
       </div>
-      {loading ? (
+      {displayLoading ? (
         <div style={{ textAlign: "center" }}>جاري تحميل الكتب...</div>
-      ) : error ? (
+      ) : displayError ? (
         <div style={{ textAlign: "center" }}>حدث خطأ أثناء تحميل الكتب.</div>
       ) : (
         <div className="books-display-container">
-          {filteredBooks.map((book) => {
+          {books.map((book, index) => {
             
-            return <BookCard key={book.id} book={book} />;
+            return <BookCard key={book.id} book={book} isPriority={index < 4} />;
           })}
         </div>
       )}

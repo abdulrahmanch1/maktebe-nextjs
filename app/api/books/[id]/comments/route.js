@@ -4,8 +4,8 @@ import { protect } from '@/lib/middleware';
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
 export const GET = protect(async (request, { params }) => {
-  const supabase = createClient(); // Instantiate supabase client
-  const { id } = params;
+  const supabase = await createClient(); // Instantiate supabase client
+  const { id } = await params;
 
   // const bookIdErrors = validateMongoId(id); // Remove this line
   // if (Object.keys(bookIdErrors).length > 0) { // Remove this block
@@ -36,8 +36,8 @@ export const GET = protect(async (request, { params }) => {
 });
 
 export const POST = protect(async (request, { params }) => {
-  const supabase = createClient(); // Instantiate supabase client
-  const { id } = params;
+  const supabase = await createClient(); // Instantiate supabase client
+  const { id } = await params;
   const { text } = await request.json();
 
   // const bookIdErrors = validateMongoId(id); // Remove this line

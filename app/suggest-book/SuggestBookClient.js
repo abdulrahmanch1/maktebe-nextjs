@@ -5,6 +5,8 @@ import { toast } from 'react-toastify';
 import { API_URL } from '@/constants';
 import { AuthContext } from '@/contexts/AuthContext'; // Assuming AuthContext is needed for API calls
 
+const categories = ["قصص أطفال", "كتب دينية", "كتب تجارية", "كتب رومانسية", "كتب بوليسية", "أدب", "تاريخ", "علوم", "فلسفة", "تكنولوجيا", "سيرة ذاتية", "شعر", "فن", "طبخ"];
+
 const SuggestBookClient = () => {
   const { session, isLoggedIn } = useContext(AuthContext); // Get session for auth header
 
@@ -14,7 +16,7 @@ const SuggestBookClient = () => {
     category: '',
     description: '',
     pages: '',
-    publishYear: '',
+    publishYear: 0,
     language: 'العربية', // Default language
     keywords: '',
   });
@@ -115,7 +117,21 @@ const SuggestBookClient = () => {
         </div>
         <div className="form-group">
           <label htmlFor="category">التصنيف</label>
-          <input type="text" id="category" name="category" value={formData.category} onChange={handleChange} required />
+          <input
+            type="text"
+            id="category"
+            name="category"
+            list="category-options" // Add list attribute
+            placeholder="أدخل أو اختر تصنيف" // Add placeholder
+            value={formData.category}
+            onChange={handleChange}
+            required
+          />
+          <datalist id="category-options">{/* Add datalist */}
+            {categories.map((cat) => (
+              <option key={cat} value={cat} />
+            ))}
+          </datalist>
         </div>
         <div className="form-group">
           <label htmlFor="description">الوصف</label>
@@ -126,7 +142,7 @@ const SuggestBookClient = () => {
           <input type="number" id="pages" name="pages" value={formData.pages} onChange={handleChange} required />
         </div>
         <div className="form-group">
-          <label htmlFor="publishYear">سنة النشر</label>
+          <label htmlFor="publishYear">سنة التأليف</label>
           <input type="number" id="publishYear" name="publishYear" value={formData.publishYear} onChange={handleChange} required />
         </div>
         <div className="form-group">

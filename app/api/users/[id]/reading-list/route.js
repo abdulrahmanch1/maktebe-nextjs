@@ -5,20 +5,17 @@ import { createClient } from '@/utils/supabase/server'; // Correct import for se
 
 // GET handler to fetch a user's reading list
 export const GET = protect(async (request, { params }) => {
-  const supabase = createClient();
-  const { id } = params;
+  const supabase = await createClient();
+  const { id } = await params;
 
   if (!id) {
     return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
   }
 
-  // Ensure the requesting user is authorized to view this reading list
-  // For now, assuming any logged-in user can view their own list.
-  // If a user tries to view another user's list, the protect middleware
-  // combined with the .eq('id', id) should handle it if the user ID in the token
-  // is compared against the requested ID.
-  // However, for a public profile, this might need adjustment.
-  // For now, we'll assume the protect middleware handles basic auth.
+  // Authorization check: ensure the logged-in user can only access their own reading list.
+  if (id !== request.user.id) {
+    return NextResponse.json({ message: 'Not authorized to view this reading list' }, { status: 403 });
+  }
 
   try {
     const { data: userProfile, error } = await supabase
@@ -43,9 +40,10 @@ export const GET = protect(async (request, { params }) => {
 });
 
 export const POST = protect(async (request, { params }) => {
-  const supabase = createClient(); // Instantiate supabase client
-  const { id } = params; // Changed userId to id
+  const supabase = await createClient(); // Instantiate supabase client
+  const { id } = await params; // Changed userId to id
   const { bookId } = await request.json();
+  console.log('ReadingList POST API: Received bookId for validation:', bookId); // Debugging line
 
   // const userIdErrors = validateMongoId(userId); // Removed validateMongoId call
   // if (Object.keys(userIdErrors).length > 0) { // Removed this block
@@ -114,7 +112,21 @@ export const POST = protect(async (request, { params }) => {
       console.error('Error incrementing readCount:', incrementError.message);
     }
 
-    return NextResponse.json(updatedReadingList, { status: 201 });
+    // Fetch the updated readcount for the book
+    const { data: updatedBook, error: fetchBookError } = await supabase
+      .from('books')
+      .select('readcount')
+      .eq('id', bookId)
+      .single();
+
+    if (fetchBookError) {
+      console.error('Error fetching updated readcount for book:', fetchBookError.message);
+    }
+
+    return NextResponse.json({
+      readingList: updatedReadingList,
+      readCount: updatedBook ? updatedBook.readcount : undefined
+    }, { status: 201 });
   } catch (err) {
     console.error("Error adding to reading list:", err);
     return NextResponse.json({ message: "خطأ في الإضافة إلى قائمة القراءة" }, { status: 500 });

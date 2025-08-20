@@ -68,7 +68,7 @@ const FavoritesPage = () => {
       <div className="favorites-books-display">
         {favoriteBooksData.length > 0 ? (
           favoriteBooksData.map((book) => (
-            <BookCard key={book._id} book={book} />
+            <BookCard key={book.id} book={book} />
           ))
         ) : (
           <p className="no-favorites-message">لم تقم بإضافة أي كتب إلى المفضلة بعد.</p>

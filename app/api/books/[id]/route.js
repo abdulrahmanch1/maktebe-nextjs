@@ -4,7 +4,7 @@ import { validateBook, validateBookUpdate } from '@/lib/validation';
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
 async function getBook(id) {
-  const supabase = createClient(); // Instantiate supabase client
+  const supabase = await createClient(); // Instantiate supabase client
   // Removed validateMongoId(id) call
   if (!id) { // Simple ID validation for Supabase (assuming UUID or integer)
     return { book: null, error: { message: 'Book ID is required' } };
@@ -13,7 +13,7 @@ async function getBook(id) {
   // Fetch the book and its comments, populating user details for comments
   const { data: book, error: bookError } = await supabase
     .from('books')
-    .select('*, comments(*, users(username, profilePicture))') // Assuming comments and users tables
+    .select('*, readcount, favoritecount') // Explicitly select readcount and favoritecount
     .eq('id', id)
     .single();
 
@@ -25,8 +25,8 @@ async function getBook(id) {
 }
 
 export async function GET(request, { params }) {
-  const supabase = createClient(); // Instantiate supabase client
-  const { id } = params;
+  const supabase = await createClient(); // Instantiate supabase client
+  const { id } = await params;
   const { book, error } = await getBook(id);
 
   if (error) {
@@ -38,7 +38,7 @@ export async function GET(request, { params }) {
 
 export const PATCH = protect(admin(async (request, { params }) => {
   const supabase = createClient(); // Instantiate supabase client
-  const { id } = params;
+  const { id } = await params;
   const body = await request.json();
 
   const { book, error } = await getBook(id);
@@ -47,7 +47,7 @@ export const PATCH = protect(admin(async (request, { params }) => {
   }
 
   try {
-    const { title, author, category, description, pages, publishYear, language, keywords, cover, pdfFile } = body;
+    const { title, author, category, description, pages, publishYear, language, keywords, cover, pdfFile, favoritecount, readcount } = body;
 
     const bookData = {
       title,
@@ -60,6 +60,8 @@ export const PATCH = protect(admin(async (request, { params }) => {
       keywords: keywords || [],
       cover,
       pdfFile,
+      favoritecount,
+      readcount,
     };
 
     const errors = validateBookUpdate(bookData);
@@ -94,7 +96,7 @@ export const PATCH = protect(admin(async (request, { params }) => {
 
 export const DELETE = protect(admin(async (request, { params }) => {
   const supabase = createClient(); // Instantiate supabase client
-  const { id } = params;
+  const { id } = await params;
   const { book, error } = await getBook(id);
   if (error) {
     return NextResponse.json(error, { status: error.message === 'Cannot find book' ? 404 : 400 });

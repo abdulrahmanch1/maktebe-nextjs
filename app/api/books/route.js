@@ -1,10 +1,24 @@
 import { NextResponse } from 'next/server';
 import { protect, admin } from '@/lib/middleware';
-import { validateBook } from '@/lib/validation';
+import { validateBook, isValidUUID } from '@/lib/validation';
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
 export const GET = async (request) => {
-  const supabase = createClient(); // Instantiate supabase client
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let isAdmin = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    if (profile?.role === 'admin') {
+      isAdmin = true;
+    }
+  }
+
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('query') || '';
   const category = searchParams.get('category') || '';
@@ -16,10 +30,10 @@ export const GET = async (request) => {
     let supabaseQuery = supabase.from('books').select('*');
 
     // Filter by status
-    if (status) {
+    if (isAdmin && status) {
       supabaseQuery = supabaseQuery.eq('status', status);
     } else {
-      // By default, only return approved books
+      // By default, or for non-admins, only return approved books
       supabaseQuery = supabaseQuery.eq('status', 'approved');
     }
 
@@ -33,7 +47,11 @@ export const GET = async (request) => {
       supabaseQuery = supabaseQuery.ilike('author', `%${author}%`);
     }
     if (ids) {
-      const bookIds = ids.split(',');
+      const bookIds = ids.split(',').filter(id => isValidUUID(id));
+      if (bookIds.length === 0) {
+        // If no valid UUIDs are found, return an empty array to prevent querying with invalid IDs
+        return NextResponse.json([]);
+      }
       supabaseQuery = supabaseQuery.in('id', bookIds);
     }
 
@@ -43,6 +61,7 @@ export const GET = async (request) => {
       throw new Error(fetchError.message);
     }
 
+    
     return NextResponse.json(books);
   } catch (error) {
     console.error('Error in GET /api/books:', error);
@@ -51,7 +70,7 @@ export const GET = async (request) => {
 };
 
 export const POST = protect(admin(async (request) => {
-  const supabase = createClient(); // Instantiate supabase client
+  const supabase = await createClient(); // Instantiate supabase client
   const body = await request.json();
 
 

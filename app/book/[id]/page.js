@@ -3,7 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { notFound } from 'next/navigation';
 
 async function getBookAndComments(id) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const [bookResult, commentsResult] = await Promise.all([
     supabase.from('books').select('*').eq('id', id).single(),
@@ -27,7 +27,8 @@ async function getBookAndComments(id) {
   return { ...book, comments };
 }
 
-export async function generateMetadata({ params }) {
+export async function generateMetadata(props) {
+  const params = await props.params;
   const book = await getBookAndComments(params.id);
 
   if (!book) {
@@ -79,7 +80,8 @@ export async function generateMetadata({ params }) {
   };
 }
 
-const BookDetailsPage = async ({ params }) => {
+const BookDetailsPage = async (props) => {
+  const params = await props.params;
   const book = await getBookAndComments(params.id);
 
   if (!book) {

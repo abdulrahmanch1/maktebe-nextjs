@@ -1,5 +1,5 @@
 'use client';
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import Link from 'next/link';
 import { ThemeContext } from "@/contexts/ThemeContext";
 import './NotFoundPage.css';

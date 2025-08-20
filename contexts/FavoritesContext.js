@@ -21,29 +21,42 @@ export const FavoritesProvider = ({ children }) => {
       toast.error("يجب تسجيل الدخول لإضافة الكتاب للمفضلة.");
       return;
     }
-    
+
+    // Get the latest favorites from the user object directly
+    const originalFavorites = user?.favorites || [];
+    const isCurrentlyFavorite = originalFavorites.includes(bookId);
+
+    // Optimistically update the UI using a functional update for setUser
+    const newOptimisticFavorites = isCurrentlyFavorite
+      ? originalFavorites.filter((id) => id !== bookId)
+      : [...originalFavorites, bookId];
+    setUser(prevUser => ({ ...prevUser, favorites: newOptimisticFavorites }));
 
     try {
-      let updatedFavorites;
-      if (favorites.includes(bookId)) {
-        const res = await axios.delete(`${API_URL}/api/users/${user.id}/favorites/${bookId}`, {
+      let res = null; // Initialize res to null
+      // Perform the API call in the background
+      if (isCurrentlyFavorite) {
+        res = await axios.delete(`${API_URL}/api/users/${user.id}/favorites/${bookId}`, {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
-        updatedFavorites = res.data.favorites;
         toast.success("تمت إزالة الكتاب من المفضلة.");
       } else {
-        const res = await axios.post(`${API_URL}/api/users/${user.id}/favorites`, { bookId }, {
+        res = await axios.post(`${API_URL}/api/users/${user.id}/favorites`, { bookId }, {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
-        updatedFavorites = res.data.favorites;
         toast.success("تمت إضافة الكتاب إلى المفضلة.");
       }
-      setUser({ ...user, favorites: updatedFavorites });
+      // Return the favoriteCount from the API response
+      return res?.data?.favoriteCount; // Use optional chaining
     } catch (error) {
       console.error("Failed to toggle favorite:", error);
+      console.error("Error details:", error);
       toast.error("فشل تحديث المفضلة. يرجى المحاولة مرة أخرى.");
+      // If the API call fails, revert the UI to its original state using a functional update
+      setUser(prevUser => ({ ...prevUser, favorites: originalFavorites }));
+      return undefined; // Return undefined on error
     }
-  }, [favorites, isLoggedIn, user, session, setUser]);
+  }, [isLoggedIn, user, session, setUser]); // Removed 'favorites' from dependency array
 
   const isFavorite = useCallback((bookId) => {
     return favorites.includes(bookId);
