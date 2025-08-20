@@ -9,6 +9,7 @@ import Image from "next/image";
 import { API_URL } from "@/constants";
 import './BookDetailsPage.css';
 import { FaTrash } from 'react-icons/fa';
+import { useRouter } from "next/navigation"; // Import useRouter
 
 // A small component to safely render dates only on the client-side
 const ClientOnlyDate = ({ dateString }) => {
@@ -56,6 +57,53 @@ const BookDetailsClient = ({ initialBook }) => {
   const [isInReadingList, setIsInReadingList] = useState(false);
   const [isRead, setIsRead] = useState(false);
   const [isProcessingAction, setIsProcessingAction] = useState(false); // New state for action processing
+  const router = useRouter(); // Initialize useRouter
+
+  const handlePublishBook = async () => {
+    if (!session) return toast.error('الرجاء تسجيل الدخول مرة أخرى.');
+    if (window.confirm("هل أنت متأكد أنك تريد الموافقة على هذا الكتاب ونشره؟")) {
+      try {
+        // Assuming an API endpoint for publishing books
+        const response = await axios.post(`${API_URL}/api/books/${book.id}/approve`, {}, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (response.status === 200) {
+          toast.success('تم نشر الكتاب بنجاح!');
+          router.push('/admin/books'); // Redirect to admin books list
+        } else {
+          toast.error('فشل نشر الكتاب.');
+        }
+      } catch (error) {
+        console.error('Error publishing book:', error);
+        toast.error('حدث خطأ أثناء نشر الكتاب.');
+      }
+    }
+  };
+
+  const handleRemoveBook = async () => {
+    if (!session) return toast.error('الرجاء تسجيل الدخول مرة أخرى.');
+    if (window.confirm("هل أنت متأكد أنك تريد إزالة هذا الكتاب؟")) {
+      try {
+        // Assuming an API endpoint for removing books
+        const response = await axios.delete(`${API_URL}/api/books/${book.id}`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (response.status === 200) {
+          toast.success('تمت إزالة الكتاب بنجاح!');
+          router.push('/admin/books'); // Redirect to admin books list
+        } else {
+          toast.error('فشل إزالة الكتاب.');
+        }
+      } catch (error) {
+        console.error('Error removing book:', error);
+        toast.error('حدث خطأ أثناء إزالة الكتاب.');
+      }
+    }
+  };
+
+  
+
+  
 
   // Function to re-fetch book details
   const fetchBookDetails = useCallback(async () => {
@@ -120,6 +168,7 @@ const BookDetailsClient = ({ initialBook }) => {
     try {
       await toggleFavorite(initialBook.id); // Await toggleFavorite to ensure API call completes
       fetchBookDetails(); // Call to refresh book details to update favoritecount
+      toast.success(isLiked ? 'تمت إزالة الكتاب من المفضلة!' : 'تمت إضافة الكتاب إلى المفضلة بنجاح!');
     } catch (error) {
       console.error('خطأ في تحديث المفضلة:', error);
       toast.error('حدث خطأ أثناء تحديث المفضلة.'); // Keep this error toast for network/other errors
@@ -217,6 +266,10 @@ const BookDetailsClient = ({ initialBook }) => {
     }
   };
 
+
+
+
+
   const handlePostComment = async () => {
     if (!isLoggedIn || !user || !session) {
       toast.error("يجب تسجيل الدخول لنشر تعليق.");
@@ -302,6 +355,7 @@ const BookDetailsClient = ({ initialBook }) => {
             : comment
         )
       );
+      toast.success(res.data.liked ? 'تم الإعجاب بالتعليق!' : 'تم إلغاء الإعجاب بالتعليق!');
     } catch (err) {
       console.error("Error toggling like:", err);
       toast.error(err.response?.data?.message || "فشل الإعجاب بالتعليق.");
@@ -321,6 +375,10 @@ const BookDetailsClient = ({ initialBook }) => {
             height={450}
             className="book-cover-image"
             priority
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = "/imgs/no_cover_available.png";
+            }}
           />
           <div className="cover-meta-info">
             <div className="meta-stat">
@@ -351,30 +409,60 @@ const BookDetailsClient = ({ initialBook }) => {
 
           {hasMounted && (
             <div className="book-actions">
-              {!isInReadingList && (
-                <button onClick={handleAddToReadingList} className="book-action-button primary" disabled={isProcessingAction}>
-                  ابدأ القراءة
-                </button>
+              {/* Admin actions for pending books */}
+              {user?.role === 'admin' && book.status === 'pending' && (
+                <div className="admin-actions">
+                  {console.log('Admin actions block is rendering!')} {/* New log */}
+                  <button onClick={() => router.push(`/admin/books/edit/${book.id}`)} className="book-action-button primary">
+                    تعديل الكتاب
+                  </button>
+                  <button onClick={handlePublishBook} className="book-action-button primary">
+                    رفع الكتاب على العامه
+                  </button>
+                  <button onClick={handleRemoveBook} className="book-action-button secondary">
+                    إزالة الكتاب
+                  </button>
+                  <button onClick={() => {
+                    if (book && book.pdfFile) {
+                      window.open(book.pdfFile, '_blank');
+                    } else {
+                      toast.error('ملف الكتاب غير متوفر للقراءة.');
+                    }
+                  }} className="book-action-button primary">
+                    قراءة الكتاب
+                  </button>
+                </div>
               )}
-              {isInReadingList && (
-                <button onClick={() => {
-                  if (book && book.pdfFile) { // Change book.file to book.pdffile
-                    window.open(book.pdfFile, '_blank');
-                  } else {
-                    toast.error('ملف الكتاب غير متوفر للقراءة.');
-                  }
-                }} className="book-action-button primary" disabled={isProcessingAction}>
-                  متابعة القراءة
-                </button>
+
+              {/* User actions for non-pending books */}
+              {(!book.status || book.status !== 'pending') && (
+                <>
+                  {!isInReadingList && (
+                    <button onClick={handleAddToReadingList} className="book-action-button primary" disabled={isProcessingAction}>
+                      ابدأ القراءة
+                    </button>
+                  )}
+                  {isInReadingList && (
+                    <button onClick={() => {
+                      if (book && book.pdfFile) {
+                        window.open(book.pdfFile, '_blank');
+                      } else {
+                        toast.error('ملف الكتاب غير متوفر للقراءة.');
+                      }
+                    }} className="book-action-button primary" disabled={isProcessingAction}>
+                      متابعة القراءة
+                    </button>
+                  )}
+                  {isInReadingList && (
+                    <button onClick={handleRemoveFromReadingList} className="book-action-button secondary full-width-button" disabled={isProcessingAction}>
+                      إزالة من قائمة القراءة
+                    </button>
+                  )}
+                  <button onClick={handleToggleFavorite} className="book-action-button secondary" disabled={isProcessingAction}>
+                    {isLiked ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
+                  </button>
+                </>
               )}
-              {isInReadingList && (
-                <button onClick={handleRemoveFromReadingList} className="book-action-button secondary full-width-button" disabled={isProcessingAction}>
-                  إزالة من قائمة القراءة
-                </button>
-              )}
-              <button onClick={handleToggleFavorite} className="book-action-button secondary" disabled={isProcessingAction}>
-                {isLiked ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
-              </button>
             </div>
           )}
 
@@ -458,6 +546,14 @@ const BookDetailsClient = ({ initialBook }) => {
               <p>لا توجد تعليقات حتى الآن. كن أول من يعلق!</p>
             )}
           </div>
+        </div>
+      )}
+
+      {book.status === 'pending' && book.profiles && (
+        <div className="suggester-info-section">
+          <h2 className="suggester-info-title">معلومات المقترح</h2>
+          <p><strong>اسم المستخدم:</strong> {book.profiles.username}</p>
+          <p><strong>البريد الإلكتروني:</strong> {book.profiles.email}</p>
         </div>
       )}
     </div>

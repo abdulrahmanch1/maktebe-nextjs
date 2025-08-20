@@ -60,7 +60,11 @@ const SuggestBookClient = () => {
 
     const data = new FormData();
     for (const key in formData) {
-      data.append(key, formData[key]);
+      if (key === 'keywords' && formData[key]) {
+        data.append(key, JSON.stringify(formData[key].split(',').map(kw => kw.trim())));
+      } else {
+        data.append(key, formData[key]);
+      }
     }
     if (coverFile) {
       data.append('cover', coverFile);
@@ -71,7 +75,7 @@ const SuggestBookClient = () => {
 
     try {
       // Assuming a new API endpoint for suggesting books
-      const response = await axios.post(`${API_URL}/api/suggest-books`, data, {
+      const response = await axios.post(`${API_URL}/api/books/suggest`, data, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${session.access_token}`,

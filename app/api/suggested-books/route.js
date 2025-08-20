@@ -3,12 +3,12 @@ import { protect, admin } from '@/lib/middleware';
 import { createClient } from '@/utils/supabase/server';
 
 export const GET = protect(admin(async (request) => {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   try {
     const { data: suggestedBooks, error: fetchError } = await supabase
       .from('books')
-      .select('*')
+      .select('*, comments(*, profiles(username, email, profilepicture))')
       .eq('status', 'pending'); // Fetch books with status 'pending'
 
     if (fetchError) {

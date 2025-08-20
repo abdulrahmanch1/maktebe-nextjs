@@ -20,7 +20,7 @@ const BookCard = ({ book, isPriority }) => {
   return (
     <div className="book-card">
       <Image
-        src={book.cover}
+        src={book.cover || '/imgs/no_cover_available.png'}
         alt={`غلاف كتاب ${book.title}`}
         width={200}
         height={300}

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { protect } from '@/lib/middleware';
 // import { validateMongoId } from '@/lib/validation'; // Removed validateMongoId
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
+import { revalidatePath } from 'next/cache';
 
 export const DELETE = protect(async (request, { params }) => {
   const supabase = await createClient(); // Instantiate supabase client
@@ -54,6 +55,8 @@ export const DELETE = protect(async (request, { params }) => {
     if (decrementError) {
       console.error('Error decrementing favoriteCount:', decrementError.message);
     }
+
+    revalidatePath(`/book/${bookId}`, 'page'); // Revalidate the book details page
 
     // Fetch the updated favoritecount for the book
     const { data: updatedBook, error: fetchBookError } = await supabase

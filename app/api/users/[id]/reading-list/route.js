@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { protect } from '@/lib/middleware';
 import { validateReadingList } from '@/lib/validation'; // Removed validateMongoId
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
+import { revalidatePath } from 'next/cache';
 
 // GET handler to fetch a user's reading list
 export const GET = protect(async (request, { params }) => {
@@ -111,6 +112,8 @@ export const POST = protect(async (request, { params }) => {
     if (incrementError) {
       console.error('Error incrementing readCount:', incrementError.message);
     }
+
+    revalidatePath(`/book/${bookId}`, 'page'); // Revalidate the book details page
 
     // Fetch the updated readcount for the book
     const { data: updatedBook, error: fetchBookError } = await supabase

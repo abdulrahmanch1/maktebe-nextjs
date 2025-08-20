@@ -94,6 +94,57 @@ export const PATCH = protect(admin(async (request, { params }) => {
   }
 }));
 
+export const PUT = protect(admin(async (request, { params }) => {
+  const supabase = createClient();
+  const { id } = await params;
+  const body = await request.json();
+
+  const { book, error } = await getBook(id);
+  if (error) {
+    return NextResponse.json(error, { status: error.message === 'Cannot find book' ? 404 : 400 });
+  }
+
+  try {
+    const { title, author, category, description, pages, publishYear, language, keywords, cover_url, file_url, status } = body;
+
+    const bookData = {
+      title,
+      author,
+      category,
+      description,
+      pages: parseInt(pages),
+      publishYear: parseInt(publishYear),
+      language,
+      keywords: keywords || [],
+      cover_url,
+      file_url,
+      status,
+    };
+
+    // Assuming validateBookUpdate can handle all fields for PUT
+    const errors = validateBookUpdate(bookData);
+    if (Object.keys(errors).length > 0) {
+      return NextResponse.json({ message: 'فشل التحقق', errors }, { status: 400 });
+    }
+
+    const { data: updatedBook, error: updateError } = await supabase
+      .from('books')
+      .update(bookData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw new Error(updateError.message);
+    }
+
+    return NextResponse.json(updatedBook);
+  } catch (error) {
+    console.error('Error in PUT /api/books/[id]:', error);
+    return NextResponse.json({ message: "فشل تحديث الكتاب. يرجى المحاولة مرة أخرى." }, { status: 500 });
+  }
+}));
+
 export const DELETE = protect(admin(async (request, { params }) => {
   const supabase = createClient(); // Instantiate supabase client
   const { id } = await params;

@@ -3,6 +3,7 @@ import { protect } from '@/lib/middleware';
 // import { validateMongoId } from '@/lib/validation'; // Removed validateMongoId
 import { validateFavorite } from '@/lib/validation';
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
+import { revalidatePath } from 'next/cache';
 
 export const POST = protect(async (request, { params }) => {
   
@@ -67,6 +68,8 @@ export const POST = protect(async (request, { params }) => {
     if (incrementError) {
       console.error('Error incrementing favoriteCount:', incrementError.message);
     }
+
+    revalidatePath(`/book/${bookId}`, 'page'); // Revalidate the book details page
 
     // Fetch the updated favoritecount for the book
     const { data: updatedBook, error: fetchBookError } = await supabase

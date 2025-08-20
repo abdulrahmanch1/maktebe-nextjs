@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { protect } from '@/lib/middleware';
 import { createClient } from '@/utils/supabase/server';
+import { revalidatePath } from 'next/cache';
 
 export const DELETE = protect(async (request, { params }) => {
   const supabase = await createClient();
@@ -47,6 +48,8 @@ export const DELETE = protect(async (request, { params }) => {
     if (decrementError) {
       console.error('Error decrementing readcount:', decrementError.message);
     }
+
+    revalidatePath(`/book/${bookId}`, 'page'); // Revalidate the book details page
 
     // Fetch the updated readcount for the book
     const { data: updatedBook, error: fetchBookError } = await supabase

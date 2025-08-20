@@ -54,7 +54,17 @@ export async function middleware(request) {
     }
   )
 
-  await supabase.auth.getSession()
+  const { data: { session } } = await supabase.auth.getSession()
+
+  const { pathname } = request.nextUrl;
+
+  // Define paths that authenticated users should not access
+  const authRestrictedPaths = ['/login', '/register'];
+
+  if (session && authRestrictedPaths.includes(pathname)) {
+    // Redirect authenticated users away from login/register pages
+    return NextResponse.redirect(new URL('/', request.url));
+  }
 
   return response
 }

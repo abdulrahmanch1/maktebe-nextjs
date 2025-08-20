@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin'; // For getting public URLs
 
 export const POST = protect(async (request) => {
-  const supabase = createClient();
+  const supabase = await createClient();
   const supabaseAdmin = createAdminClient(); // Use admin client for storage operations if RLS is strict
 
   try {
@@ -85,7 +85,7 @@ export const POST = protect(async (request) => {
       category,
       description,
       pages,
-      publishyear: publishYear,
+      publishYear: publishYear,
       language,
       keywords,
       coverimage: coverUrl,
@@ -93,6 +93,8 @@ export const POST = protect(async (request) => {
       status: 'pending',
       // Add any other default fields for a suggested book, e.g., 'status: "pending"'
     };
+
+    console.log('Book data for validation:', bookData); // Debugging line
 
     const errors = validateBook(bookData);
     if (Object.keys(errors).length > 0) {
@@ -107,13 +109,13 @@ export const POST = protect(async (request) => {
 
     if (insertError) {
       console.error('Supabase insert error:', insertError);
-      return NextResponse.json({ message: 'فشل إضافة الكتاب المقترح إلى قاعدة البيانات.' }, { status: 500 });
+      return NextResponse.json({ message: 'فشل إضافة الكتاب المقترح إلى قاعدة البيانات.', error: insertError.message }, { status: 500 }); // Added error.message
     }
 
     return NextResponse.json({ message: 'تم استلام اقتراح الكتاب بنجاح!', book: newBook }, { status: 201 });
 
   } catch (error) {
     console.error('Error in /api/suggest-books POST:', error);
-    return NextResponse.json({ message: 'حدث خطأ غير متوقع أثناء معالجة الاقتراح.' }, { status: 500 });
+    return NextResponse.json({ message: 'حدث خطأ غير متوقع أثناء معالجة الاقتراح.', error: error.message }, { status: 500 }); // Added error.message
   }
 });

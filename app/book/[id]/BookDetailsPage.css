@@ -100,8 +100,9 @@
 
 .book-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column; /* Changed to column */
   gap: 1rem;
+  justify-content: center; /* Added this line */
   padding-top: 1rem;
   border-top: 1px solid var(--secondary-color);
 }
@@ -114,7 +115,8 @@
   font-size: 1rem;
   font-weight: bold;
   transition: all 0.2s ease;
-  flex-grow: 1;
+  width: 80%; /* Changed from 100% to 80% */
+  margin-top: 0.5rem; /* Added margin to separate buttons */
 }
 
 .book-action-button.primary {
@@ -340,4 +342,26 @@
   .book-author {
     font-size: 1.2rem;
   }
+
+  .book-actions {
+    flex-direction: column;
+    align-items: stretch; /* Make buttons fill the width */
+  }
+}
+
+.comment-email {
+  font-size: 0.85rem;
+  color: var(--text-color-light); /* Assuming a lighter text color variable exists */
+  margin-left: 0.5rem;
+}
+
+.suggester-info-section {
+  margin-top: 4rem;
+  padding-top: 2rem;
+}
+
+.suggester-info-title {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: var(--accent-color);
 }

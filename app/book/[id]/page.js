@@ -6,8 +6,8 @@ async function getBookAndComments(id) {
   const supabase = await createClient();
 
   const [bookResult, commentsResult] = await Promise.all([
-    supabase.from('books').select('*').eq('id', id).single(),
-    supabase.from('comments').select('*, profiles(username, profilepicture)').eq('book_id', id).order('created_at', { ascending: false })
+    supabase.from('books').select('*, profiles(username, email)').eq('id', id).single(),
+    supabase.from('comments').select('*, profiles(username, email, profilepicture)').eq('book_id', id).order('created_at', { ascending: false })
   ]);
 
   const { data: book, error: bookError } = bookResult;

@@ -5,6 +5,8 @@ import { AuthContext } from "@/contexts/AuthContext";
 import useFetch from "@/hooks/useFetch";
 import axios from "axios";
 import { toast } from 'react-toastify';
+import BookCard from "@/components/BookCard"; // Import BookCard
+import './SuggestedBooksPage.css'; // Assuming you have a CSS file for this page
 
 const AdminSuggestedBooksPage = () => {
   const { theme } = useContext(ThemeContext);
@@ -65,15 +67,9 @@ const AdminSuggestedBooksPage = () => {
       ) : error ? (
         <p style={{ textAlign: "center", color: "red" }}>{`فشل تحميل الكتب المقترحة: ${error.message}`}</p>
       ) : suggestedBooks && suggestedBooks.length > 0 ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+        <div className="admin-suggested-books-grid">
           {suggestedBooks.map((book) => (
-            <div key={book.id} className="admin-book-item" style={{ backgroundColor: theme.secondary }}>
-              <p style={{ color: theme.primary }}>{book.title} - {book.author}</p>
-              <div>
-                <button onClick={() => handleApprove(book.id)} style={{ backgroundColor: theme.accent, color: theme.primary, marginLeft: '10px' }}>موافقة</button>
-                <button onClick={() => handleReject(book.id)} style={{ backgroundColor: '#dc3545', color: 'white' }}>رفض وحذف</button>
-              </div>
-            </div>
+            <BookCard key={book.id} book={book} />
           ))}
         </div>
       ) : (
