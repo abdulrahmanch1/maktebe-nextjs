@@ -18,7 +18,7 @@ const useFetch = (url, options = {}) => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get(url, { ...config, signal: controller.signal });
+        const response = await axios.get(url, { ...options, signal: controller.signal });
         setData(response.data);
       } catch (err) {
         if (err.name !== 'CanceledError') {
@@ -38,7 +38,7 @@ const useFetch = (url, options = {}) => {
     return () => {
       controller.abort();
     };
-  }, [url, ...dependencies]);
+  }, [url, options]);
 
   return { data, loading, error };
 };
