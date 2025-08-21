@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef, useContext } from 'react';
+import Image from 'next/image'; // Add this import
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import axios from 'axios';
@@ -137,7 +138,15 @@ const EditBookFormClient = ({ initialBook }) => {
         </div>
         <div className="form-group">
           <label>صورة الغلاف الحالية</label>
-          {formData.cover && <img src={formData.cover} alt="Cover" style={{ width: '100px', height: 'auto', display: 'block', marginBottom: '10px' }} />}
+          {formData.cover && (
+            <Image
+              src={formData.cover}
+              alt="Cover"
+              width={100} // Specify width
+              height={150} // Specify height (adjust as needed for aspect ratio)
+              style={{ display: 'block', marginBottom: '10px' }} // Apply other styles
+            />
+          )}
           <label className="file-input-label">
             <span>{coverFile ? coverFile.name : 'اختر صورة جديدة لتغييرها...'}</span>
             <input type="file" id="cover" name="cover" accept="image/*" onChange={handleFileChange} ref={coverInputRef} className="file-input" />
