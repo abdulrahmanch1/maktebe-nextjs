@@ -1,38 +1,34 @@
 'use client';
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useMemo } from "react";
 import BookCard from "@/components/BookCard";
-import { ThemeContext } from "@/contexts/ThemeContext";
-import useFetch from "@/hooks/useFetch";
-import { API_URL } from "@/constants";
 import './HomePage.css';
 
-const HomePageClient = () => {
-  console.log('HomePageClient is rendering!'); // Debugging line
-  const { theme } = useContext(ThemeContext);
+const HomePageClient = ({ initialBooks = [] }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("الكل");
+  
+  // The initial list of books is now passed as a prop
+  const [books, setBooks] = useState(initialBooks);
 
-  const [books, setBooks] = useState([]);
-  const [categories, setCategories] = useState(["الكل"]);
+  // Derive categories from the initial books list
+  const categories = useMemo(() => {
+    if (!initialBooks) return ["الكل"];
+    return ["الكل", ...Array.from(new Set(initialBooks.map(book => book.category)))];
+  }, [initialBooks]);
 
-  const fetchUrl = `${API_URL}/api/books`;
-  console.log('Fetching books from:', fetchUrl);
+  // Filter books based on search term and category
+  const filteredBooks = useMemo(() => {
+    return books
+      .filter(book => 
+        selectedCategory === "الكل" || book.category === selectedCategory
+      )
+      .filter(book => 
+        book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        book.author.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+  }, [books, searchTerm, selectedCategory]);
 
-  const { data: booksData, loading, error } = useFetch(fetchUrl);
-
-  useEffect(() => {
-    if (booksData) {
-      setBooks(booksData);
-      const uniqueCategories = ["الكل"].concat(Array.from(new Set(booksData.map(book => book.category))));
-      setCategories(uniqueCategories);
-    }
-  }, [booksData]);
-
-  console.log('Current books state:', books);
-
-  const displayLoading = loading;
-  const displayError = error;
+  // Note: The original useFetch and useEffect for fetching are removed.
 
   return (
     <div className="homepage-container">
@@ -40,7 +36,7 @@ const HomePageClient = () => {
       <div className="search-filter-container">
         <input
           type="text"
-          placeholder="ابحث عن كتاب..."
+          placeholder="ابحث بالاسم أو المؤلف..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"
@@ -55,17 +51,16 @@ const HomePageClient = () => {
           ))}
         </select>
       </div>
-      {displayLoading ? (
-        <div style={{ textAlign: "center" }}>جاري تحميل الكتب...</div>
-      ) : displayError ? (
-        <div style={{ textAlign: "center" }}>حدث خطأ أثناء تحميل الكتب.</div>
-      ) : (
-        <div className="books-display-container">
-          {books.map((book, index) => {
-            return <BookCard key={book.id} book={book} isPriority={index < 4} />;
-          })}
-        </div>
-      )}
+      
+      <div className="books-display-container">
+        {filteredBooks.length > 0 ? (
+          filteredBooks.map((book, index) => (
+            <BookCard key={book.id} book={book} isPriority={index < 4} />
+          ))
+        ) : (
+          <div style={{ textAlign: "center" }}>لا توجد كتب تطابق بحثك.</div>
+        )}
+      </div>
     </div>
   );
 };

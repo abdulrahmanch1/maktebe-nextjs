@@ -8,70 +8,64 @@ export const POST = protect(async (request) => {
   const supabase = await createClient();
   const formData = await request.formData();
 
-  // We can extract the suggester's ID if needed in the future
-  const userId = request.user.id; 
+  const userId = request.user.id;
+  const coverFile = formData.get('cover');
+  const pdfFile = formData.get('pdfFile');
 
+  // Step 1: Extract and assemble text-based data
   const bookData = {
     title: formData.get('title'),
     author: formData.get('author'),
     category: formData.get('category'),
     description: formData.get('description'),
-    pages: parseInt(formData.get('pages')),
-    publishYear: parseInt(formData.get('publishYear')),
+    pages: parseInt(formData.get('pages'), 10) || 0,
+    publishYear: parseInt(formData.get('publishYear'), 10) || 0,
     language: formData.get('language'),
     keywords: formData.get('keywords') ? JSON.parse(formData.get('keywords')) : [],
-    status: 'pending', // Explicitly set status to pending for review
-    user_id: userId, // Add user_id
+    status: 'pending',
+    user_id: userId,
+    cover: null, // Initialize as null
+    pdfFile: null, // Initialize as null
   };
 
-  const coverFile = formData.get('cover');
-  const pdfFile = formData.get('pdfFile');
-
-  // Helper function to sanitize filenames for Supabase Storage
-  const sanitizeFilename = (filename) => {
-    return filename
-      .normalize("NFD") // Normalize to decompose combined characters
-      .replace(/[\u0300-\u036f]/g, "") // Remove diacritics
-      .replace(/[^a-zA-Z0-9-_\.]/g, "-") // Replace invalid characters with hyphens
-      .replace(/--+/g, "-") // Replace multiple hyphens with a single hyphen
-      .replace(/^-+|-+$/g, ""); // Trim hyphens from start and end
-  };
-
-  // Upload cover image
-  if (coverFile && coverFile.size > 0) {
-    const sanitizedCoverFileName = sanitizeFilename(coverFile.name);
-    const coverFileName = `${Date.now()}-${sanitizedCoverFileName}`;
-    try {
-      const coverUrl = await uploadFile(supabase, 'book-covers', coverFileName, coverFile);
-      bookData.cover = coverUrl;
-    } catch (uploadError) {
-      console.error('Error uploading cover image:', uploadError);
-      return NextResponse.json({ message: 'فشل في تحميل صورة الغلاف.' }, { status: 500 });
-    }
-  } else {
-    bookData.cover = null; // Set to null if no cover file is provided
-  }
-
-  // Upload PDF file
-  if (pdfFile && pdfFile.size > 0) {
-    const sanitizedPdfFileName = sanitizeFilename(pdfFile.name);
-    const pdfFileName = `${Date.now()}-${sanitizedPdfFileName}`;
-    try {
-      const pdfUrl = await uploadFile(supabase, 'book-pdfs', pdfFileName, pdfFile);
-      bookData.pdfFile = pdfUrl;
-    } catch (uploadError) {
-      console.error('Error uploading PDF file:', uploadError);
-      return NextResponse.json({ message: 'فشل في تحميل ملف PDF.' }, { status: 500 });
-    }
-  } else {
-    bookData.pdfFile = null; // Set to null if no PDF file is provided
-  }
-
+  // Step 2: Validate text-based data BEFORE file uploads
   const errors = validateBook(bookData);
   if (Object.keys(errors).length > 0) {
+    // Note: We are validating before assigning file URLs. 
+    // The validation function might need to be aware that `cover` and `pdfFile` can be null at this stage.
+    // Assuming validateBook can handle this.
     return NextResponse.json({ message: 'Validation failed', errors }, { status: 400 });
   }
 
+  // Helper function to sanitize filenames
+  const sanitizeFilename = (filename) => {
+    return filename
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9-_\.]/g, "-")
+      .replace(/--+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  };
+
+  // Step 3: Upload files if validation was successful
+  try {
+    if (coverFile && coverFile.size > 0) {
+      const sanitizedCoverFileName = sanitizeFilename(coverFile.name);
+      const coverFileName = `${Date.now()}-${sanitizedCoverFileName}`;
+      bookData.cover = await uploadFile(supabase, 'book-covers', coverFileName, coverFile);
+    }
+
+    if (pdfFile && pdfFile.size > 0) {
+      const sanitizedPdfFileName = sanitizeFilename(pdfFile.name);
+      const pdfFileName = `${Date.now()}-${sanitizedPdfFileName}`;
+      bookData.pdfFile = await uploadFile(supabase, 'book-pdfs', pdfFileName, pdfFile);
+    }
+  } catch (uploadError) {
+    console.error('Error during file upload:', uploadError);
+    return NextResponse.json({ message: 'فشل في تحميل الملفات.' }, { status: 500 });
+  }
+
+  // Step 4: Insert the final record into the database
   try {
     const { data: newBook, error: insertError } = await supabase
       .from('books')
@@ -81,6 +75,9 @@ export const POST = protect(async (request) => {
 
     if (insertError) {
       console.error('Supabase insert error (suggest):', insertError);
+      // Attempt to delete uploaded files if database insert fails
+      if (bookData.cover) await supabase.storage.from('book-covers').remove([bookData.cover.split('/').pop()]);
+      if (bookData.pdfFile) await supabase.storage.from('book-pdfs').remove([bookData.pdfFile.split('/').pop()]);
       throw new Error(insertError.message);
     }
 

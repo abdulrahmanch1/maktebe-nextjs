@@ -63,13 +63,12 @@ const BookDetailsClient = ({ initialBook }) => {
     if (!session) return toast.error('الرجاء تسجيل الدخول مرة أخرى.');
     if (window.confirm("هل أنت متأكد أنك تريد الموافقة على هذا الكتاب ونشره؟")) {
       try {
-        // Assuming an API endpoint for publishing books
-        const response = await axios.post(`${API_URL}/api/books/${book.id}/approve`, {}, {
+        const response = await axios.patch(`${API_URL}/api/books/${book.id}/approve`, {}, {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
         if (response.status === 200) {
           toast.success('تم نشر الكتاب بنجاح!');
-          router.push('/admin/books'); // Redirect to admin books list
+          router.push('/admin/books');
         } else {
           toast.error('فشل نشر الكتاب.');
         }
@@ -412,8 +411,7 @@ const BookDetailsClient = ({ initialBook }) => {
               {/* Admin actions for pending books */}
               {user?.role === 'admin' && book.status === 'pending' && (
                 <div className="admin-actions">
-                  {console.log('Admin actions block is rendering!')} {/* New log */}
-                  <button onClick={() => router.push(`/admin/books/edit/${book.id}`)} className="book-action-button primary">
+                  <button onClick={() => router.push(`/admin/books/edit/${initialBook.id}`)} className="book-action-button primary">
                     تعديل الكتاب
                   </button>
                   <button onClick={handlePublishBook} className="book-action-button primary">

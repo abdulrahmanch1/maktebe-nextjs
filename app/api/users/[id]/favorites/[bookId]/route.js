@@ -54,6 +54,9 @@ export const DELETE = protect(async (request, { params }) => {
 
     if (decrementError) {
       console.error('Error decrementing favoriteCount:', decrementError.message);
+      // Unlike the POST, a rollback is more complex.
+      // We'll return an error to signal that the operation was not fully successful.
+      return NextResponse.json({ message: 'تمت إزالة الكتاب من المفضلة، لكن فشل تحديث العداد الإجمالي' }, { status: 500 });
     }
 
     revalidatePath(`/book/${bookId}`, 'page'); // Revalidate the book details page
@@ -65,19 +68,5 @@ export const DELETE = protect(async (request, { params }) => {
       .eq('id', bookId)
       .single();
 
-    console.log('DELETE API: updatedBook:', updatedBook, 'fetchBookError:', fetchBookError); // Debugging line
-
-    if (fetchBookError) {
-      console.error('Error fetching updated favoriteCount for book:', fetchBookError.message);
-      // Decide how to handle this error - perhaps return without favoritecount or with a default
-    }
-
-    return NextResponse.json({
-      favorites: updatedFavorites,
-      favoriteCount: updatedBook?.favoritecount || 0 // Use optional chaining and default to 0
-    });
-  } catch (err) {
-    console.error("Error removing favorite:", err);
-    return NextResponse.json({ message: "خطأ في إزالة المفضلة" }, { status: 500 });
-  }
-});
+    return NextResponse.json({ message: 'Book removed from favorites' });
+  } catch (error) {

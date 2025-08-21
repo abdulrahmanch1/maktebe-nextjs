@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/server'; // Correct import for se
 import { cookies } from 'next/headers';
 
 export async function POST(request) {
-  const supabase = createClient(); // Instantiate supabase client
+  const supabase = await createClient(); // createClient is async
   try {
     const { subject, message, email, username } = await request.json();
 
@@ -13,32 +13,20 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Validation failed', errors }, { status: 400 });
     }
 
-    let userId = null;
-    // Attempt to get user ID if authenticated (Supabase session)
-    const cookieStore = cookies();
-    const supabaseAccessToken = cookieStore.get('sb-access-token');
-    const supabaseRefreshToken = cookieStore.get('sb-refresh-token');
-
-    if (supabaseAccessToken && supabaseRefreshToken) {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (user && !userError) {
-        userId = user.id;
-      }
-    }
+    // Simplified user check
+    const { data: { user } } = await supabase.auth.getUser();
 
     const contactMessageData = {
       subject,
       message,
       email,
       username: username || 'Guest',
-      user_id: userId, // Store user_id if available
+      user_id: user ? user.id : null, // Store user_id if a user is logged in
     };
 
-    const { data: newContactMessage, error: insertError } = await supabase
+    const { error: insertError } = await supabase
       .from('contact_messages')
-      .insert(contactMessageData)
-      .select()
-      .single();
+      .insert(contactMessageData);
 
     if (insertError) {
       throw new Error(insertError.message);

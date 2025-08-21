@@ -41,16 +41,11 @@ export const GET = protect(async (request, { params }) => {
 });
 
 export const POST = protect(async (request, { params }) => {
-  const supabase = await createClient(); // Instantiate supabase client
-  const { id } = await params; // Changed userId to id
+  const supabase = await createClient();
+  const { id } = params;
   const { bookId } = await request.json();
-  console.log('ReadingList POST API: Received bookId for validation:', bookId); // Debugging line
 
-  // const userIdErrors = validateMongoId(userId); // Removed validateMongoId call
-  // if (Object.keys(userIdErrors).length > 0) { // Removed this block
-  //   return NextResponse.json({ message: 'Invalid User ID', errors: userIdErrors }, { status: 400 });
-  // }
-  if (!id) { // Simple ID validation for Supabase (assuming UUID or integer)
+  if (!id) {
     return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
   }
 
@@ -60,62 +55,53 @@ export const POST = protect(async (request, { params }) => {
   }
 
   if (id !== request.user.id) {
-    return NextResponse.json({ message: 'Not authorized to modify this user\'s reading list' }, { status: 403 });
+    return NextResponse.json({ message: "Not authorized to modify this user's reading list" }, { status: 403 });
   }
 
   try {
-    // Fetch the user
-    console.log('ReadingList POST API: Attempting to fetch user with ID:', id); // Added log
     const { data: user, error: userError } = await supabase
       .from('profiles')
-      .select('readinglist') // Assuming 'readinglist' is a JSONB column or similar
+      .select('readinglist')
       .eq('id', id)
       .single();
-
-    console.log('ReadingList POST API: User fetch result - user:', user, 'userError:', userError); // Added log
 
     if (userError || !user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    console.log('ReadingList POST API: User data from DB:', user);
-    console.log('ReadingList POST API: currentReadingList from DB:', user.readinglist, 'Type:', typeof user.readinglist, 'Is Array:', Array.isArray(user.readinglist));
-
-    // Ensure readingList is an array, initialize if null
     const currentReadingList = Array.isArray(user.readinglist) ? user.readinglist : [];
 
-    // Check if the book is already in reading list
     const bookExists = currentReadingList.some(item => item.book === bookId);
     if (bookExists) {
       return NextResponse.json({ message: 'Book already in reading list' }, { status: 400 });
     }
 
-    // Add the new book to the readingList array
     const updatedReadingList = [...currentReadingList, { book: bookId, read: false }];
-    console.log('ReadingList POST API: updatedReadingList (before DB update):', updatedReadingList);
 
-    // Update the user\'s readingList
     const { error: updateError } = await supabase
-      .from('profiles') // Changed from 'users' to 'profiles'
+      .from('profiles')
       .update({ readinglist: updatedReadingList })
       .eq('id', id);
 
     if (updateError) {
-      console.error('ReadingList POST API: Supabase update error:', updateError);
       throw new Error(updateError.message);
     }
-    console.log('ReadingList POST API: DB update successful.');
 
     // Increment readCount in the books table atomically
     const { error: incrementError } = await supabase.rpc('increment_read_count', { book_id_param: bookId });
 
     if (incrementError) {
-      console.error('Error incrementing readCount:', incrementError.message);
+      console.error('Error incrementing readCount, rolling back:', incrementError.message);
+      // Attempt to roll back the change
+      await supabase
+        .from('profiles')
+        .update({ readinglist: currentReadingList }) // use the original reading list
+        .eq('id', id);
+      return NextResponse.json({ message: 'فشل في تحديث عداد القراءة، تم التراجع عن الإضافة' }, { status: 500 });
     }
 
-    revalidatePath(`/book/${bookId}`, 'page'); // Revalidate the book details page
+    revalidatePath(`/book/${bookId}`, 'page');
 
-    // Fetch the updated readcount for the book
     const { data: updatedBook, error: fetchBookError } = await supabase
       .from('books')
       .select('readcount')

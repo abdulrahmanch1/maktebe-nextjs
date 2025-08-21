@@ -37,7 +37,7 @@ export async function GET(request, { params }) {
 }
 
 export const PATCH = protect(admin(async (request, { params }) => {
-  const supabase = createClient(); // Instantiate supabase client
+  const supabase = await createClient(); // Instantiate supabase client
   const { id } = await params;
   const body = await request.json();
 
@@ -95,29 +95,27 @@ export const PATCH = protect(admin(async (request, { params }) => {
 }));
 
 export const PUT = protect(admin(async (request, { params }) => {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { id } = await params;
   const body = await request.json();
 
-  const { book, error } = await getBook(id);
-  if (error) {
-    return NextResponse.json(error, { status: error.message === 'Cannot find book' ? 404 : 400 });
-  }
-
   try {
-    const { title, author, category, description, pages, publishYear, language, keywords, cover_url, file_url, status } = body;
+    const { title, author, category, description, pages, publishYear, language, keywords, cover, pdfFile, status } = body;
+
+    const parsedPages = parseInt(pages, 10);
+    const parsedPublishYear = parseInt(publishYear, 10);
 
     const bookData = {
       title,
       author,
       category,
       description,
-      pages: parseInt(pages),
-      publishYear: parseInt(publishYear),
+      pages: isNaN(parsedPages) ? 0 : parsedPages,
+      publishYear: isNaN(parsedPublishYear) ? 0 : parsedPublishYear,
       language,
       keywords: keywords || [],
-      cover_url,
-      file_url,
+      cover,
+      pdfFile,
       status,
     };
 
@@ -146,7 +144,7 @@ export const PUT = protect(admin(async (request, { params }) => {
 }));
 
 export const DELETE = protect(admin(async (request, { params }) => {
-  const supabase = createClient(); // Instantiate supabase client
+  const supabase = await createClient(); // Instantiate supabase client
   const { id } = await params;
   const { book, error } = await getBook(id);
   if (error) {
@@ -160,6 +158,8 @@ export const DELETE = protect(admin(async (request, { params }) => {
       .eq('id', id);
 
     if (deleteError) {
+      // Log the specific Supabase error message
+      console.error('Supabase delete error:', deleteError.message);
       throw new Error(deleteError.message);
     }
 

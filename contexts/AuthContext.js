@@ -16,51 +16,60 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true); // <-- ADDED
 
   const refreshUserProfile = useCallback(async () => {
-    const { data: { session: currentSession } } = await supabase.auth.getSession();
-    if (currentSession?.user) {
-      const authUser = currentSession.user;
+    setLoading(true); // <-- ADDED
+    try {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (currentSession?.user) {
+        const authUser = currentSession.user;
 
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*, role')
-        .eq('id', authUser.id)
-        .single();
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*, role')
+          .eq('id', authUser.id)
+          .single();
 
-      if (error) {
-        console.error("Error fetching user profile:", error);
-        setUser({ ...authUser, username: authUser.user_metadata?.username });
+        if (error) {
+          console.error("Error fetching user profile:", error);
+          setUser({ ...authUser, username: authUser.user_metadata?.username });
+        } else {
+          const fullUser = {
+            ...authUser,
+            ...profile,
+            profilePicture: profile.profilepicture, // Map db lowercase to camelCase for frontend
+            favorites: Array.isArray(profile.favorites) ? profile.favorites : [], // Ensure favorites is an array
+            readingList: Array.isArray(profile.readinglist) ? profile.readinglist : [], // Ensure readingList is an array
+          };
+          setUser(fullUser);
+        }
+        setSession(currentSession);
+        setIsLoggedIn(true);
       } else {
-        const fullUser = {
-          ...authUser,
-          ...profile,
-          profilePicture: profile.profilepicture, // Map db lowercase to camelCase for frontend
-          favorites: Array.isArray(profile.favorites) ? profile.favorites : [], // Ensure favorites is an array
-          readingList: Array.isArray(profile.readinglist) ? profile.readinglist : [], // Ensure readingList is an array
-        };
-        setUser(fullUser);
+        setSession(null);
+        setUser(null);
+        setIsLoggedIn(false);
       }
-      setSession(currentSession);
-      setIsLoggedIn(true);
-    } else {
-      setSession(null);
-      setUser(null);
-      setIsLoggedIn(false);
+    } catch (e) {
+        console.error("Error refreshing profile:", e);
+        setSession(null);
+        setUser(null);
+        setIsLoggedIn(false);
+    } finally {
+        setLoading(false); // <-- ADDED
     }
   }, [supabase]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      refreshUserProfile(session); // Use the new function
-    });
+    refreshUserProfile(); // Initial fetch
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      refreshUserProfile(session); // Use the new function
+      refreshUserProfile(); // Refresh on auth state change
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase, refreshUserProfile]); // Added refreshUserProfile to dependencies
+  }, [supabase, refreshUserProfile]);
 
   const login = async (email, password) => {
     try {
@@ -91,12 +100,13 @@ export const AuthProvider = ({ children }) => {
       isLoggedIn,
       user,
       session,
+      loading, // <-- ADDED
       login,
       logout,
       setUser,
       refreshUserProfile, // Exposed the new function
     };
-  }, [isLoggedIn, user, session, login, logout, setUser, refreshUserProfile]);
+  }, [isLoggedIn, user, session, loading, login, logout, setUser, refreshUserProfile]); // <-- ADDED loading
 
   return (
     <AuthContext.Provider value={authContextValue}>

@@ -1,12 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-// This client is intended for server-side admin operations ONLY.
-// It uses the service_role key, which bypasses all RLS policies.
-// NEVER expose this client or its key to the client-side.
-
-export const createAdminClient = () => {
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined in environment variables.');
+// This function creates a new Supabase client with admin privileges.
+// It should only be used in server-side code where admin actions are required.
+export function createAdminClient() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('Supabase URL or Service Role Key is not defined in environment variables.');
   }
 
   return createClient(
@@ -15,8 +13,8 @@ export const createAdminClient = () => {
     {
       auth: {
         autoRefreshToken: false,
-        persistSession: false,
-      },
+        persistSession: false
+      }
     }
   );
-};
+}

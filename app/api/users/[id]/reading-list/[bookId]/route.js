@@ -27,7 +27,7 @@ export const DELETE = protect(async (request, { params }) => {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    const currentReadingList = Array.isArray(user.readingList) ? user.readingList : [];
+    const currentReadingList = Array.isArray(user.readinglist) ? user.readinglist : [];
 
     // Filter out the bookId from the reading list
     const updatedReadingList = currentReadingList.filter(item => item.book !== bookId);
@@ -47,6 +47,7 @@ export const DELETE = protect(async (request, { params }) => {
 
     if (decrementError) {
       console.error('Error decrementing readcount:', decrementError.message);
+      return NextResponse.json({ message: 'تمت إزالة الكتاب من القائمة، لكن فشل تحديث العداد الإجمالي' }, { status: 500 });
     }
 
     revalidatePath(`/book/${bookId}`, 'page'); // Revalidate the book details page

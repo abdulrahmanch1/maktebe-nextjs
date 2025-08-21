@@ -1,12 +1,12 @@
 import { createClient } from "@/utils/supabase/server";
 import { notFound } from 'next/navigation';
-import EditBookFormClient from "./EditBookFormClient"; // New client component
+import EditBookFormClient from "./EditBookFormClient";
 
 async function getBookData(id) {
   const supabase = await createClient();
   const { data: book, error } = await supabase
     .from('books')
-    .select('*') // Select all book data
+    .select('*')
     .eq('id', id)
     .single();
 
@@ -18,14 +18,31 @@ async function getBookData(id) {
 }
 
 const EditBookPage = async (props) => {
-  const params = await props.params; // Await params
+  const params = await props.params;
   const { id } = params;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  
+  // 1. Get the authenticated user
+  const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
-  if (!user || user.role !== 'admin') {
-    // Redirect or show unauthorized message
-    // For now, just show a message
+  if (authError || !authUser) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <h1>Unauthorized Access</h1>
+        <p>You must be logged in to view this page.</p>
+      </div>
+    );
+  }
+
+  // 2. Get the user's profile to check their role
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', authUser.id)
+    .single();
+
+  // 3. Check for admin role
+  if (profileError || profile?.role !== 'admin') {
     return (
       <div style={{ padding: '20px', textAlign: 'center' }}>
         <h1>Unauthorized Access</h1>
@@ -34,6 +51,7 @@ const EditBookPage = async (props) => {
     );
   }
 
+  // 4. If admin, proceed to fetch book data
   const book = await getBookData(id);
 
   if (!book) {

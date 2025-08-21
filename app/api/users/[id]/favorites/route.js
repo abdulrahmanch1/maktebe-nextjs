@@ -9,10 +9,8 @@ export const POST = protect(async (request, { params }) => {
   
   const supabase = await createClient(); // Instantiate supabase client
   const { id } = await params; // Changed userId to id
-  const { bookId } = await request.json();
-  console.log('Received bookId in API:', bookId);
+  const bookId = request.nextUrl.searchParams.get('bookId');
   const bookIdErrors = validateFavorite({ bookId });
-  console.log('Validation errors for bookId:', bookIdErrors);
 
   // const userIdErrors = validateMongoId(id); // Removed validateMongoId call
   // if (Object.keys(userIdErrors).length > 0) { // Removed this block
@@ -66,7 +64,13 @@ export const POST = protect(async (request, { params }) => {
     const { error: incrementError } = await supabase.rpc('increment_favorite_count', { book_id_param: bookId });
 
     if (incrementError) {
-      console.error('Error incrementing favoriteCount:', incrementError.message);
+      console.error('Error incrementing favoriteCount, rolling back:', incrementError.message);
+      // Attempt to roll back the change by restoring the original favorites list
+      await supabase
+        .from('profiles')
+        .update({ favorites: currentFavorites })
+        .eq('id', id);
+      return NextResponse.json({ message: 'فشل في تحديث عداد المفضلة، تم التراجع عن الإضافة' }, { status: 500 });
     }
 
     revalidatePath(`/book/${bookId}`, 'page'); // Revalidate the book details page
@@ -77,8 +81,6 @@ export const POST = protect(async (request, { params }) => {
       .select('favoritecount')
       .eq('id', bookId)
       .single();
-
-    console.log('POST API: updatedBook:', updatedBook, 'fetchBookError:', fetchBookError); // Debugging line
 
     if (fetchBookError) {
       console.error('Error fetching updated favoriteCount for book:', fetchBookError.message);

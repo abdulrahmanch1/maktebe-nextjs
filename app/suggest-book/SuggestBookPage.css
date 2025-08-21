@@ -128,3 +128,14 @@ button[type="submit"]:hover:not(:disabled) {
 .suggest-form-input::placeholder {
   /* These styles are now handled by the general input rules above */
 }
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+}
+
+.form-row .form-group {
+  flex: 1;
+  min-width: 0; /* Prevents flex items from overflowing */
+}

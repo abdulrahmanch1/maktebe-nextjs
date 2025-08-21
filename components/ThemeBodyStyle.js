@@ -7,7 +7,6 @@ const ThemeBodyStyle = ({ children }) => {
   const { theme } = useContext(ThemeContext);
 
   useEffect(() => {
-    console.log('ThemeBodyStyle useEffect fired. Current theme:', theme.name); // Added console.log
     document.documentElement.style.setProperty('--background-color', theme.background);
     document.documentElement.style.setProperty('--primary-color', theme.primary);
     document.documentElement.style.setProperty('--secondary-color', theme.secondary);

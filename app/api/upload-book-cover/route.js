@@ -1,69 +1,20 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { createAdminClient } from '@/utils/supabase/admin';
 import { protect, admin } from '@/lib/middleware';
+import { uploadFile } from '@/utils/supabase/storage';
 
 export const POST = protect(admin(async (request) => {
-  const supabase = createClient();
-  // User is already authenticated by the protect middleware and available in request.user
-  const user = request.user;
+  try {
+    const formData = await request.formData();
+    const file = formData.get('file');
 
-  // 2. Parse the file from the FormData
-  const formData = await request.formData();
-  const file = formData.get('file');
+    const newUrl = await uploadFile('book-covers', file, ['image/jpeg', 'image/png', 'image/webp']);
 
-  if (!file) {
-    console.log('No file provided in formData.');
-    return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
-  }
-
-  // Basic validation
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-  if (!allowedTypes.includes(file.type)) {
-    console.log('Invalid file type:', file.type);
-    return NextResponse.json({ error: `Invalid file type. Allowed: ${allowedTypes.join(', ')}` }, { status: 400 });
-  }
-
-  // 3. Upload the file to Supabase Storage
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-  const filePath = `book-covers/${fileName}`;
-
-  const supabaseAdmin = createAdminClient();
-
-  const { error: uploadError } = await supabaseAdmin.storage
-    .from('book-covers') // Assuming a 'book-covers' bucket
-    .upload(filePath, file, {
-      upsert: true,
+    return NextResponse.json({
+      message: 'Cover uploaded successfully',
+      newUrl: newUrl,
     });
-
-  if (uploadError) {
-    console.error('Supabase upload error:', uploadError);
-    return NextResponse.json({ error: 'Failed to upload file.' }, { status: 500 });
+  } catch (error) {
+    console.error('Book cover upload error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
-
-  // 4. Get the public URL of the uploaded file
-  const { data: urlData, error: getUrlError } = supabaseAdmin.storage
-    .from('book-covers')
-    .getPublicUrl(filePath);
-
-  if (getUrlError) {
-    console.error('Supabase getPublicUrl error:', getUrlError);
-    return NextResponse.json({ error: 'Failed to get public URL.' }, { status: 500 });
-  }
-  if (!urlData || !urlData.publicUrl) {
-    console.error('Public URL data or publicUrl is missing.');
-    return NextResponse.json({ error: 'Failed to get public URL.' }, { status: 500 });
-  }
-
-  const publicUrl = urlData.publicUrl;
-
-  // Append a cache-busting timestamp to the public URL
-  const publicUrlWithCacheBuster = `${publicUrl}?t=${Date.now()}`;
-
-  // 5. Return a success response
-  return NextResponse.json({
-    message: 'Cover uploaded successfully',
-    newUrl: publicUrlWithCacheBuster,
-  });
 }));

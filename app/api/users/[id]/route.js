@@ -26,61 +26,82 @@ export const GET = protect(async (request, { params }) => {
 export const PATCH = protect(async (request, { params }) => {
   const { id } = params;
   const body = await request.json();
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // The 'protect' middleware ensures we have a user.
-  // Now, check for authorization: user can only update themselves, unless they are an admin.
-  const { data: { user: requestingUser } } = await supabase.auth.getUser();
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', requestingUser.id).single();
+  // Now, check for authorization: user can only update themselves.
+  const { data: { user: requestingUser }, error: authUserError } = await supabase.auth.getUser();
 
-  if (profile?.role !== 'admin' && requestingUser.id !== id) {
-    return NextResponse.json({ message: 'غير مصرح لك بتحديث هذا المستخدم' }, { status: 403 });
+  if (authUserError || !requestingUser || requestingUser.id !== id) {
+    return NextResponse.json({ message: 'غير مصرح لك' }, { status: 403 });
   }
 
-  const { password, username, ...otherProfileData } = body;
+  const { username, oldPassword, newPassword, ...otherProfileData } = body;
 
-  // --- Step 1: Update Auth Data (Password, etc.) ---
-  if (password) {
-    const { error: authError } = await supabase.auth.updateUser({ password });
-    if (authError) {
-      console.error('Supabase auth update error:', authError);
-      return NextResponse.json({ message: 'فشل تحديث كلمة المرور', error: authError.message }, { status: 400 });
+  // --- Case 1: Update Password ---
+  if (newPassword) {
+    if (!oldPassword) {
+      return NextResponse.json({ message: 'كلمة المرور القديمة مطلوبة لتغييرها' }, { status: 400 });
+    }
+
+    // Step 1: Verify the user's old password by trying to sign in with it.
+    // We need the user's email for this.
+    const { email } = requestingUser;
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password: oldPassword,
+    });
+
+    if (signInError) {
+      return NextResponse.json({ message: 'كلمة المرور القديمة غير صحيحة' }, { status: 401 });
+    }
+
+    // Step 2: If the old password was correct, update to the new password.
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (updateError) {
+      console.error('Supabase password update error:', updateError);
+      return NextResponse.json({ message: 'فشل تحديث كلمة المرور', error: updateError.message }, { status: 500 });
     }
   }
-  
-  // --- Step 2: Update Auth Metadata (Username) ---
+
+  // --- Case 2: Update Profile Data (e.g., username) ---
+  const profileDataToUpdate = { ...otherProfileData };
   if (username) {
-      const { error: authMetaError } = await supabase.auth.updateUser({ data: { username } });
-      if (authMetaError) {
-          console.error('Supabase auth metadata update error:', authMetaError);
-          // Not returning here, as the profile update might still be important
-      }
+    profileDataToUpdate.username = username;
   }
 
-  // --- Step 3: Update Public Profile Data ---
-  const profileDataToUpdate = { username, ...otherProfileData };
-  // Ensure we don't try to update the object with empty values if only password was changed
   if (Object.keys(profileDataToUpdate).length > 0) {
-    const { data: updatedProfiles, error: profileError } = await supabase
+    // Also update the user's metadata in auth.users if username changes
+    if (username) {
+        const { error: authMetaError } = await supabase.auth.updateUser({ data: { username } });
+        if (authMetaError) {
+            console.error('Supabase auth metadata update error:', authMetaError);
+            // We can choose to continue or return an error. Let's continue but log it.
+        }
+    }
+      
+    const { data: updatedProfile, error: profileError } = await supabase
       .from('profiles')
       .update(profileDataToUpdate)
       .eq('id', id)
-      .select('id, username, email, role');
+      .select('id, username, email, role')
+      .single();
 
     if (profileError) {
       console.error('Supabase profile update error:', profileError);
-      return NextResponse.json({ message: 'فشل تحديث الملف الشخصي', error: profileError.message }, { status: 400 });
+      return NextResponse.json({ message: 'فشل تحديث الملف الشخصي', error: profileError.message }, { status: 500 });
     }
-
-    if (!updatedProfiles || updatedProfiles.length === 0) {
-        return NextResponse.json({ message: 'لم يتم العثور على الملف الشخصي للتحديث' }, { status: 404 });
-    }
-
-    return NextResponse.json(updatedProfiles[0]);
+    
+    return NextResponse.json(updatedProfile);
   }
 
-  // If only password was updated, just return a success message
-  return NextResponse.json({ message: 'تم تحديث بيانات المستخدم بنجاح' });
+  // If only password was updated and was successful, return a success message.
+  if (newPassword) {
+      return NextResponse.json({ message: 'تم تحديث كلمة المرور بنجاح' });
+  }
+
+  return NextResponse.json({ message: 'لا توجد بيانات للتحديث' }, { status: 400 });
 });
 
 // DELETE handler to remove a user completely

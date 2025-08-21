@@ -1,43 +1,47 @@
 'use client';
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import { API_URL } from '@/constants'; // Assuming API_URL is defined
-import { createClient } from '@/utils/supabase/client'; // For client-side Supabase operations
+import { API_URL } from '@/constants';
+import { AuthContext } from '@/contexts/AuthContext';
+import '@/app/suggest-book/SuggestBookPage.css'; // Re-use the same CSS
+
+const categories = ["قصص أطفال", "كتب دينية", "كتب تجارية", "كتب رومانسية", "كتب بوليسية", "أدب", "تاريخ", "علوم", "فلسفة", "تكنولوجيا", "سيرة ذاتية", "شعر", "فن", "طبخ"];
 
 const EditBookFormClient = ({ initialBook }) => {
   const router = useRouter();
-  const supabase = createClient();
+  const { session } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
     author: '',
-    description: '',
     category: '',
+    description: '',
     pages: '',
-    language: '',
-    cover_url: '',
-    file_url: '',
-    status: 'pending', // Default status
+    publishYear: '',
+    language: 'العربية',
+    keywords: '',
+    status: 'pending',
+    cover: '',
   });
   const [coverFile, setCoverFile] = useState(null);
-  const [pdfFile, setPdfFile] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const coverInputRef = useRef(null);
 
   useEffect(() => {
     if (initialBook) {
       setFormData({
         title: initialBook.title || '',
         author: initialBook.author || '',
-        description: initialBook.description || '',
         category: initialBook.category || '',
+        description: initialBook.description || '',
         pages: initialBook.pages || '',
-        language: initialBook.language || '',
-        cover_url: initialBook.cover_url || '',
-        file_url: initialBook.file_url || '',
+        publishYear: initialBook.publishYear || '',
+        language: initialBook.language || 'العربية',
+        keywords: Array.isArray(initialBook.keywords) ? initialBook.keywords.join(', ') : '',
         status: initialBook.status || 'pending',
+        cover: initialBook.cover || '',
       });
     }
   }, [initialBook]);
@@ -48,25 +52,8 @@ const EditBookFormClient = ({ initialBook }) => {
   };
 
   const handleFileChange = (e) => {
-    if (e.target.name === 'cover_file') {
-      setCoverFile(e.target.files[0]);
-    } else if (e.target.name === 'pdf_file') {
-      setPdfFile(e.target.files[0]);
-    }
-  };
-
-  const uploadFile = async (file, bucketName) => {
-    if (!file) return null;
-
-    const fileName = `${Date.now()}-${file.name}`;
-    const { data, error } = await supabase.storage.from(bucketName).upload(fileName, file);
-
-    if (error) {
-      console.error(`Error uploading ${bucketName} file:`, error);
-      toast.error(`فشل تحميل ملف ${bucketName}.`);
-      return null;
-    }
-    return `${API_URL}/storage/v1/object/public/${bucketName}/${data.path}`; // Adjust URL as per your Supabase setup
+    const { name, files } = e.target;
+    if (name === 'cover') setCoverFile(files[0]);
   };
 
   const handleSubmit = async (e) => {
@@ -74,99 +61,98 @@ const EditBookFormClient = ({ initialBook }) => {
     setLoading(true);
 
     try {
-      let updatedCoverUrl = formData.cover_url;
-      let updatedFileUrl = formData.file_url;
-
+      const updatedData = { ...formData };
+      // Ensure numeric fields are parsed correctly, defaulting to 0 if invalid
+      updatedData.pages = parseInt(formData.pages, 10) || 0;
+      updatedData.publishYear = parseInt(formData.publishYear, 10) || 0;
+      updatedData.keywords = updatedData.keywords.split(',').map(kw => kw.trim()).filter(Boolean);
+      
       if (coverFile) {
-        updatedCoverUrl = await uploadFile(coverFile, 'book-covers');
-        if (!updatedCoverUrl) throw new Error('Failed to upload cover image.');
-      }
-      if (pdfFile) {
-        updatedFileUrl = await uploadFile(pdfFile, 'book-files');
-        if (!updatedFileUrl) throw new Error('Failed to upload PDF file.');
+        const coverFormData = new FormData();
+        coverFormData.append('file', coverFile);
+        const res = await axios.post(`${API_URL}/api/upload-book-cover`, coverFormData, { headers: { Authorization: `Bearer ${session.access_token}` } });
+        updatedData.cover = res.data.newUrl;
       }
 
-      const token = (await supabase.auth.getSession()).data.session?.access_token;
-
-      const response = await axios.put(`${API_URL}/api/books/${initialBook.id}`, {
-        ...formData,
-        cover_url: updatedCoverUrl,
-        file_url: updatedFileUrl,
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+      await axios.put(`${API_URL}/api/books/${initialBook.id}`, updatedData, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
 
-      if (response.status === 200) {
-        toast.success('تم تحديث الكتاب بنجاح!');
-        router.push('/admin/books'); // Redirect to admin books list
-      } else {
-        toast.error('فشل تحديث الكتاب.');
-      }
+      toast.success('تم تحديث الكتاب بنجاح!');
+      router.push('/admin/books');
     } catch (error) {
       console.error('Error updating book:', error);
-      toast.error(error.message || 'حدث خطأ أثناء تحديث الكتاب.');
+      toast.error(error.response?.data?.message || 'حدث خطأ أثناء تحديث الكتاب.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: 'auto' }}>
-      <h1>Edit Book: {initialBook?.title}</h1>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <label>
-          Title:
-          <input type="text" name="title" value={formData.title} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
-        </label>
-        <label>
-          Author:
-          <input type="text" name="author" value={formData.author} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
-        </label>
-        <label>
-          Description:
-          <textarea name="description" value={formData.description} onChange={handleChange} required style={{ width: '100%', padding: '8px', minHeight: '100px' }} />
-        </label>
-        <label>
-          Category:
-          <input type="text" name="category" value={formData.category} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
-        </label>
-        <label>
-          Pages:
-          <input type="number" name="pages" value={formData.pages} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
-        </label>
-        <label>
-          Language:
-          <input type="text" name="language" value={formData.language} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
-        </label>
-        <label>
-          Current Cover URL:
-          <input type="text" name="cover_url" value={formData.cover_url} onChange={handleChange} style={{ width: '100%', padding: '8px' }} />
-        </label>
-        <label>
-          Upload New Cover Image:
-          <input type="file" name="cover_file" accept="image/*" onChange={handleFileChange} style={{ width: '100%', padding: '8px' }} />
-        </label>
-        <label>
-          Current PDF File URL:
-          <input type="text" name="file_url" value={formData.file_url} onChange={handleChange} style={{ width: '100%', padding: '8px' }} />
-        </label>
-        <label>
-          Upload New PDF File:
-          <input type="file" name="pdf_file" accept="application/pdf" onChange={handleFileChange} style={{ width: '100%', padding: '8px' }} />
-        </label>
-        <label>
-          Status:
-          <select name="status" value={formData.status} onChange={handleChange} style={{ width: '100%', padding: '8px' }}>
+    <div className="form-container">
+      <h1>تعديل الكتاب: {initialBook?.title}</h1>
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="title">عنوان الكتاب</label>
+          <input type="text" id="title" name="title" value={formData.title} onChange={handleChange} required />
+        </div>
+        <div className="form-group">
+          <label htmlFor="author">المؤلف</label>
+          <input type="text" id="author" name="author" value={formData.author} onChange={handleChange} required />
+        </div>
+        <div className="form-group">
+          <label htmlFor="category">التصنيف</label>
+          <input type="text" id="category" name="category" list="category-options" placeholder="أدخل أو اختر تصنيف" value={formData.category} onChange={handleChange} required />
+          <datalist id="category-options">
+            {categories.map((cat) => (<option key={cat} value={cat} />))}
+          </datalist>
+        </div>
+        <div className="form-group">
+          <label htmlFor="description">الوصف</label>
+          <textarea id="description" name="description" value={formData.description} onChange={handleChange} required />
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="pages">عدد الصفحات</label>
+            <input type="number" id="pages" name="pages" value={formData.pages} onChange={handleChange} required />
+          </div>
+          <div className="form-group">
+            <label htmlFor="publishYear">سنة التأليف</label>
+            <input type="number" id="publishYear" name="publishYear" value={formData.publishYear} onChange={handleChange} required />
+          </div>
+          <div className="form-group">
+            <label htmlFor="language">اللغة</label>
+            <select id="language" name="language" value={formData.language} onChange={handleChange}>
+              <option value="العربية">العربية</option>
+              <option value="الإنجليزية">الإنجليزية</option>
+              <option value="أخرى">أخرى</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="keywords">كلمات مفتاحية (مفصولة بفاصلة)</label>
+          <input type="text" id="keywords" name="keywords" value={formData.keywords} onChange={handleChange} />
+        </div>
+        <div className="form-group">
+          <label>صورة الغلاف الحالية</label>
+          {formData.cover && <img src={formData.cover} alt="Cover" style={{ width: '100px', height: 'auto', display: 'block', marginBottom: '10px' }} />}
+          <label className="file-input-label">
+            <span>{coverFile ? coverFile.name : 'اختر صورة جديدة لتغييرها...'}</span>
+            <input type="file" id="cover" name="cover" accept="image/*" onChange={handleFileChange} ref={coverInputRef} className="file-input" />
+          </label>
+        </div>
+        <div className="form-group">
+          <label htmlFor="status">الحالة</label>
+          <select id="status" name="status" value={formData.status} onChange={handleChange}>
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
           </select>
-        </label>
-        <button type="submit" disabled={loading} style={{ padding: '10px 20px', backgroundColor: 'blue', color: 'white', border: 'none', cursor: 'pointer' }}>
-          {loading ? 'Updating...' : 'Update Book'}
+        </div>
+        <button type="submit" disabled={loading}>
+          {loading ? 'جاري التحديث...' : 'حفظ التغييرات'}
         </button>
       </form>
     </div>

@@ -27,9 +27,7 @@ const VerifyEmailPage = ({ params }) => {
         const response = await axios.get(`${API_URL}/api/users/verify-email/${token}`);
         setMessage(response.data.message);
         setLoading(false);
-        setTimeout(() => {
-          router.push('/login');
-        }, 3000);
+        router.push('/login');
       } catch (err) {
         setError(err);
         setMessage(err.response?.data?.message || 'فشل تأكيد البريد الإلكتروني.');

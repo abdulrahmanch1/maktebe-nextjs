@@ -26,7 +26,7 @@ const RegisterPage = () => {
     const errors = {};
     if (!username) errors.username = 'اسم المستخدم مطلوب.';
     if (!email || !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) errors.email = 'البريد الإلكتروني غير صالح.';
-    if (!password || password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) errors.password = 'يجب أن تكون كلمة المرور 8 أحرف على الأقل وتحتوي على حرف كبير وحرف صغير ورقم ورمز خاص.';
+    if (!password || password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) errors.password = 'كلمة المرور لا تفي بمتطلبات الأمان.';
 
     if (Object.keys(errors).length > 0) {
       Object.values(errors).forEach(error => toast.error(error));
