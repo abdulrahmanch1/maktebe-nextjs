@@ -70,3 +70,7 @@ export const DELETE = protect(async (request, { params }) => {
 
     return NextResponse.json({ message: 'Book removed from favorites' });
   } catch (error) {
+    console.error("Error removing book from favorites:", error);
+    return NextResponse.json({ message: "فشل إزالة الكتاب من المفضلة" }, { status: 500 });
+  }
+});
