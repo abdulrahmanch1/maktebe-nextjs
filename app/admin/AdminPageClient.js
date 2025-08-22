@@ -26,8 +26,8 @@ const AdminPageClient = () => {
   const [publishYear, setPublishYear] = useState("");
   const [language, setLanguage] = useState("");
   const [keywords, setKeywords] = useState("");
-  const [likes, setLikes] = useState(0); // New state for likes
-  const [reads, setReads] = useState(0); // New state for reads
+  const [likes, setLikes] = useState(0);
+  const [reads, setReads] = useState(0);
   const [categories] = useState(["قصص أطفال", "كتب دينية", "كتب تجارية", "كتب رومانسية", "كتب بوليسية", "أدب", "تاريخ", "علوم", "فلسفة", "تكنولوجيا", "سيرة ذاتية", "شعر", "فن", "طبخ"]);
   const [editingBook, setEditingBook] = useState(null);
 
@@ -47,43 +47,13 @@ const AdminPageClient = () => {
     setPublishYear("");
     setLanguage("");
     setKeywords("");
-    setLikes(0); // Reset likes
-    setReads(0); // Reset reads
+    setLikes(0);
+    setReads(0);
     setEditingBook(null);
     if (coverInputRef.current) coverInputRef.current.value = '';
     if (pdfFileInputRef.current) pdfFileInputRef.current.value = '';
     router.push('/admin');
   }, [router]);
-
-  const handleRateBook = (ratingType) => { // Removed bookId, no async
-    let likesRange, readsRange;
-
-    switch (ratingType) {
-      case 'normal':
-        likesRange = [5, 20];
-        readsRange = [5, 15];
-        break;
-      case 'average':
-        likesRange = [15, 40];
-        readsRange = [10, 20];
-        break;
-      case 'good':
-        likesRange = [30, 90];
-        readsRange = [20, 40];
-        break;
-      default:
-        return toast.error('نوع التقييم غير صالح.');
-    }
-
-    const generateRandom = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-
-    const randomLikes = generateRandom(likesRange[0], likesRange[1]);
-    const randomReads = generateRandom(readsRange[0], readsRange[1]);
-
-    setLikes(randomLikes);
-    setReads(randomReads);
-    toast.success(`تم تعيين التقييمات العشوائية (${ratingType}).`);
-  };
 
   useEffect(() => {
     if (editBookId) {
@@ -99,131 +69,99 @@ const AdminPageClient = () => {
           setPublishYear(book.publishYear);
           setLanguage(book.language);
           setKeywords(book.keywords ? book.keywords.join(', ') : '');
-          setLikes(book.favoritecount || 0); // Initialize likes
-          setReads(book.readcount || 0);     // Initialize reads
-          setPdfFile(book.pdffile); // Initialize pdfFile state from book.pdffile
+          setLikes(book.favoritecount || 0);
+          setReads(book.readcount || 0);
         })
         .catch(error => {
           toast.error("الكتاب المراد تعديله غير موجود");
           router.push('/admin');
         });
     } else {
-      clearForm();
+      // On initial load for a new book, or after clearing, ensure form is empty.
+      // Note: clearForm was being called in a way that might not have been intended on every render.
+      // This logic is now more explicit.
+      if (!editingBook) {
+        clearForm();
+      }
     }
-  }, [editBookId, router, clearForm]);
+  }, [editBookId, router]); // Removed clearForm from dependencies to avoid re-clearing
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    let coverUrl = editingBook?.cover;
-    let pdfFileUrl = editingBook?.pdfFile;
+    // This is the new, unified upload function for direct-to-Supabase uploads.
+    const directUpload = async (file, bucket) => {
+      if (!file || !(file instanceof File)) return null;
 
-    const uploadFile = async (file, type) => {
-      if (!file) return null;
-
-      const supabase = createSupabaseClient(); // Create Supabase client for direct upload
-
+      const supabase = createSupabaseClient();
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-
-      let publicUrl = "";
+      // Create a more robust unique filename
+      const fileName = `${bucket}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
       try {
-        if (type === 'cover') {
-          const formData = new FormData();
-          formData.append("file", file);
-          const response = await axios.post("/api/upload-book-cover", formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-          publicUrl = response.data.newUrl;
-        } else if (type === 'pdf') {
-          const filePath = `book-pdfs/${fileName}`; // Define path for PDF in 'book-pdfs' bucket
-          const { data, error: uploadError } = await supabase.storage
-            .from('book-pdfs') // Assuming a 'book-pdfs' bucket
-            .upload(filePath, file, {
-              upsert: true,
-            });
+        const { error: uploadError } = await supabase.storage
+          .from(bucket)
+          .upload(fileName, file, { upsert: false });
 
-          if (uploadError) {
-            throw new Error(`Supabase PDF upload error: ${uploadError.message}`);
-          }
-
-          const { data: urlData } = supabase.storage
-            .from('book-pdfs')
-            .getPublicUrl(filePath);
-
-          if (!urlData || !urlData.publicUrl) {
-            throw new Error('Failed to get public URL for PDF.');
-          }
-          publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-        } else {
-          throw new Error("Unknown file type for upload.");
+        if (uploadError) {
+          throw new Error(`Supabase upload error: ${uploadError.message}`);
         }
 
-        return publicUrl;
+        const { data: urlData } = supabase.storage
+          .from(bucket)
+          .getPublicUrl(fileName);
+
+        if (!urlData || !urlData.publicUrl) {
+          throw new Error('Failed to get public URL.');
+        }
+        return `${urlData.publicUrl}?t=${Date.now()}`;
       } catch (error) {
-        const errorMessage = error.response?.data?.error || error.message;
-        const detailedError = typeof errorMessage === 'object' ? JSON.stringify(errorMessage) : errorMessage;
-        throw new Error(`Failed to upload ${type} file: ${detailedError}`);
+        const errorMessage = error.message || 'Unknown upload error';
+        throw new Error(`Failed to upload to bucket ${bucket}: ${errorMessage}`);
       }
     };
 
     try {
-      if (cover) {
-        try {
-          coverUrl = await uploadFile(cover, 'cover');
-        } catch (uploadError) {
-          console.error("Error uploading cover:", uploadError);
-          toast.error(`فشل رفع صورة الغلاف: ${uploadError.message}`);
-          return; // Stop execution if cover upload fails
-        }
-      }
-      if (pdfFile) {
-        try {
-          pdfFileUrl = await uploadFile(pdfFile, 'pdf');
-        } catch (uploadError) {
-          console.error("Error uploading PDF:", uploadError);
-          toast.error(`فشل رفع ملف PDF: ${uploadError.message}`);
-          return; // Stop execution if PDF upload fails
-        }
-      }
+      // Use Promise.all to handle uploads concurrently for better performance.
+      const [coverUrl, pdfFileUrl] = await Promise.all([
+        directUpload(cover, 'book-covers'),
+        directUpload(pdfFile, 'book-pdfs')
+      ]);
 
       const bookData = {
         title,
         author,
         category,
         description,
-        pages: parseInt(pages),
-        publishYear: parseInt(publishYear),
+        pages: parseInt(pages, 10) || 0,
+        publishYear: parseInt(publishYear, 10) || 0,
         language,
-        keywords: keywords.split(',').map(k => k.trim()).filter(k => k !== ''),
-        cover: coverUrl,
-        pdfFile: pdfFileUrl,
-        favoritecount: likes, // Add likes to bookData
-        readcount: reads,     // Add reads to bookData
+        keywords: keywords.split(',').map(k => k.trim()).filter(Boolean),
+        // Use newly uploaded URL or keep existing one if not changed
+        cover: coverUrl || editingBook?.cover,
+        pdfFile: pdfFileUrl || editingBook?.pdfFile,
+        favoritecount: likes,
+        readcount: reads,
       };
 
       const url = editingBook ? `${API_URL}/api/books/${editingBook.id}` : `${API_URL}/api/books`;
       const method = editingBook ? 'patch' : 'post';
+
       await axios({
         method,
         url,
-        data: bookData, // Send as JSON
+        data: bookData,
         headers: {
-          'Content-Type': 'application/json', // Specify JSON content type
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
       });
 
       toast.success(editingBook ? "تم تحديث الكتاب بنجاح!" : "تم إضافة الكتاب بنجاح!");
       clearForm();
-      if (coverInputRef.current) coverInputRef.current.value = '';
-      if (pdfFileInputRef.current) pdfFileInputRef.current.value = '';
     } catch (error) {
-      console.error("Error saving book:", error);
-      const errorMessage = error.response?.data?.error || error.message || 'فشل حفظ الكتاب.';
+      console.error("Error during book submission:", error);
+      const errorMessage = error.response?.data?.message || error.message || 'فشل حفظ الكتاب.';
       toast.error(errorMessage);
     }
   };
@@ -239,7 +177,7 @@ const AdminPageClient = () => {
 
   return (
     <div className="admin-page-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
-      <div style={{display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '20px'}}>
+       <div style={{display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '20px'}}>
         <Link href="/admin/books" style={{ backgroundColor: theme.accent, color: theme.primary, padding: "10px 20px", borderRadius: "5px", textDecoration: "none" }}>
           عرض كل الكتب
         </Link>
@@ -312,7 +250,6 @@ const AdminPageClient = () => {
             <button type="button" onClick={clearForm} className="admin-form-button cancel themed-secondary-button">إلغاء التعديل</button>
           )}
 
-          {/* Display Likes and Reads */}
           <div className="admin-form-group">
             <label>الإعجابات</label>
             <input type="number" value={likes} onChange={(e) => setLikes(parseInt(e.target.value) || 0)} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
@@ -320,13 +257,6 @@ const AdminPageClient = () => {
           <div className="admin-form-group">
             <label>القراءات</label>
             <input type="number" value={reads} onChange={(e) => setReads(parseInt(e.target.value) || 0)} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
-          </div>
-
-          {/* Rating Buttons - now unconditional */}
-          <div style={{ display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'center' }}>
-            <button type="button" onClick={() => handleRateBook('normal')} style={{ backgroundColor: '#4CAF50', color: 'white', padding: '10px 20px', borderRadius: '5px', border: 'none', cursor: 'pointer' }}>تقييم عادي</button>
-            <button type="button" onClick={() => handleRateBook('average')} style={{ backgroundColor: '#FFC107', color: 'black', padding: '10px 20px', borderRadius: '5px', border: 'none', cursor: 'pointer' }}>تقييم متوسط</button>
-            <button type="button" onClick={() => handleRateBook('good')} style={{ backgroundColor: '#2196F3', color: 'white', padding: '10px 20px', borderRadius: '5px', border: 'none', cursor: 'pointer' }}>تقييم كويس</button>
           </div>
         </form>
       </div>
