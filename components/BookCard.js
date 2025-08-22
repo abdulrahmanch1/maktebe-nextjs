@@ -19,29 +19,20 @@ const BookCard = ({ book, isPriority }) => {
 
   return (
     <div className="book-card">
-      <Image
-        src={book.cover || '/imgs/no_cover_available.png'}
-        alt={`غلاف كتاب ${book.title}`}
-        width={200}
-        height={300}
-        className="book-card-image"
-        priority={isPriority}
-        loading={isPriority ? 'eager' : 'lazy'}
-        onError={(e) => {
-          e.currentTarget.onerror = null;
-          e.currentTarget.src = "/imgs/no_cover_available.png";
-        }}
-      />
-      <h2 className="book-card-title">
-        {book.title}
-      </h2>
-      <div className="book-card-actions">
-        <button
-            onClick={handleReadClick}
-            className="read-button"
-          >
-            اقرأ
-          </button>
+      <div className="book-image-wrapper">
+        <Image
+          src={book.cover || '/imgs/no_cover_available.png'}
+          alt={`غلاف كتاب ${book.title}`}
+          width={200}
+          height={300}
+          className="book-card-image"
+          priority={isPriority}
+          loading={isPriority ? 'eager' : 'lazy'}
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = "/imgs/no_cover_available.png";
+          }}
+        />
         <button
           onClick={() => {
             if (!isLoggedIn) {
@@ -55,6 +46,17 @@ const BookCard = ({ book, isPriority }) => {
         >
           {isLiked ? '❤️' : '♡'}
         </button>
+      </div>
+      <h2 className="book-card-title">
+        {book.title}
+      </h2>
+      <div className="book-card-actions">
+        <button
+            onClick={handleReadClick}
+            className="read-button"
+          >
+            اقرأ
+          </button>
       </div>
     </div>
   );

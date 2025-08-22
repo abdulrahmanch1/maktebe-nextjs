@@ -4,6 +4,63 @@ import { protect } from '@/lib/middleware';
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 import { revalidatePath } from 'next/cache';
 
+export const POST = protect(async (request, { params }) => {
+  const supabase = await createClient();
+  const { id, bookId } = params;
+
+  if (!id || !bookId) {
+    return NextResponse.json({ message: 'User ID and Book ID are required' }, { status: 400 });
+  }
+
+  if (id !== request.user.id) {
+    return NextResponse.json({ message: 'Not authorized to modify these favorites' }, { status: 403 });
+  }
+
+  try {
+    // Fetch the user
+    const { data: user, error: userError } = await supabase
+      .from('profiles')
+      .select('favorites')
+      .eq('id', id)
+      .single();
+
+    if (userError || !user) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    }
+
+    const currentFavorites = Array.isArray(user.favorites) ? user.favorites : [];
+
+    if (currentFavorites.includes(bookId)) {
+      return NextResponse.json({ message: 'Book already in favorites' }, { status: 409 });
+    }
+
+    const updatedFavorites = [...currentFavorites, bookId];
+
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ favorites: updatedFavorites })
+      .eq('id', id);
+
+    if (updateError) {
+      throw new Error(updateError.message);
+    }
+
+    const { error: incrementError } = await supabase.rpc('increment_favorite_count', { book_id_param: bookId });
+
+    if (incrementError) {
+      console.error('Error incrementing favoriteCount:', incrementError.message);
+      return NextResponse.json({ message: 'تمت إضافة الكتاب إلى المفضلة، لكن فشل تحديث العداد الإجمالي' }, { status: 500 });
+    }
+
+    revalidatePath(`/book/${bookId}`, 'page');
+
+    return NextResponse.json({ message: 'Book added to favorites' });
+  } catch (error) {
+    console.error("Error adding book to favorites:", error);
+    return NextResponse.json({ message: "فشل إضافة الكتاب إلى المفضلة" }, { status: 500 });
+  }
+});
+
 export const DELETE = protect(async (request, { params }) => {
   const supabase = await createClient(); // Instantiate supabase client
   const { id, bookId } = await params;

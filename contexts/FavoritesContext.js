@@ -41,7 +41,7 @@ export const FavoritesProvider = ({ children }) => {
         });
         toast.success("تمت إزالة الكتاب من المفضلة.");
       } else {
-        res = await axios.post(`${API_URL}/api/users/${user.id}/favorites`, { bookId }, {
+        res = await axios.post(`${API_URL}/api/users/${user.id}/favorites/${bookId}`, {}, {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
         toast.success("تمت إضافة الكتاب إلى المفضلة.");

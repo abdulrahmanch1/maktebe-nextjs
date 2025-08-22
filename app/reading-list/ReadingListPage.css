@@ -38,9 +38,22 @@
 }
 
 .reading-list-books-display {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Adjusted minmax to fit 2 cards at 548px */
+  gap: 20px;
+  justify-items: center;
+}
+
+@media (max-width: 548px) {
+  .reading-list-books-display {
+    grid-template-columns: repeat(2, 1fr); /* Force 2 columns */
+  }
+}
+
+@media (max-width: 480px) {
+  .reading-list-books-display {
+    grid-template-columns: 1fr; /* Single column for very small screens */
+  }
 }
 
 @media (max-width: 520px) {
