@@ -1,7 +1,6 @@
-import { createAdminClient } from './admin';
-
 // A centralized and robust function for uploading files to Supabase Storage.
-export async function uploadFile(bucketName, file, allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']) {
+// It now accepts an authenticated Supabase client instance.
+export async function uploadFile(supabase, bucketName, file, allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']) {
   if (!file || file.size === 0) {
     throw new Error('No file provided or file is empty.');
   }
@@ -23,9 +22,8 @@ export async function uploadFile(bucketName, file, allowedTypes = ['image/jpeg',
     
   const fileName = `${sanitizedBaseName}-${Date.now()}.${fileExt}`;
 
-  // 3. Upload the file using the admin client to bypass RLS if necessary
-  const supabaseAdmin = createAdminClient();
-  const { error: uploadError } = await supabaseAdmin.storage
+  // 3. Upload the file using the provided Supabase client
+  const { error: uploadError } = await supabase.storage
     .from(bucketName)
     .upload(fileName, file, {
       upsert: false, // It's a new unique name, no need for upsert
@@ -37,7 +35,7 @@ export async function uploadFile(bucketName, file, allowedTypes = ['image/jpeg',
   }
 
   // 4. Get the public URL of the uploaded file
-  const { data: urlData } = supabaseAdmin.storage
+  const { data: urlData } = supabase.storage
     .from(bucketName)
     .getPublicUrl(fileName);
 
