@@ -3,12 +3,13 @@ import React, { useState, useRef, useContext } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { API_URL } from '@/constants';
-import { AuthContext } from '@/contexts/AuthContext'; // Assuming AuthContext is needed for API calls
+import { AuthContext } from '@/contexts/AuthContext';
+import { createClient as createSupabaseClient } from "@/utils/supabase/client";
 
 const categories = ["قصص أطفال", "كتب دينية", "كتب تجارية", "كتب رومانسية", "كتب بوليسية", "أدب", "تاريخ", "علوم", "فلسفة", "تكنولوجيا", "سيرة ذاتية", "شعر", "فن", "طبخ"];
 
 const SuggestBookClient = () => {
-  const { session, isLoggedIn } = useContext(AuthContext); // Get session for auth header
+  const { session, isLoggedIn } = useContext(AuthContext);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -16,8 +17,8 @@ const SuggestBookClient = () => {
     category: '',
     description: '',
     pages: '',
-    publishYear: 0,
-    language: 'العربية', // Default language
+    publishYear: '',
+    language: 'العربية',
     keywords: '',
   });
   const [coverFile, setCoverFile] = useState(null);
@@ -31,19 +32,13 @@ const SuggestBookClient = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
   const handleFileChange = (e) => {
     const { name, files } = e.target;
-    if (name === 'cover') {
-      setCoverFile(files[0]);
-    } else if (name === 'pdfFile') {
-      setPdfFile(files[0]);
-    }
+    if (name === 'cover') setCoverFile(files[0]);
+    else if (name === 'pdfFile') setPdfFile(files[0]);
   };
 
   const handleSubmit = async (e) => {
@@ -53,46 +48,55 @@ const SuggestBookClient = () => {
     setMessage(null);
 
     if (!isLoggedIn || !session) {
-      setError('يجب تسجيل الدخول لاقتراح كتاب.');
+      toast.error('يجب تسجيل الدخول لاقتراح كتاب.');
       setIsLoading(false);
       return;
     }
 
-    const data = new FormData();
-    for (const key in formData) {
-      if (key === 'keywords' && formData[key]) {
-        data.append(key, JSON.stringify(formData[key].split(',').map(kw => kw.trim())));
-      } else {
-        data.append(key, formData[key]);
-      }
-    }
-    if (coverFile) {
-      data.append('cover', coverFile);
-    }
-    if (pdfFile) {
-      data.append('pdfFile', pdfFile);
-    }
+    // 1. Direct Upload Function
+    const directUpload = async (file, bucket) => {
+      if (!file) return null;
+      const supabase = createSupabaseClient();
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${bucket}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+      const { error } = await supabase.storage.from(bucket).upload(fileName, file);
+      if (error) throw new Error(`فشل رفع الملف: ${error.message}`);
+
+      const { data } = supabase.storage.from(bucket).getPublicUrl(fileName);
+      if (!data.publicUrl) throw new Error('فشل في الحصول على رابط الملف.');
+      
+      return data.publicUrl;
+    };
 
     try {
-      // Assuming a new API endpoint for suggesting books
-      const response = await axios.post(`${API_URL}/api/books/suggest`, data, {
+      // 2. Upload files concurrently
+      const [coverUrl, pdfFileUrl] = await Promise.all([
+        directUpload(coverFile, 'book-covers'),
+        directUpload(pdfFile, 'book-pdfs'),
+      ]);
+
+      // 3. Prepare JSON data with URLs
+      const bookData = {
+        ...formData,
+        pages: parseInt(formData.pages, 10) || 0,
+        publishYear: parseInt(formData.publishYear, 10) || 0,
+        keywords: formData.keywords.split(',').map(kw => kw.trim()).filter(Boolean),
+        cover: coverUrl, // URL of the cover
+        pdfFile: pdfFileUrl, // URL of the PDF
+      };
+
+      // 4. Submit JSON data to the server
+      await axios.post(`${API_URL}/api/books/suggest`, bookData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json', // Send as JSON
           Authorization: `Bearer ${session.access_token}`,
         },
       });
-      setMessage('تم إرسال اقتراحك بنجاح!');
+
+      toast.success('تم إرسال اقتراحك بنجاح!');
       // Clear form
-      setFormData({
-        title: '',
-        author: '',
-        category: '',
-        description: '',
-        pages: '',
-        publishYear: '',
-        language: 'العربية',
-        keywords: '',
-      });
+      setFormData({ title: '', author: '', category: '', description: '', pages: '', publishYear: '', language: 'العربية', keywords: '' });
       setCoverFile(null);
       setPdfFile(null);
       if (coverInputRef.current) coverInputRef.current.value = '';
@@ -100,7 +104,7 @@ const SuggestBookClient = () => {
 
     } catch (err) {
       console.error('Error suggesting book:', err);
-      setError(err.response?.data?.message || 'فشل إرسال الاقتراح.');
+      toast.error(err.response?.data?.message || err.message || 'فشل إرسال الاقتراح.');
     } finally {
       setIsLoading(false);
     }
@@ -121,21 +125,8 @@ const SuggestBookClient = () => {
         </div>
         <div className="form-group">
           <label htmlFor="category">التصنيف</label>
-          <input
-            type="text"
-            id="category"
-            name="category"
-            list="category-options" // Add list attribute
-            placeholder="أدخل أو اختر تصنيف" // Add placeholder
-            value={formData.category}
-            onChange={handleChange}
-            required
-          />
-          <datalist id="category-options">{/* Add datalist */}
-            {categories.map((cat) => (
-              <option key={cat} value={cat} />
-            ))}
-          </datalist>
+          <input type="text" id="category" name="category" list="category-options" placeholder="أدخل أو اختر تصنيف" value={formData.category} onChange={handleChange} required />
+          <datalist id="category-options">{categories.map((cat) => (<option key={cat} value={cat} />))}</datalist>
         </div>
         <div className="form-group">
           <label htmlFor="description">الوصف</label>

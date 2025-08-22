@@ -10,17 +10,22 @@ import '../AdminPage.css';
 
 const ContactMessagesPage = () => {
   const { theme } = useContext(ThemeContext);
-  const { user, token, isLoggedIn } = useContext(AuthContext);
+  const { user, session, isLoggedIn } = useContext(AuthContext); // Use session instead of token
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const { data: contactMessages, loading: messagesLoading, error: messagesError } = useFetch(`${API_URL}/api/contact/messages`, [refreshTrigger], { headers: { Authorization: `Bearer ${token}` } });
+  // Use session?.access_token and ensure it only runs when the token is available
+  const { data: contactMessages, loading: messagesLoading, error: messagesError } = useFetch(
+    session?.access_token ? `${API_URL}/api/contact/messages` : null,
+    { headers: { Authorization: `Bearer ${session?.access_token}` } }, // Argument 2: options
+    [refreshTrigger, session] // Argument 3: dependencies
+  );
 
   const handleDeleteMessage = async (id) => {
-    if (!token) return toast.error('الرجاء تسجيل الدخول مرة أخرى.');
+    if (!session?.access_token) return toast.error('الرجاء تسجيل الدخول مرة أخرى.');
     try {
       await axios.delete(`${API_URL}/api/contact/messages/${id}`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
       });
       toast.success("تم حذف الرسالة بنجاح!");
@@ -50,7 +55,7 @@ const ContactMessagesPage = () => {
       ) : (contactMessages && contactMessages.length > 0) ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
           {contactMessages.map((message) => (
-            <div key={message._id} className="admin-book-item" style={{ backgroundColor: theme.secondary }}>
+            <div key={`${message.createdAt}-${message.email}`} className="admin-book-item" style={{ backgroundColor: theme.secondary }}>
               <div>
                 <p style={{ color: theme.primary }}><strong>الموضوع:</strong> {message.subject}</p>
                 <p style={{ color: theme.primary }}><strong>الرسالة:</strong> {message.message}</p>
@@ -59,6 +64,7 @@ const ContactMessagesPage = () => {
               </div>
               <div>
                 <button onClick={() => handleDeleteMessage(message._id)} className="delete">حذف الرسالة</button>
+                <a href={`mailto:${message.email}`} className="reply-button">رد على المستخدم</a>
               </div>
             </div>
           ))}

@@ -133,3 +133,20 @@
   background-color: var(--secondary-color);
   color: var(--primary-color);
 }
+
+/* Style for the new Reply button */
+.reply-button {
+  display: inline-block; /* To apply padding and other box model properties */
+  background-color: #007bff; /* A nice blue color */
+  color: white !important; /* Ensure text is white */
+  padding: 8px 12px;
+  border-radius: 4px;
+  text-decoration: none; /* Remove underline from the link */
+  margin-left: 10px;
+  font-size: 14px; /* Match button font size if needed */
+  line-height: 1.5; /* Adjust line height for vertical alignment */
+}
+
+.reply-button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}

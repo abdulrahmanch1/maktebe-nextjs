@@ -5,13 +5,15 @@ import { createClient } from '@/utils/supabase/server'; // Use the server-side c
 export const GET = protect(admin(async (request) => {
   try {
     const supabase = await createClient();
+    // Select all columns from contact_messages directly. Assumes username and email are stored in the table.
     const { data: messages, error: fetchError } = await supabase
       .from('contact_messages')
-      .select('*, username, email, users(username, email)') // Select username and email directly from contact_messages, and also from linked user if available
-      .order('created_at', { ascending: false }); // Assuming 'created_at' column exists
+      .select('*') 
+      .order('created_at', { ascending: false });
 
     if (fetchError) {
-      throw new Error(fetchError.message);
+      // Throw an error with a more specific message if the fetch fails
+      throw new Error(`Could not fetch contact messages: ${fetchError.message}`);
     }
 
     return NextResponse.json(messages);
