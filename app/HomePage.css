@@ -1,6 +1,7 @@
 .homepage-container {
   background-color: var(--background-color);
   color: var(--primary-color);
+  overflow-x: hidden; /* Ensure content within this container is clipped */
 }
 
 .homepage-title {
@@ -82,14 +83,18 @@
 }
 
 .recently-viewed-section {
-  margin-top: 5px;
+  margin-top: 23px; /* Increased margin-top to 23px */
   margin-bottom: 15px; /* Reduced bottom margin */
-  padding: 15px;
+  padding-top: 15px;
   padding-bottom: 0;
+  padding-right: 15px; /* Padding on the right (start in RTL) */
+  padding-left: 0; /* No padding on the left (end in RTL) */
   border: 1px solid var(--secondary-color);
   border-radius: 8px;
   background-color: var(--background-color);
   position: relative;
+  width: 96%; /* Changed from 100% to 96% */
+  margin-right: 4%; /* Added margin-right */
 }
 
 .section-title {
@@ -109,10 +114,12 @@
   overflow-x: scroll;
   -webkit-overflow-scrolling: touch;
   gap: 8px;
+  padding: 0; /* Remove any default padding */
   padding-bottom: 10px;
 }
 
 .horizontal-scroll-container .book-card {
   flex-shrink: 0;
-  /* width: 150px; */
+  width: 150px; /* Explicitly set width */
+  margin-inline-end: 8px; /* Fallback for gap */
 }

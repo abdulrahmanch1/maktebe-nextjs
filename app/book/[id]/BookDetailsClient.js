@@ -80,7 +80,7 @@ const BookDetailsClient = ({ initialBook }) => {
       history.unshift(initialBook.id);
 
       // Limit history to a certain number of items (e.g., 10)
-      const MAX_HISTORY_ITEMS = 20;
+      const MAX_HISTORY_ITEMS = 100;
       if (history.length > MAX_HISTORY_ITEMS) {
         history = history.slice(0, MAX_HISTORY_ITEMS);
       }

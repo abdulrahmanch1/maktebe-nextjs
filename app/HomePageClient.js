@@ -108,48 +108,29 @@ const HomePageClient = ({ initialBooks = [] }) => {
         </select>
       </div>
 
-      {recentlyViewedBooksData.length >= 20 && (
-        <div className="recently-viewed-section">
-          <h2 className="section-title">السجل</h2>
-          <div className="horizontal-scroll-container">
-            {recentlyViewedBooksData.map((book) => (
-              <BookCard key={book.id} book={book} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {totalBookCount > 40 && topFavoritedBooksData.length > 0 && (
-        <div className="top-favorited-section recently-viewed-section"> {/* Re-use styling */}
-          <h2 className="section-title">أكثر 20 كتابًا مفضلاً</h2>
-          <div className="horizontal-scroll-container">
-            {topFavoritedBooksData.map((book) => (
-              <BookCard key={book.id} book={book} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {totalBookCount > 60 && topReadBooksData.length > 0 && (
-        <div className="top-read-section recently-viewed-section"> {/* Re-use styling */}
-          <h2 className="section-title">أكثر 20 كتابًا مقروءًا</h2>
-          <div className="horizontal-scroll-container">
-            {topReadBooksData.map((book) => (
-              <BookCard key={book.id} book={book} />
-            ))}
-          </div>
-        </div>
-      )}
-      
       <div className="books-display-container">
         {filteredBooks.length > 0 ? (
           filteredBooks.map((book, index) => (
-            <BookCard key={book.id} book={book} isPriority={index < 4} />
+            <React.Fragment key={book.id}>
+              <BookCard book={book} isPriority={index < 4} />
+              {index === 19 && totalBookCount >= 20 && recentlyViewedBooksData.length > 0 && (
+                <div className="recently-viewed-section">
+                  <h2 className="section-title">السجل</h2>
+                  <div className="horizontal-scroll-container">
+                    {recentlyViewedBooksData.slice(-20).map((rb) => (
+                      <BookCard key={rb.id} book={rb} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </React.Fragment>
           ))
         ) : (
           <div style={{ textAlign: "center" }}>لا توجد كتب تطابق بحثك.</div>
         )}
       </div>
+
+      
     </div>
   );
 };
