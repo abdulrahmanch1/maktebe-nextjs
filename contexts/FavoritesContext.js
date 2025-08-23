@@ -39,12 +39,10 @@ export const FavoritesProvider = ({ children }) => {
         res = await axios.delete(`${API_URL}/api/users/${user.id}/favorites/${bookId}`, {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
-        toast.success("تمت إزالة الكتاب من المفضلة.");
       } else {
         res = await axios.post(`${API_URL}/api/users/${user.id}/favorites/${bookId}`, {}, {
           headers: { Authorization: `Bearer ${session.access_token}` },
         });
-        toast.success("تمت إضافة الكتاب إلى المفضلة.");
       }
       // Return the favoriteCount from the API response
       return res?.data?.favoriteCount; // Use optional chaining

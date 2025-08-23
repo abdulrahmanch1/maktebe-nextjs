@@ -73,3 +73,60 @@ export const DELETE = protect(async (request, { params }) => {
     return NextResponse.json({ message: "خطأ في إزالة الكتاب من قائمة القراءة" }, { status: 500 });
   }
 });
+
+export const PATCH = protect(async (request, { params }) => {
+  const supabase = await createClient();
+  const { id: userId, bookId } = params; // User ID from URL, Book ID from URL
+  const { read } = await request.json(); // Get 'read' status from body
+
+  // Ensure 'read' is a boolean
+  if (typeof read !== 'boolean') {
+    return NextResponse.json({ message: 'Invalid read status provided.' }, { status: 400 });
+  }
+
+  // Verify user is authorized to update this reading list entry
+  // The protect middleware ensures user is logged in.
+  // Now check if the user ID in the URL matches the authenticated user's ID.
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user || user.id !== userId) {
+    return NextResponse.json({ message: 'Unauthorized to update this reading list.' }, { status: 403 });
+  }
+
+  try {
+    // Fetch the user's current reading list
+    const { data: userProfile, error: profileError } = await supabase
+      .from('profiles')
+      .select('readinglist')
+      .eq('id', userId)
+      .single();
+
+    if (profileError || !userProfile) {
+      return NextResponse.json({ message: 'User profile not found.' }, { status: 404 });
+    }
+
+    const currentReadingList = Array.isArray(userProfile.readinglist) ? userProfile.readinglist : [];
+
+    // Find the book in the reading list and update its 'read' status
+    const updatedReadingList = currentReadingList.map(item =>
+      item.book === bookId ? { ...item, read: read } : item
+    );
+
+    // Update the user's reading list in the database
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ readinglist: updatedReadingList })
+      .eq('id', userId);
+
+    if (updateError) {
+      console.error('Supabase update reading list error:', updateError);
+      throw new Error(updateError.message);
+    }
+
+    revalidatePath(`/book/${bookId}`, 'page'); // Revalidate the book details page
+
+    return NextResponse.json({ message: 'Reading status updated successfully.' });
+  } catch (error) {
+    console.error('Error updating reading list status:', error);
+    return NextResponse.json({ message: 'Failed to update reading status.' }, { status: 500 });
+  }
+});

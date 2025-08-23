@@ -250,6 +250,44 @@ const BookDetailsClient = ({ initialBook }) => {
     }
   };
 
+  const handleMarkAsReadInList = async () => {
+    if (isProcessingAction) return;
+    setIsProcessingAction(true);
+    if (!user) {
+      toast.error('الرجاء تسجيل الدخول لتحديث حالة الكتاب.');
+      setIsProcessingAction(false);
+      return;
+    }
+    try {
+      const response = await fetch(`/api/users/${user.id}/reading-list/${initialBook.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ read: true }),
+      });
+      if (response.ok) {
+        setIsRead(true);
+        toast.success('تم وضع علامة "مقروء" على الكتاب في قائمة القراءة!');
+        // Update user context readingList
+        if (user && user.readingList) {
+          setUser(prevUser => ({
+            ...prevUser,
+            readingList: prevUser.readingList.map(item =>
+              item.book === initialBook.id ? { ...item, read: true } : item
+            ),
+          }));
+        }
+      } else {
+        const errorData = await response.json();
+        toast.error(`فشل تحديث حالة الكتاب: ${errorData.message || response.statusText}`);
+      }
+    } catch (error) {
+      console.error('خطأ في تحديث حالة الكتاب:', error);
+      toast.error('حدث خطأ أثناء تحديث حالة الكتاب.');
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
   const handlePostComment = async () => {
     if (!isLoggedIn || !user || !session) {
       toast.error("يجب تسجيل الدخول لنشر تعليق.");
@@ -412,6 +450,7 @@ const BookDetailsClient = ({ initialBook }) => {
                 <>
                   {!isInReadingList && (<button onClick={handleAddToReadingList} className="book-action-button primary" disabled={isProcessingAction}>ابدأ القراءة</button>)}
                   {isInReadingList && (<button onClick={handleReadBook} className="book-action-button primary" disabled={isProcessingAction}>متابعة القراءة</button>)}
+                  {isInReadingList && !isRead && (<button onClick={handleMarkAsReadInList} className="book-action-button primary" disabled={isProcessingAction}>وضع علامة "مقروء"</button>)}
                   {isInReadingList && (<button onClick={handleRemoveFromReadingList} className="book-action-button secondary full-width-button" disabled={isProcessingAction}>إزالة من قائمة القراءة</button>)}
                   <button onClick={handleToggleFavorite} className="book-action-button secondary" disabled={isProcessingAction}>{isLiked ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}</button>
                 </>

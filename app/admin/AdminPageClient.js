@@ -204,6 +204,7 @@ const AdminPageClient = () => {
     const { favoritecount, readcount } = generateRandomCounts(tier);
     setLikes(favoritecount);
     setReads(readcount);
+    toast.success(`تم توليد أرقام عشوائية: إعجابات ${favoritecount}, قراءات ${readcount}`);
   };
 
   if (!isLoggedIn || user?.role !== 'admin') {

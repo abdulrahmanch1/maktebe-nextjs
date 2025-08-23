@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 
 export const POST = protect(async (request, { params }) => {
   const supabase = await createClient();
-  const { id, bookId } = params;
+  const { id, bookId } = await params;
 
   if (!id || !bookId) {
     return NextResponse.json({ message: 'User ID and Book ID are required' }, { status: 400 });
