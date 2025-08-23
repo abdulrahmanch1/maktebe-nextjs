@@ -73,6 +73,13 @@ export async function generateMetadata(props) {
       title: metadata.title,
       description: metadata.description,
       images: [book.cover],
+      url: `https://maktebe.vercel.app/book/${params.id}`,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: metadata.title,
+      description: metadata.description,
+      images: [book.cover],
     },
     other: {
       'application/ld+json': JSON.stringify(jsonLd),

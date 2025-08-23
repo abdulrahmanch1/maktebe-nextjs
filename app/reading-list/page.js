@@ -58,12 +58,15 @@ const ReadingListPage = () => {
 
   if (!isLoggedIn) {
     return (
-      <div className="reading-list-login-prompt" style={{ backgroundColor: theme.background, color: theme.primary }}>
-        <h1 className="reading-list-title" style={{ color: theme.primary }}>قائمة القراءة</h1>
-        <p style={{ fontSize: "1.2em", marginBottom: "20px" }}>يجب تسجيل الدخول لإدارة قائمة القراءة الخاصة بك.</p>
-        <div className="reading-list-login-buttons">
-          <Link href="/login" className="reading-list-login-button" style={{ backgroundColor: theme.accent, color: theme.primary }}>تسجيل الدخول</Link>
-          <Link href="/register" className="reading-list-login-button" style={{ backgroundColor: theme.secondary, color: theme.background }}>إنشاء حساب</Link>
+      <div className="reading-list-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
+        <div className="reading-list-login-prompt" style={{ backgroundColor: theme.secondary }}>
+          <span className="reading-list-empty-state-icon" role="img" aria-label="Lock">🔒</span>
+          <h2 style={{ color: theme.primary }}>الوصول مقيد</h2>
+          <p style={{ color: theme.primary }}>يجب تسجيل الدخول لإدارة قائمة القراءة الخاصة بك.</p>
+          <div className="reading-list-action-buttons">
+            <Link href="/login" className="reading-list-action-button" style={{ backgroundColor: theme.accent, color: theme.primary }}>تسجيل الدخول</Link>
+            <Link href="/register" className="reading-list-action-button" style={{ backgroundColor: theme.primary, color: theme.background }}>إنشاء حساب</Link>
+          </div>
         </div>
       </div>
     );
@@ -71,40 +74,40 @@ const ReadingListPage = () => {
 
   return (
     <div className="reading-list-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
-      <h1 className="reading-list-title" style={{ color: theme.primary }}>قائمة القراءة</h1>
+      <div className="reading-list-header">
+        <h1 className="reading-list-title">قائمة القراءة</h1>
+      </div>
 
-      <div className="reading-list-toggle-buttons">
+      <div className="reading-list-toggles">
         <button
           onClick={() => setShowReadBooks(false)}
-          className="reading-list-toggle-button"
-          style={{
-            backgroundColor: !showReadBooks ? theme.accent : theme.secondary,
-            color: theme.primary,
-          }}
+          className={`reading-list-toggle-button ${!showReadBooks ? 'active' : ''}`}
+          style={!showReadBooks ? { backgroundColor: theme.accent, color: theme.primary, borderColor: theme.accent } : { backgroundColor: theme.secondary, color: theme.primary }}
         >
-          الكتب التي لم تتم قراءتها
+          لم تقرأ
         </button>
         <button
           onClick={() => setShowReadBooks(true)}
-          className="reading-list-toggle-button"
-          style={{
-            backgroundColor: showReadBooks ? theme.accent : theme.secondary,
-            color: theme.primary,
-          }}
+          className={`reading-list-toggle-button ${showReadBooks ? 'active' : ''}`}
+          style={showReadBooks ? { backgroundColor: theme.accent, color: theme.primary, borderColor: theme.accent } : { backgroundColor: theme.secondary, color: theme.primary }}
         >
-          الكتب التي تم قراءتها
+          مقروءة
         </button>
       </div>
 
-      <div className="reading-list-books-display">
-        {booksToDisplay.length > 0 ? (
-          booksToDisplay.map((book) => (
+      {booksToDisplay.length > 0 ? (
+        <div className="reading-list-books-grid">
+          {booksToDisplay.map((book) => (
             <BookCard key={book.id} book={book} />
-          ))
-        ) : (
-          <p>لا توجد كتب في هذه القائمة.</p>
-        )}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="reading-list-empty-state" style={{ backgroundColor: theme.secondary }}>
+          <span className="reading-list-empty-state-icon" role="img" aria-label="Books">📚</span>
+          <h2 style={{ color: theme.primary }}>لا توجد كتب في هذه القائمة</h2>
+          <p style={{ color: theme.primary }}>قائمة القراءة الخاصة بك فارغة حاليًا. ابدأ بتصفح المكتبة!</p>
+        </div>
+      )}
     </div>
   );
 };

@@ -331,6 +331,33 @@ const BookDetailsClient = ({ initialBook }) => {
     }
   };
 
+  const handleReadBook = async () => {
+    if (!book || !book.pdfFile) {
+      toast.error('ملف الكتاب غير متوفر للقراءة.');
+      return;
+    }
+
+    // Open the PDF file
+    window.open(book.pdfFile, '_blank');
+
+    // Increment readcount via API
+    try {
+      const response = await axios.patch(`${API_URL}/api/books/${book.id}/increment-readcount`);
+      if (response.status === 200) {
+        // Update local state with the new readcount from the API response
+        setBook(prevBook => ({
+          ...prevBook,
+          readcount: response.data.readcount // Assuming API returns { readcount: newCount }
+        }));
+      } else {
+        console.error('Failed to increment readcount:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error incrementing readcount:', error);
+      // Optionally, show a toast error, but don't block PDF opening
+    }
+  };
+
   const isLiked = hasMounted ? isFavorite(book.id) : false;
 
   return (
@@ -378,13 +405,13 @@ const BookDetailsClient = ({ initialBook }) => {
                   <button onClick={() => router.push(`/admin/books/edit/${initialBook.id}`)} className="book-action-button primary">تعديل الكتاب</button>
                   <button onClick={handlePublishBook} className="book-action-button primary">رفع الكتاب على العامه</button>
                   <button onClick={handleRemoveBook} className="book-action-button secondary">إزالة الكتاب</button>
-                  <button onClick={() => { if (book && book.pdfFile) { window.open(book.pdfFile, '_blank'); } else { toast.error('ملف الكتاب غير متوفر للقراءة.'); } }} className="book-action-button primary">قراءة الكتاب</button>
+                  <button onClick={handleReadBook} className="book-action-button primary">قراءة الكتاب</button>
                 </div>
               )}
               {(!book.status || book.status !== 'pending') && (
                 <>
                   {!isInReadingList && (<button onClick={handleAddToReadingList} className="book-action-button primary" disabled={isProcessingAction}>ابدأ القراءة</button>)}
-                  {isInReadingList && (<button onClick={() => { if (book && book.pdfFile) { window.open(book.pdfFile, '_blank'); } else { toast.error('ملف الكتاب غير متوفر للقراءة.'); } }} className="book-action-button primary" disabled={isProcessingAction}>متابعة القراءة</button>)}
+                  {isInReadingList && (<button onClick={handleReadBook} className="book-action-button primary" disabled={isProcessingAction}>متابعة القراءة</button>)}
                   {isInReadingList && (<button onClick={handleRemoveFromReadingList} className="book-action-button secondary full-width-button" disabled={isProcessingAction}>إزالة من قائمة القراءة</button>)}
                   <button onClick={handleToggleFavorite} className="book-action-button secondary" disabled={isProcessingAction}>{isLiked ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}</button>
                 </>

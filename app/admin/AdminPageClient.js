@@ -1,6 +1,7 @@
 'use client';
 import React, { useContext, useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { ThemeContext } from "@/contexts/ThemeContext";
 import { AuthContext } from "@/contexts/AuthContext";
@@ -117,7 +118,7 @@ const AdminPageClient = () => {
         clearForm();
       }
     }
-  }, [editBookId, router, editingBook]);
+  }, [editBookId, router, editingBook, clearForm]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -275,7 +276,7 @@ const AdminPageClient = () => {
           <div className="admin-form-group">
             <label>صورة الغلاف</label>
             {existingCoverUrl && !cover && (
-              <img src={existingCoverUrl} alt="Current Cover" style={{ maxWidth: '100px', maxHeight: '150px', marginBottom: '10px' }} />
+              <Image src={existingCoverUrl} alt="Current Cover" width={100} height={150} style={{ maxWidth: '100px', maxHeight: '150px', marginBottom: '10px' }} />
             )}
             <input type="file" accept="image/*" onChange={(e) => setCover(e.target.files[0])} ref={coverInputRef} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
           </div>

@@ -51,12 +51,15 @@ const FavoritesPage = () => {
 
   if (!isLoggedIn) {
     return (
-      <div className="favorites-login-prompt" style={{ backgroundColor: theme.background, color: theme.primary }}>
-        <h1 className="favorites-title" style={{ color: theme.primary }}>الكتب المفضلة</h1>
-        <p style={{ fontSize: "1.2em", marginBottom: "20px" }}>يجب تسجيل الدخول لإضافة الكتب إلى المفضلة وعرضها هنا.</p>
-        <div className="favorites-login-buttons">
-          <Link href="/login" className="favorites-login-button" style={{ backgroundColor: theme.accent, color: theme.primary }}>تسجيل الدخول</Link>
-          <Link href="/register" className="favorites-login-button" style={{ backgroundColor: theme.secondary, color: theme.background }}>إنشاء حساب</Link>
+      <div className="favorites-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
+        <div className="favorites-login-prompt" style={{ backgroundColor: theme.secondary }}>
+          <span className="favorites-empty-state-icon" role="img" aria-label="Lock">🔒</span>
+          <h2 style={{ color: theme.primary }}>الوصول مقيد</h2>
+          <p style={{ color: theme.primary }}>يجب تسجيل الدخول لعرض كتبك المفضلة.</p>
+          <div className="favorites-action-buttons">
+            <Link href="/login" className="favorites-action-button" style={{ backgroundColor: theme.accent, color: theme.primary }}>تسجيل الدخول</Link>
+            <Link href="/register" className="favorites-action-button" style={{ backgroundColor: theme.primary, color: theme.background }}>إنشاء حساب</Link>
+          </div>
         </div>
       </div>
     );
@@ -64,16 +67,28 @@ const FavoritesPage = () => {
 
   return (
     <div className="favorites-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
-      <h1 className="favorites-title" style={{ color: theme.primary }}>الكتب المفضلة</h1>
-      <div className="favorites-books-display">
-        {favoriteBooksData.length > 0 ? (
-          favoriteBooksData.map((book) => (
-            <BookCard key={book.id} book={book} />
-          ))
-        ) : (
-          <p className="no-favorites-message">لم تقم بإضافة أي كتب إلى المفضلة بعد.</p>
-        )}
+      <div className="favorites-header">
+        <h1 className="favorites-title">الكتب المفضلة</h1>
+        <p className="favorites-subtitle">
+          {favoriteBooksData.length > 0
+            ? `لديك ${favoriteBooksData.length} كتاب في قائمتك`
+            : 'تصفح وأضف كتبك التي تحبها هنا'}
+        </p>
       </div>
+
+      {favoriteBooksData.length > 0 ? (
+        <div className="favorites-books-grid">
+          {favoriteBooksData.map((book) => (
+            <BookCard key={book.id} book={book} />
+          ))}
+        </div>
+      ) : (
+        <div className="favorites-empty-state" style={{ backgroundColor: theme.secondary }}>
+          <span className="favorites-empty-state-icon" role="img" aria-label="Heart">❤️</span>
+          <h2 style={{ color: theme.primary }}>قائمة المفضلة فارغة</h2>
+          <p style={{ color: theme.primary }}>لم تقم بإضافة أي كتب إلى المفضلة بعد. ابدأ بتصفح المكتبة!</p>
+        </div>
+      )}
     </div>
   );
 };

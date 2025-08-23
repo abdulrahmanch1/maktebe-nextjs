@@ -5,6 +5,7 @@ import { createAdminClient } from '@/utils/supabase/admin';
 
 export const POST = async (request) => {
   const supabase = await createClient();
+  const supabaseAdmin = createAdminClient();
 
   try {
     // 1. Get the authenticated user
@@ -18,11 +19,11 @@ export const POST = async (request) => {
     const file = formData.get('file');
 
     // 3. Upload the file using the centralized helper
-    const newUrl = await uploadFile('profile-pictures', file, ['image/jpeg', 'image/png', 'image/webp']);
+    const newUrl = await uploadFile(supabaseAdmin, 'profile-pictures', file, ['image/jpeg', 'image/png', 'image/webp']);
 
     // 4. Update the user's profile with the new URL
     // Use the admin client to update the profile table
-    const supabaseAdmin = createAdminClient();
+    
     const { error: profileUpdateError } = await supabaseAdmin
       .from('profiles')
       .update({ profilepicture: newUrl })
