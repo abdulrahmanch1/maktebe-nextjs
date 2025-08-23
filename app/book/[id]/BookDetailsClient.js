@@ -58,7 +58,40 @@ const BookDetailsClient = ({ initialBook }) => {
 
   useEffect(() => {
     setHasMounted(true);
-  }, []);
+
+    if (initialBook && initialBook.id) {
+      const HISTORY_KEY = 'recentlyViewedBooks';
+      let history = [];
+      try {
+        const storedHistory = localStorage.getItem(HISTORY_KEY);
+        if (storedHistory) {
+          history = JSON.parse(storedHistory);
+        }
+      } catch (e) {
+        console.error("Failed to parse history from localStorage", e);
+        // Clear corrupted history
+        history = [];
+      }
+
+      // Remove current book ID if it already exists to move it to the top
+      history = history.filter(id => id !== initialBook.id);
+
+      // Add current book ID to the beginning
+      history.unshift(initialBook.id);
+
+      // Limit history to a certain number of items (e.g., 10)
+      const MAX_HISTORY_ITEMS = 20;
+      if (history.length > MAX_HISTORY_ITEMS) {
+        history = history.slice(0, MAX_HISTORY_ITEMS);
+      }
+
+      try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+      } catch (e) {
+        console.error("Failed to save history to localStorage", e);
+      }
+    }
+  }, [initialBook]);
 
   useEffect(() => {
     if (initialBook.comments) {

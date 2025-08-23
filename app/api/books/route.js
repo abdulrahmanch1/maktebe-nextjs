@@ -25,6 +25,9 @@ export const GET = async (request) => {
   const author = searchParams.get('author') || '';
   const ids = searchParams.get('ids');
   const status = searchParams.get('status');
+  const topFavorited = searchParams.get('topFavorited');
+  const topRead = searchParams.get('topRead'); // New parameter
+  const limit = searchParams.get('limit');
 
   try {
     let supabaseQuery = supabase.from('books').select('*');
@@ -49,10 +52,22 @@ export const GET = async (request) => {
     if (ids) {
       const bookIds = ids.split(',').filter(id => isValidUUID(id));
       if (bookIds.length === 0) {
-        // If no valid UUIDs are found, return an empty array to prevent querying with invalid IDs
         return NextResponse.json([]);
       }
       supabaseQuery = supabaseQuery.in('id', bookIds);
+    }
+
+    // Handle topRead (precedence over topFavorited if both are true)
+    if (topRead === 'true') {
+      supabaseQuery = supabaseQuery.order('readcount', { ascending: false });
+      if (limit) {
+        supabaseQuery = supabaseQuery.limit(parseInt(limit, 10));
+      }
+    } else if (topFavorited === 'true') { // Handle topFavorited only if topRead is not true
+      supabaseQuery = supabaseQuery.order('favoritecount', { ascending: false });
+      if (limit) {
+        supabaseQuery = supabaseQuery.limit(parseInt(limit, 10));
+      }
     }
 
     const { data: books, error: fetchError } = await supabaseQuery;
