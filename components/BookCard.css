@@ -23,12 +23,12 @@
   }
 
   .book-card-title {
-    font-size: 0.8em !important; /* Further reduced font size */
+    font-size: 0.9em !important; /* Further reduced font size */
   }
 
   .read-button {
     padding: 2px 5px;
-    font-size: 12px !important;
+    font-size: 15px !important;
   }
 
   .favorite-icon {
@@ -50,14 +50,8 @@
 
  @media (max-width: 400px) { /* Adjusted for smaller phones */
   .book-card {
-    width: 120px;
-    height: 260px;
     padding: 10px;
     margin: 5px;
-  }
-
-  .book-card-image {
-    height: 155px;
   }
 
   .book-card-title {
@@ -75,6 +69,15 @@
     height: 18px;
   }
   
+}
+@media (max-width: 325px) {
+  .book-card {
+    width: 120px;
+    height: 260px;
+  }
+  .book-card-image{
+    width: 150px;
+  }
 }
 @media (max-width: 305px) {
   .book-card{
