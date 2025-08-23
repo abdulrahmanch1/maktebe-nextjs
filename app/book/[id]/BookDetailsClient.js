@@ -450,7 +450,7 @@ const BookDetailsClient = ({ initialBook }) => {
                 <>
                   {!isInReadingList && (<button onClick={handleAddToReadingList} className="book-action-button primary" disabled={isProcessingAction}>ابدأ القراءة</button>)}
                   {isInReadingList && (<button onClick={handleReadBook} className="book-action-button primary" disabled={isProcessingAction}>متابعة القراءة</button>)}
-                  {isInReadingList && !isRead && (<button onClick={handleMarkAsReadInList} className="book-action-button primary" disabled={isProcessingAction}>وضع علامة "مقروء"</button>)}
+                  {isInReadingList && !isRead && (<button onClick={handleMarkAsReadInList} className="book-action-button primary" disabled={isProcessingAction}>وضع علامة &quot;مقروء&quot;</button>)}
                   {isInReadingList && (<button onClick={handleRemoveFromReadingList} className="book-action-button secondary full-width-button" disabled={isProcessingAction}>إزالة من قائمة القراءة</button>)}
                   <button onClick={handleToggleFavorite} className="book-action-button secondary" disabled={isProcessingAction}>{isLiked ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}</button>
                 </>
@@ -496,7 +496,7 @@ const BookDetailsClient = ({ initialBook }) => {
                     <p className="comment-text">{comment.text}</p>
                     <div className="comment-actions">
                       <span onClick={() => handleToggleLike(comment.id)} className={`comment-like-button ${comment.userLiked ? 'liked' : ''}`}>
-                        <span className="like-icon">{comment.userLiked ? '❤️' : '♡'}</span> {comment.likes}
+                        <span className="like-icon">{comment.userLiked ? '&#x2764;' : '♡'}</span> {comment.likes}
                       </span>
                       {(isLoggedIn && user && (user.id === comment.user_id || user.role === 'admin')) && (<button onClick={() => handleDeleteComment(comment.id)} className="comment-delete-button" title="حذف التعليق"><FaTrash /></button>)}
                     </div>
