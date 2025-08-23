@@ -69,31 +69,74 @@ export const GET = async (request) => {
   }
 };
 
+function getRandomNumber(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function generateRandomCounts(ratingTier) {
+  let favoriteMin, favoriteMax, readMin, readMax;
+
+  switch (ratingTier) {
+    case 'medium':
+      favoriteMin = 15; favoriteMax = 30;
+      readMin = 10; readMax = 20;
+      break;
+    case 'excellent':
+      favoriteMin = 30; favoriteMax = 45;
+      readMin = 15; readMax = 25; // Excellent for reads
+      break;
+    case 'very_good': // Assuming this is a separate tier for reads
+      favoriteMin = 50; favoriteMax = 70; 
+      readMin = 40; readMax = 55;
+      break;
+    case 'normal':
+    default:
+      favoriteMin = 5; favoriteMax = 15;
+      readMin = 5; readMax = 10;
+      break;
+  }
+
+  return {
+    favoritecount: getRandomNumber(favoriteMin, favoriteMax),
+    readcount: getRandomNumber(readMin, readMax)
+  };
+}
+
 export const POST = protect(admin(async (request) => {
   const supabase = await createClient(); // Instantiate supabase client
   const body = await request.json();
 
+  const { title, author, category, description, pages, publishYear, language, keywords, cover, pdfFile, status, ratingTier } = body; // Added status and ratingTier
 
   const bookData = {
-    title: body.title,
-    author: body.author,
-    category: body.category,
-    description: body.description,
-    pages: parseInt(body.pages),
-    publishYear: parseInt(body.publishYear),
-    language: body.language,
-    keywords: body.keywords || [],
-    cover: body.cover,
-    pdfFile: body.pdfFile,
+    title,
+    author,
+    category,
+    description,
+    pages: parseInt(pages),
+    publishYear: parseInt(publishYear),
+    language,
+    keywords: keywords || [],
+    cover,
+    pdfFile,
+    status: status || 'approved', // Default to approved if not provided
   };
-  
+
+  // Generate random likes and reads if status is 'approved'
+  if (bookData.status === 'approved') {
+    const { favoritecount, readcount } = generateRandomCounts(ratingTier || 'normal'); // Use ratingTier or default to 'normal'
+    bookData.favoritecount = favoritecount;
+    bookData.readcount = readcount;
+  } else {
+    // If not approved, set counts to 0
+    bookData.favoritecount = 0;
+    bookData.readcount = 0;
+  }
 
   const errors = validateBook(bookData);
   if (Object.keys(errors).length > 0) {
-    
     return NextResponse.json({ message: 'Validation failed', errors }, { status: 400 });
   }
-  
 
   try {
     const { data: newBook, error: insertError } = await supabase
@@ -106,7 +149,6 @@ export const POST = protect(admin(async (request) => {
       console.error('Supabase insert error:', insertError);
       throw new Error(insertError.message);
     }
-    
 
     return NextResponse.json(newBook, { status: 201 });
   } catch (error) {

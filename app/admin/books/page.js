@@ -47,8 +47,6 @@ const AdminBooksPage = () => {
     }
   };
 
-  
-
   const handleEdit = (bookId) => {
     router.push(`/admin/books/edit/${bookId}`);
   };
@@ -92,6 +90,10 @@ const AdminBooksPage = () => {
           {filteredBooks.map((book) => ( // Use filteredBooks here
             <div key={book.id} className="admin-book-item" style={{ backgroundColor: theme.secondary }}>
               <p style={{ color: theme.background }}>{book.title} - {book.author}</p>
+              <div style={{ color: theme.background, fontSize: '0.9em', marginTop: '5px' }}>
+                <span>الإعجابات: {book.favoritecount || 0}</span>
+                <span style={{ marginLeft: '15px' }}>القراءات: {book.readcount || 0}</span>
+              </div>
               <div>
                 <button onClick={() => handleEdit(book.id)} style={{ backgroundColor: theme.accent, color: theme.primary, marginLeft: '10px' }}>تعديل</button>
                 <button onClick={() => handleDelete(book.id)} className="delete">حذف</button>

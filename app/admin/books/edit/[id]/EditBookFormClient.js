@@ -26,9 +26,12 @@ const EditBookFormClient = ({ initialBook }) => {
     keywords: '',
     status: 'pending',
     cover: '',
+    pdfFile: '',
   });
   const [coverFile, setCoverFile] = useState(null);
+  const [pdfFile, setPdfFile] = useState(null);
   const coverInputRef = useRef(null);
+  const pdfInputRef = useRef(null);
 
   useEffect(() => {
     if (initialBook) {
@@ -43,6 +46,7 @@ const EditBookFormClient = ({ initialBook }) => {
         keywords: Array.isArray(initialBook.keywords) ? initialBook.keywords.join(', ') : '',
         status: initialBook.status || 'pending',
         cover: initialBook.cover || '',
+        pdfFile: initialBook.pdfFile || '',
       });
     }
   }, [initialBook]);
@@ -55,6 +59,7 @@ const EditBookFormClient = ({ initialBook }) => {
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     if (name === 'cover') setCoverFile(files[0]);
+    else if (name === 'pdfFile') setPdfFile(files[0]);
   };
 
   const handleSubmit = async (e) => {
@@ -71,8 +76,24 @@ const EditBookFormClient = ({ initialBook }) => {
       if (coverFile) {
         const coverFormData = new FormData();
         coverFormData.append('file', coverFile);
+        // Add the old cover URL if it exists
+        if (initialBook.cover) {
+          coverFormData.append('oldCoverUrl', initialBook.cover);
+        }
         const res = await axios.post(`${API_URL}/api/upload-book-cover`, coverFormData, { headers: { Authorization: `Bearer ${session.access_token}` } });
         updatedData.cover = res.data.newUrl;
+      }
+
+      // Handle PDF file upload
+      if (pdfFile) {
+        const pdfFormData = new FormData();
+        pdfFormData.append('file', pdfFile);
+        // Add the old PDF URL if it exists
+        if (initialBook.pdfFile) {
+          pdfFormData.append('oldPdfUrl', initialBook.pdfFile);
+        }
+        const pdfRes = await axios.post(`${API_URL}/api/upload-book-pdf`, pdfFormData, { headers: { Authorization: `Bearer ${session.access_token}` } });
+        updatedData.pdfFile = pdfRes.data.newUrl;
       }
 
       await axios.put(`${API_URL}/api/books/${initialBook.id}`, updatedData, {
@@ -87,6 +108,15 @@ const EditBookFormClient = ({ initialBook }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGenerateRandomCounts = (tier) => {
+    const { favoritecount, readcount } = generateRandomCounts(tier);
+    setFormData((prevData) => ({
+      ...prevData,
+      favoritecount: favoritecount,
+      readcount: readcount,
+    }));
   };
 
   return (
@@ -153,12 +183,14 @@ const EditBookFormClient = ({ initialBook }) => {
           </label>
         </div>
         <div className="form-group">
-          <label htmlFor="status">الحالة</label>
-          <select id="status" name="status" value={formData.status} onChange={handleChange}>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
+          <label>ملف الـ PDF الحالي</label>
+          {formData.pdfFile && (
+            <p><a href={formData.pdfFile} target="_blank" rel="noopener noreferrer">عرض ملف الـ PDF الحالي</a></p>
+          )}
+          <label className="file-input-label">
+            <span>{pdfFile ? pdfFile.name : 'اختر ملف PDF جديد لتغييره...'}</span>
+            <input type="file" id="pdfFile" name="pdfFile" accept="application/pdf" onChange={handleFileChange} ref={pdfInputRef} className="file-input" />
+          </label>
         </div>
         <button type="submit" disabled={loading}>
           {loading ? 'جاري التحديث...' : 'حفظ التغييرات'}

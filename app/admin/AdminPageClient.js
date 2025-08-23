@@ -11,6 +11,39 @@ import './AdminPage.css';
 
 import { createClient as createSupabaseClient } from "@/utils/supabase/client";
 
+function getRandomNumber(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function generateRandomCounts(ratingTier) {
+  let favoriteMin, favoriteMax, readMin, readMax;
+
+  switch (ratingTier) {
+    case 'medium':
+      favoriteMin = 15; favoriteMax = 30;
+      readMin = 10; readMax = 20;
+      break;
+    case 'excellent':
+      favoriteMin = 30; favoriteMax = 45;
+      readMin = 15; readMax = 25; // Excellent for reads
+      break;
+    case 'very_good': // Assuming this is a separate tier for reads
+      favoriteMin = 50; favoriteMax = 70; 
+      readMin = 40; readMax = 55;
+      break;
+    case 'normal':
+    default:
+      favoriteMin = 5; favoriteMax = 15;
+      readMin = 5; readMax = 10;
+      break;
+  }
+
+  return {
+    favoritecount: getRandomNumber(favoriteMin, favoriteMax),
+    readcount: getRandomNumber(readMin, readMax)
+  };
+}
+
 const AdminPageClient = () => {
   const { theme } = useContext(ThemeContext);
   const { user, session, isLoggedIn } = useContext(AuthContext);
@@ -30,6 +63,7 @@ const AdminPageClient = () => {
   const [reads, setReads] = useState(0);
   const [categories] = useState(["قصص أطفال", "كتب دينية", "كتب تجارية", "كتب رومانسية", "كتب بوليسية", "أدب", "تاريخ", "علوم", "فلسفة", "تكنولوجيا", "سيرة ذاتية", "شعر", "فن", "طبخ"]);
   const [editingBook, setEditingBook] = useState(null);
+  const [existingCoverUrl, setExistingCoverUrl] = useState(null);
 
   const coverInputRef = useRef(null);
   const pdfFileInputRef = useRef(null);
@@ -50,6 +84,7 @@ const AdminPageClient = () => {
     setLikes(0);
     setReads(0);
     setEditingBook(null);
+    setExistingCoverUrl(null);
     if (coverInputRef.current) coverInputRef.current.value = '';
     if (pdfFileInputRef.current) pdfFileInputRef.current.value = '';
     router.push('/admin');
@@ -71,20 +106,18 @@ const AdminPageClient = () => {
           setKeywords(book.keywords ? book.keywords.join(', ') : '');
           setLikes(book.favoritecount || 0);
           setReads(book.readcount || 0);
+          setExistingCoverUrl(book.cover);
         })
         .catch(error => {
           toast.error("الكتاب المراد تعديله غير موجود");
           router.push('/admin');
         });
     } else {
-      // On initial load for a new book, or after clearing, ensure form is empty.
-      // Note: clearForm was being called in a way that might not have been intended on every render.
-      // This logic is now more explicit.
       if (!editingBook) {
         clearForm();
       }
     }
-  }, [editBookId, router]); // Removed clearForm from dependencies to avoid re-clearing
+  }, [editBookId, router, editingBook]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -166,6 +199,12 @@ const AdminPageClient = () => {
     }
   };
 
+  const handleGenerateRandomCounts = (tier) => {
+    const { favoritecount, readcount } = generateRandomCounts(tier);
+    setLikes(favoritecount);
+    setReads(readcount);
+  };
+
   if (!isLoggedIn || user?.role !== 'admin') {
     return (
       <div className="admin-page-container" style={{ backgroundColor: theme.background, color: theme.primary, textAlign: "center" }}>
@@ -235,6 +274,9 @@ const AdminPageClient = () => {
           </div>
           <div className="admin-form-group">
             <label>صورة الغلاف</label>
+            {existingCoverUrl && !cover && (
+              <img src={existingCoverUrl} alt="Current Cover" style={{ maxWidth: '100px', maxHeight: '150px', marginBottom: '10px' }} />
+            )}
             <input type="file" accept="image/*" onChange={(e) => setCover(e.target.files[0])} ref={coverInputRef} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
           </div>
           <div className="admin-form-group">
@@ -245,19 +287,30 @@ const AdminPageClient = () => {
             <label>الكلمات المفتاحية (افصل بينها بفاصلة)</label>
             <input type="text" placeholder="أدخل كلمات مفتاحية" value={keywords} onChange={(e) => setKeywords(e.target.value)} className="admin-form-input" />
           </div>
+
+          {/* Random Likes and Reads Generation */}
+          <div className="admin-form-group">
+            <label>توليد أرقام عشوائية للإعجابات والقراءات</label>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+              <button type="button" onClick={() => handleGenerateRandomCounts('normal')} style={{ backgroundColor: '#4CAF50', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer' }}>عادي</button>
+              <button type="button" onClick={() => handleGenerateRandomCounts('medium')} style={{ backgroundColor: '#FFC107', color: 'black', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer' }}>متوسط</button>
+              <button type="button" onClick={() => handleGenerateRandomCounts('excellent')} style={{ backgroundColor: '#007BFF', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer' }}>ممتاز</button>
+              <button type="button" onClick={() => handleGenerateRandomCounts('very_good')} style={{ backgroundColor: '#6C757D', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer' }}>جيد جداً</button>
+            </div>
+            <div className="admin-form-group">
+              <label>الإعجابات</label>
+              <input type="number" value={likes} onChange={(e) => setLikes(parseInt(e.target.value) || 0)} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
+            </div>
+            <div className="admin-form-group">
+              <label>القراءات</label>
+              <input type="number" value={reads} onChange={(e) => setReads(parseInt(e.target.value) || 0)} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
+            </div>
+          </div>
+
           <button type="submit" className="admin-form-button" style={{ backgroundColor: theme.accent, color: theme.primary }}>{editingBook ? "تحديث الكتاب" : "إضافة الكتاب"}</button>
           {editingBook && (
             <button type="button" onClick={clearForm} className="admin-form-button cancel themed-secondary-button">إلغاء التعديل</button>
           )}
-
-          <div className="admin-form-group">
-            <label>الإعجابات</label>
-            <input type="number" value={likes} onChange={(e) => setLikes(parseInt(e.target.value) || 0)} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
-          </div>
-          <div className="admin-form-group">
-            <label>القراءات</label>
-            <input type="number" value={reads} onChange={(e) => setReads(parseInt(e.target.value) || 0)} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
-          </div>
         </form>
       </div>
     </div>
