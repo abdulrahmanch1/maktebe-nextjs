@@ -121,7 +121,25 @@ export const POST = protect(admin(async (request) => {
   const supabase = await createClient(); // Instantiate supabase client
   const body = await request.json();
 
-  const { title, author, category, description, pages, publishYear, language, keywords, cover, pdfFile, status, ratingTier } = body; // Added status and ratingTier
+  const { title, author, category, description, pages, publishYear, language, keywords, cover, pdfFile, status, favoritecount, readcount } = body;
+
+  // Check for duplicate title (case-insensitive)
+  const { data: existingBook, error: existingBookError } = await supabase
+    .from('books')
+    .select('title')
+    .ilike('title', title)
+    .single();
+
+  if (existingBook) {
+    return NextResponse.json({ message: 'يوجد كتاب بهذا العنوان بالفعل.' }, { status: 409 });
+  }
+
+  if (existingBookError && existingBookError.code !== 'PGRST116') {
+    // PGRST116 means no rows found, which is not an error in this case.
+    // We log other errors.
+    console.error('Error checking for existing book:', existingBookError);
+    return NextResponse.json({ message: 'خطأ أثناء التحقق من وجود الكتاب.' }, { status: 500 });
+  }
 
   const bookData = {
     title,
@@ -134,19 +152,10 @@ export const POST = protect(admin(async (request) => {
     keywords: keywords || [],
     cover,
     pdfFile,
-    status: status || 'approved', // Default to approved if not provided
+    status: status || 'approved',
+    favoritecount: favoritecount || 0,
+    readcount: readcount || 0,
   };
-
-  // Generate random likes and reads if status is 'approved'
-  if (bookData.status === 'approved') {
-    const { favoritecount, readcount } = generateRandomCounts(ratingTier || 'normal'); // Use ratingTier or default to 'normal'
-    bookData.favoritecount = favoritecount;
-    bookData.readcount = readcount;
-  } else {
-    // If not approved, set counts to 0
-    bookData.favoritecount = 0;
-    bookData.readcount = 0;
-  }
 
   const errors = validateBook(bookData);
   if (Object.keys(errors).length > 0) {

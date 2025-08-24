@@ -27,6 +27,8 @@ const EditBookFormClient = ({ initialBook }) => {
     status: 'pending',
     cover: '',
     pdfFile: '',
+    favoritecount: 0,
+    readcount: 0,
   });
   const [coverFile, setCoverFile] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
@@ -47,6 +49,8 @@ const EditBookFormClient = ({ initialBook }) => {
         status: initialBook.status || 'pending',
         cover: initialBook.cover || '',
         pdfFile: initialBook.pdfFile || '',
+        favoritecount: initialBook.favoritecount || 0,
+        readcount: initialBook.readcount || 0,
       });
     }
   }, [initialBook]);
@@ -71,6 +75,8 @@ const EditBookFormClient = ({ initialBook }) => {
       // Ensure numeric fields are parsed correctly, defaulting to 0 if invalid
       updatedData.pages = parseInt(formData.pages, 10) || 0;
       updatedData.publishYear = parseInt(formData.publishYear, 10) || 0;
+      updatedData.favoritecount = parseInt(formData.favoritecount, 10) || 0;
+      updatedData.readcount = parseInt(formData.readcount, 10) || 0;
       updatedData.keywords = updatedData.keywords.split(',').map(kw => kw.trim()).filter(Boolean);
       
       if (coverFile) {
@@ -159,6 +165,17 @@ const EditBookFormClient = ({ initialBook }) => {
               <option value="الإنجليزية">الإنجليزية</option>
               <option value="أخرى">أخرى</option>
             </select>
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="favoritecount">الإعجابات</label>
+            <input type="number" id="favoritecount" name="favoritecount" value={formData.favoritecount} onChange={handleChange} required />
+          </div>
+          <div className="form-group">
+            <label htmlFor="readcount">القراءات</label>
+            <input type="number" id="readcount" name="readcount" value={formData.readcount} onChange={handleChange} required />
           </div>
         </div>
 

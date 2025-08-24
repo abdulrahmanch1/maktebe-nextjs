@@ -123,6 +123,26 @@ const HomePageClient = ({ initialBooks = [] }) => {
                   </div>
                 </div>
               )}
+              {index === 39 && topFavoritedBooksData.length > 0 && (
+                <div className="recently-viewed-section">
+                  <h2 className="section-title">أكثر الكتب إعجابًا</h2>
+                  <div className="horizontal-scroll-container">
+                    {topFavoritedBooksData.map((favBook) => (
+                      <BookCard key={favBook.id} book={favBook} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {index === 59 && topReadBooksData.length > 0 && (
+                <div className="recently-viewed-section">
+                  <h2 className="section-title">أكثر الكتب قراءة</h2>
+                  <div className="horizontal-scroll-container">
+                    {topReadBooksData.map((readBook) => (
+                      <BookCard key={readBook.id} book={readBook} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </React.Fragment>
           ))
         ) : (

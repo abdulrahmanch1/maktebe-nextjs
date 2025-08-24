@@ -54,14 +54,14 @@ export const PATCH = protect(admin(async (request, { params }) => {
       author,
       category,
       description,
-      pages: parseInt(pages),
-      publishYear: parseInt(publishYear),
+      pages: parseInt(pages, 10) || 0,
+      publishYear: parseInt(publishYear, 10) || 0,
       language,
       keywords: keywords || [],
       cover,
       pdfFile,
-      favoritecount,
-      readcount,
+      favoritecount: parseInt(favoritecount, 10) || 0,
+      readcount: parseInt(readcount, 10) || 0,
     };
 
     const errors = validateBookUpdate(bookData);

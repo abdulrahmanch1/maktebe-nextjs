@@ -120,6 +120,6 @@
 
 .horizontal-scroll-container .book-card {
   flex-shrink: 0;
-  width: 150px; /* Explicitly set width */
+  /* width: 150px; */
   margin-inline-end: 8px; /* Fallback for gap */
 }

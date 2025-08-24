@@ -10,6 +10,27 @@ export const POST = protect(async (request) => {
     // 1. Get the JSON data from the request
     const bookData = await request.json();
 
+    // Check for duplicate title (case-insensitive) in the books table
+    const { data: existingBook, error: existingBookError } = await supabase
+      .from('books')
+      .select('title, status')
+      .ilike('title', bookData.title)
+      .single();
+
+    if (existingBook) {
+      if (existingBook.status === 'approved') {
+        return NextResponse.json({ message: 'هذا الكتاب موجود بالفعل في المكتبة.' }, { status: 409 });
+      } else if (existingBook.status === 'pending') {
+        return NextResponse.json({ message: 'تم اقتراح هذا الكتاب بالفعل وهو قيد المراجعة.' }, { status: 409 });
+      }
+    }
+
+    if (existingBookError && existingBookError.code !== 'PGRST116') {
+      // PGRST116 means no rows found, which is not an error here.
+      console.error('Error checking for existing book suggestion:', existingBookError);
+      return NextResponse.json({ message: 'خطأ أثناء التحقق من الاقتراحات الحالية.' }, { status: 500 });
+    }
+
     // 2. Add server-side data (user_id, status)
     bookData.user_id = request.user.id;
     bookData.status = 'pending';
