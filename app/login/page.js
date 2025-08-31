@@ -5,9 +5,11 @@ import { AuthContext } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import './AuthPage.css';
 
+import { FaGoogle } from 'react-icons/fa';
+
 const LoginPage = () => {
   const { theme } = useContext(ThemeContext);
-  const { login } = useContext(AuthContext);
+  const { login, loginWithGoogle } = useContext(AuthContext);
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -23,6 +25,13 @@ const LoginPage = () => {
     }
     setLoading(false); // Set loading to false
   };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    await loginWithGoogle();
+    // No need to set loading to false here, as the page will redirect
+  };
+
 
   return (
     <div className="auth-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
@@ -48,6 +57,13 @@ const LoginPage = () => {
         />
         <button type="submit" disabled={loading} className="themed-button-accent">
           {loading ? 'جاري الدخول...' : 'دخول'}
+        </button>
+        <div className="auth-divider">
+          <span style={{ backgroundColor: theme.secondary }}>أو</span>
+        </div>
+        <button type="button" disabled={loading} className="google-login-button" onClick={handleGoogleLogin}>
+          <FaGoogle style={{ marginLeft: '10px' }} />
+          تسجيل الدخول عبر جوجل
         </button>
       </form>
     </div>

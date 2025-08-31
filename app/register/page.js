@@ -7,13 +7,18 @@ import { toast } from 'react-toastify';
 import { API_URL } from "@/constants";
 import './AuthPage.css';
 
+import { AuthContext } from "@/contexts/AuthContext";
+import { FaGoogle } from 'react-icons/fa';
+
 const RegisterPage = () => {
   const { theme } = useContext(ThemeContext);
+  const { loginWithGoogle } = useContext(AuthContext);
   const router = useRouter();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const validateEmail = (email) => {
     const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -22,6 +27,7 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     const errors = {};
     if (!username) errors.username = 'اسم المستخدم مطلوب.';
@@ -30,6 +36,7 @@ const RegisterPage = () => {
 
     if (Object.keys(errors).length > 0) {
       Object.values(errors).forEach(error => toast.error(error));
+      setLoading(false);
       return;
     }
 
@@ -44,13 +51,21 @@ const RegisterPage = () => {
     } catch (err) {
       console.error("Registration failed:", err);
       toast.error(err.response?.data?.message || "فشل التسجيل");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    await loginWithGoogle();
+    // No need to set loading to false here, as the page will redirect
+  };
+
   return (
-    <div className="auth-container themed-page-container">
-      <h1 className="auth-title themed-title">إنشاء حساب</h1>
-      <form onSubmit={handleSubmit} className="auth-form themed-secondary-background themed-primary-text">
+    <div className="auth-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
+      <h1 className="auth-title" style={{ color: theme.primary }}>إنشاء حساب</h1>
+      <form onSubmit={handleSubmit} className="auth-form" style={{ backgroundColor: theme.secondary, color: theme.primary }}>
         <label>اسم المستخدم:</label>
         <input
           type="text"
@@ -58,7 +73,7 @@ const RegisterPage = () => {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
-          className="themed-input"
+          style={{ backgroundColor: theme.background, color: theme.primary, borderColor: theme.accent }}
         />
         <label>البريد الإلكتروني:</label>
         <input
@@ -67,7 +82,7 @@ const RegisterPage = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="themed-input"
+          style={{ backgroundColor: theme.background, color: theme.primary, borderColor: theme.accent }}
         />
         <label>كلمة المرور:</label>
         <input
@@ -76,9 +91,16 @@ const RegisterPage = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="themed-input"
+          style={{ backgroundColor: theme.background, color: theme.primary, borderColor: theme.accent }}
         />
-        <button type="submit" className="themed-button-accent">إنشاء</button>
+        <button type="submit" disabled={loading} className="themed-button-accent">{loading ? 'جاري الإنشاء...' : 'إنشاء'}</button>
+        <div className="auth-divider">
+          <span style={{ backgroundColor: theme.secondary }}>أو</span>
+        </div>
+        <button type="button" disabled={loading} className="google-login-button" onClick={handleGoogleLogin}>
+          <FaGoogle style={{ marginLeft: '10px' }} />
+          إنشاء حساب عبر جوجل
+        </button>
       </form>
     </div>
   );

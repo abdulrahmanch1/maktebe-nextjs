@@ -76,3 +76,38 @@
   background-color: var(--accent-color);
   color: var(--primary-color);
 }
+
+/* Divider and Google Button Styles */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--accent-color);
+}
+
+.auth-divider:not(:empty)::before {
+  margin-right: 1em;
+}
+
+.auth-divider:not(:empty)::after {
+  margin-left: 1em;
+}
+
+.google-login-button {
+  background-color: #4285F4; /* Google Blue */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.google-login-button:hover {
+  background-color: #357ae8;
+}

@@ -496,7 +496,7 @@ const BookDetailsClient = ({ initialBook }) => {
                     <p className="comment-text">{comment.text}</p>
                     <div className="comment-actions">
                       <span onClick={() => handleToggleLike(comment.id)} className={`comment-like-button ${comment.userLiked ? 'liked' : ''}`}>
-                        <span className="like-icon">{comment.userLiked ? '&#x2764;' : '♡'}</span> {comment.likes}
+                        <span className="like-icon" dangerouslySetInnerHTML={{ __html: comment.userLiked ? '&#x2764;' : '♡' }} /> {comment.likes}
                       </span>
                       {(isLoggedIn && user && (user.id === comment.user_id || user.role === 'admin')) && (<button onClick={() => handleDeleteComment(comment.id)} className="comment-delete-button" title="حذف التعليق"><FaTrash /></button>)}
                     </div>

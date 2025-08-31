@@ -95,6 +95,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error("Google login failed:", error);
+      toast.error(error.message || "فشل تسجيل الدخول عبر جوجل.");
+    }
+  };
+
   const authContextValue = useMemo(() => {
     return {
       isLoggedIn,
@@ -103,10 +115,11 @@ export const AuthProvider = ({ children }) => {
       loading, // <-- ADDED
       login,
       logout,
+      loginWithGoogle, // <-- ADDED
       setUser,
       refreshUserProfile, // Exposed the new function
     };
-  }, [isLoggedIn, user, session, loading, login, logout, setUser, refreshUserProfile]); // <-- ADDED loading
+  }, [isLoggedIn, user, session, loading, login, logout, loginWithGoogle, setUser, refreshUserProfile]); // <-- ADDED loading
 
   return (
     <AuthContext.Provider value={authContextValue}>

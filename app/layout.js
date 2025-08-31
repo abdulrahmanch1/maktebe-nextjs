@@ -2,6 +2,7 @@ import { Providers } from '@/contexts/Providers';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ThemeBodyStyle from '@/components/ThemeBodyStyle';
+import ChatAssistant from '@/components/ChatAssistant';
 import '@/app/globals.css';import { cookies } from 'next/headers';
 
 export const metadata = {
@@ -31,6 +32,7 @@ export default async function RootLayout({ children }) {  const cookieStore = aw
               <Footer />
             </div>
             </ThemeBodyStyle>
+            <ChatAssistant />
         </Providers>
       </body>
     </html>
