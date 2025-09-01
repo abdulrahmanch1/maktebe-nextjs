@@ -21,6 +21,20 @@ const tools = {
         },
         required: ["problemDescription"]
       }
+    },
+    {
+      name: "change_theme",
+      description: "Changes the website's visual theme. Use this when the user explicitly asks to change the theme or color scheme.",
+      parameters: {
+        type: "OBJECT",
+        properties: {
+          themeName: {
+            type: "STRING",
+            description: "The name of the theme to switch to, for example: 'theme1', 'theme2', etc."
+          }
+        },
+        required: ["themeName"]
+      }
     }
   ]
 };
@@ -28,16 +42,18 @@ const tools = {
 // --- Implement the functions for the tools ---
 const report_problem = async ({ problemDescription }) => {
   console.log("AI is reporting a problem:", problemDescription);
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { error } = await supabase.from('contact_messages').insert({
-    subject: 'User issue reported by AI Assistant "Farid"',
+  const { data, error } = await supabase.from('contact_messages').insert({
+    subject: 'User issue reported by AI Assistant',
     message: problemDescription,
     email: user ? user.email : 'ai-reported@example.com',
     username: user ? (user.user_metadata?.username || 'N/A') : 'Anonymous User',
     user_id: user ? user.id : null,
   });
+
+  console.log('Supabase insert result:', { data, error });
 
   if (error) {
     console.error("Failed to report problem to Supabase:", error);
@@ -123,10 +139,9 @@ export async function POST(request) {
     أنت "فريد"، أمين مكتبة "دار القرّاء" الرقمية. أنت مساعد ذكي، واسع المعرفة، وبليغ. مهمتك هي مساعدة المستخدمين في رحلتهم داخل المكتبة.
 
     **شخصيتك وأسلوبك:**
-    1.  **اللغة:** تحدث دائمًا باللغة العربية الفصحى الراقية.
-    2.  **الأسلوب:** يجب أن تكون كتابتك جميلة وواضحة. لا تستخدم أي علامات غريبة أو تنسيقات برمجية.
-    3.  **النبرة:** نبرتك يجب أن تكون ترحيبية وصبورة.
-    4.  **الاسم:** عرّف عن نفسك دائمًا باسم "فريد" في بداية أول محادثة.
+    1.  **اللغة:** تحدث باللغة العربية.
+    2.  **الأسلوب:** كن مباشراً ومختصراً في إجاباتك. تجنب الإطالة غير الضرورية.
+    3.  **النبرة:** نبرتك محايدة ومباشرة.
 
     **معلومات أساسية عن المكتبة:**
     - اسم المكتبة: مكتبة دار القرّاء.
@@ -142,9 +157,10 @@ export async function POST(request) {
 
     **مهمتك الأساسية:**
     - مساعدة المستخدمين والإجابة على أسئلتهم المتعلقة بالكتب، الثيمات، وصفحات الموقع.
-    - إذا واجه المستخدم مشكلة أو كان لديه اقتراح، استخدم أداة report_problem لتسجيل ملاحظته لإدارة المكتبة.
+    - إذا طلب المستخدم تغيير الثيم، استخدم أداة 'change_theme' مع تحديد معرّف الثيم المطلوب (ID).
+    - **مهم جداً:** إذا واجه المستخدم مشكلة أو كان لديه اقتراح، **يجب عليك** استخدام أداة 'report_problem' لتسجيل ملاحظته. لا تجب أبداً على أنك ستقوم بذلك بدون استخدام الأداة.
 
-    ابدأ المحادثة بالترحيب بالمستخدم وتقديم نفسك.
+    
     `;
 
     const generationConfig = {
@@ -176,6 +192,13 @@ export async function POST(request) {
 
     if (response.candidates && response.candidates[0].content.parts[0].functionCall) {
       const functionCall = response.candidates[0].content.parts[0].functionCall;
+
+      // If the tool is `change_theme`, pass it to the frontend
+      if (functionCall.name === 'change_theme') {
+        return NextResponse.json({ tool_call: functionCall });
+      }
+
+      // For other tools, execute them on the backend
       const implementation = toolImplementations[functionCall.name];
       
       if (implementation) {

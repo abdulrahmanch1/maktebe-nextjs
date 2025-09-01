@@ -55,15 +55,15 @@ const ContactMessagesPage = () => {
       ) : (contactMessages && contactMessages.length > 0) ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
           {contactMessages.map((message) => (
-            <div key={`${message.createdAt}-${message.email}`} className="admin-book-item" style={{ backgroundColor: theme.secondary }}>
+            <div key={message.id} className="admin-book-item" style={{ backgroundColor: theme.secondary }}>
               <div>
                 <p style={{ color: theme.primary }}><strong>الموضوع:</strong> {message.subject}</p>
                 <p style={{ color: theme.primary }}><strong>الرسالة:</strong> {message.message}</p>
                 <p style={{ color: theme.primary }}><strong>المرسل:</strong> {message.username} ({message.email})</p>
-                <p style={{ color: theme.primary }}><strong>التاريخ:</strong> {new Date(message.createdAt).toLocaleDateString()}</p>
+                <p style={{ color: theme.primary }}><strong>التاريخ:</strong> {new Date(message.created_at).toLocaleDateString()}</p>
               </div>
               <div>
-                <button onClick={() => handleDeleteMessage(message._id)} className="delete">حذف الرسالة</button>
+                <button onClick={() => handleDeleteMessage(message.id)} className="delete">حذف الرسالة</button>
                 <a href={`mailto:${message.email}`} className="reply-button">رد على المستخدم</a>
               </div>
             </div>

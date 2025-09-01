@@ -28,6 +28,7 @@ const BookCard = ({ book, isPriority }) => {
           className="book-card-image"
           priority={isPriority}
           loading={isPriority ? 'eager' : 'lazy'}
+          unoptimized={true}
           onError={(e) => {
             e.currentTarget.onerror = null;
             e.currentTarget.src = "/imgs/no_cover_available.png";

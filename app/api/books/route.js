@@ -52,7 +52,13 @@ export const GET = async (request) => {
     if (ids) {
       const bookIds = ids.split(',').filter(id => isValidUUID(id));
       if (bookIds.length === 0) {
-        return NextResponse.json([]);
+        return NextResponse.json([], {
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
+        });
       }
       supabaseQuery = supabaseQuery.in('id', bookIds);
     }
@@ -77,10 +83,23 @@ export const GET = async (request) => {
     }
 
     
-    return NextResponse.json(books);
+    return NextResponse.json(books, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    });
   } catch (error) {
     console.error('Error in GET /api/books:', error);
-    return NextResponse.json({ message: 'فشل في جلب الكتب. يرجى المحاولة مرة أخرى.' }, { status: 500 });
+    return NextResponse.json({ message: 'فشل في جلب الكتب. يرجى المحاولة مرة أخرى.' }, {
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    });
   }
 };
 

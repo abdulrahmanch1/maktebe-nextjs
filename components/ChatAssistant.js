@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useContext } from 'react';
 import './ChatAssistant.css';
 import { ThemeContext } from '../contexts/ThemeContext'; // To control themes
 import { AuthContext } from '../contexts/AuthContext'; // To get user ID
+import { themes } from '@/data/themes'; // Import themes data
 
 
 const ChatAssistant = () => {
@@ -56,10 +57,35 @@ const ChatAssistant = () => {
       }
 
       const data = await response.json();
-      
-      // Simple mock response handling for now
-      const modelMessage = { role: 'model', text: data.text };
-      setMessages(prev => [...prev, modelMessage]);
+
+      // Check if the AI wants to use a tool
+      if (data.tool_call && data.tool_call.name === 'change_theme') {
+        const themeIdentifier = data.tool_call.args.themeName;
+        let themeKey = null;
+
+        // Check if the identifier is a direct key
+        if (themes[themeIdentifier]) {
+          themeKey = themeIdentifier;
+        } else {
+          // Otherwise, search by name
+          themeKey = Object.keys(themes).find(key => themes[key].name === themeIdentifier);
+        }
+
+        if (themeKey) {
+          toggleTheme(themeKey); // Change the theme using the found key
+          const modelMessage = { role: 'model', text: `تم تغيير الثيم بنجاح إلى "${themes[themeKey].name}".` };
+          setMessages(prev => [...prev, modelMessage]);
+        } else {
+          // If theme is not found
+          const errorMessage = { role: 'model', text: `عذراً، لم أتمكن من العثور على الثيم "${themeIdentifier}".` };
+          setMessages(prev => [...prev, errorMessage]);
+        }
+
+      } else if (data.text) {
+        // It's a regular text response
+        const modelMessage = { role: 'model', text: data.text };
+        setMessages(prev => [...prev, modelMessage]);
+      }
 
     } catch (error) {
       console.error('Chat error:', error);

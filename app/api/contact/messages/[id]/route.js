@@ -1,20 +1,16 @@
 import { NextResponse } from 'next/server';
 import { protect, admin } from '@/lib/middleware';
-// import { validateMongoId } from '@/lib/validation'; // Removed validateMongoId
-import { supabase } from '@/lib/supabase'; // Import supabase client
+import { createClient } from '@/utils/supabase/server';
 
-export const GET = protect(admin(async (request, { params }) => {
-  const { id } = params;
+export const GET = protect(admin(async (request, context) => {
+  const { id } = context.params;
 
-  // const errors = validateMongoId(id); // Removed validateMongoId call
-  // if (Object.keys(errors).length > 0) { // Removed this block
-  //   return NextResponse.json({ message: 'Invalid Message ID', errors }, { status: 400 });
-  // }
-  if (!id) { // Simple ID validation for Supabase (assuming UUID or integer)
+  if (!id) {
     return NextResponse.json({ message: 'Message ID is required' }, { status: 400 });
   }
 
   try {
+    const supabase = await createClient();
     const { data: message, error: fetchError } = await supabase
       .from('contact_messages')
       .select('*')
@@ -31,18 +27,15 @@ export const GET = protect(admin(async (request, { params }) => {
   }
 }));
 
-export const DELETE = protect(admin(async (request, { params }) => {
-  const { id } = params;
+export const DELETE = protect(admin(async (request, context) => {
+  const { id } = context.params;
 
-  // const errors = validateMongoId(id); // Removed validateMongoId call
-  // if (Object.keys(errors).length > 0) { // Removed this block
-  //   return NextResponse.json({ message: 'Invalid Message ID', errors }, { status: 400 });
-  // }
-  if (!id) { // Simple ID validation for Supabase (assuming UUID or integer)
+  if (!id) {
     return NextResponse.json({ message: 'Message ID is required' }, { status: 400 });
   }
 
   try {
+    const supabase = await createClient();
     const { error: deleteError } = await supabase
       .from('contact_messages')
       .delete()
