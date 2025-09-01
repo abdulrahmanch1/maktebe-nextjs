@@ -46,8 +46,12 @@ const report_problem = async ({ problemDescription }) => {
   const { data: { user } } = await supabase.auth.getUser();
 
   const { data, error } = await supabase.from('contact_messages').insert({
-    subject: 'User issue reported by AI Assistant',
-    message: problemDescription,
+    subject: user
+      ? `User issue reported by AI Assistant (User ID: ${user.id})`
+      : 'User issue reported by AI Assistant',
+    message: user
+      ? `${problemDescription}\n\nReported by User: ${user.user_metadata?.username || 'N/A'} (ID: ${user.id}, Email: ${user.email})\nAdmin Link: /admin/users/${user.id}`
+      : problemDescription,
     email: user ? user.email : 'ai-reported@example.com',
     username: user ? (user.user_metadata?.username || 'N/A') : 'Anonymous User',
     user_id: user ? user.id : null,
@@ -103,16 +107,23 @@ export async function POST(request) {
 
     let userFavorites = [];
     let userReadingList = [];
+    let profile = null; // Declare profile here
     if (userId) {
-      const { data: profile } = await supabase
+      const { data: fetchedProfile } = await supabase // Use a temporary name for data
         .from('profiles')
-        .select('favorites, readinglist')
+        .select('favorites, readinglist, username')
         .eq('id', userId)
         .single();
-      if (profile) {
+      if (fetchedProfile) {
+        profile = fetchedProfile;
         userFavorites = profile.favorites || [];
         userReadingList = profile.readinglist || [];
       }
+    }
+
+    let userUsername = 'غير مسجل';
+    if (userId && profile) {
+        userUsername = profile.username || 'N/A';
     }
 
     // --- Prepare Theme and Site Structure Context ---
@@ -131,6 +142,8 @@ export async function POST(request) {
 - /settings: User settings page
 - /suggest-book: Page to suggest a new book
 `;
+
+    console.log('userUsername passed to systemInstruction:', userUsername);
 
     const genAI = new GoogleGenerativeAI(geminiApiKey);
     const model = genAI.getGenerativeModel({ model: MODEL_NAME, tools });
@@ -190,42 +203,57 @@ export async function POST(request) {
     const result = await chat.sendMessage(userMessage);
     const response = result.response;
 
-    if (response.candidates && response.candidates[0].content.parts[0].functionCall) {
-      const functionCall = response.candidates[0].content.parts[0].functionCall;
+    // Check for safety feedback first
+    if (response.promptFeedback && response.promptFeedback.blockReason) {
+      console.error('Gemini response blocked due to safety:', response.promptFeedback.blockReason);
+      return NextResponse.json({ text: 'عذراً، لا أستطيع الإجابة على هذا السؤال لأسباب تتعلق بالسلامة.' });
+    }
 
-      // If the tool is `change_theme`, pass it to the frontend
-      if (functionCall.name === 'change_theme') {
-        return NextResponse.json({ tool_call: functionCall });
-      }
+    // If not blocked, proceed with normal processing
+    if (response.candidates && response.candidates.length > 0 && response.candidates[0].content.parts && response.candidates[0].content.parts.length > 0) {
+      const firstPart = response.candidates[0].content.parts[0];
 
-      // For other tools, execute them on the backend
-      const implementation = toolImplementations[functionCall.name];
-      
-      if (implementation) {
-        const functionResult = await implementation(functionCall.args);
+      if (firstPart.functionCall) {
+        const functionCall = firstPart.functionCall;
 
-        // Send the result back to the model
-        const followUpResult = await chat.sendMessage([
-          {
-            functionResponse: {
-              name: functionCall.name,
-              response: functionResult,
+        // If the tool is `change_theme`, pass it to the frontend
+        if (functionCall.name === 'change_theme') {
+          return NextResponse.json({ tool_call: functionCall });
+        }
+
+        // For other tools, execute them on the backend
+        const implementation = toolImplementations[functionCall.name];
+
+        if (implementation) {
+          const functionResult = await implementation(functionCall.args);
+
+          // Send the result back to the model
+          const followUpResult = await chat.sendMessage([
+            {
+              functionResponse: {
+                name: functionCall.name,
+                response: functionResult,
+              },
             },
-          },
-        ]);
-        
-        const followUpResponse = followUpResult.response;
-        const text = followUpResponse.candidates[0].content.parts[0].text;
-        return NextResponse.json({ text });
+          ]);
 
-      } else {
-        // Function name not found
-        return NextResponse.json({ text: "Sorry, I tried to use a tool but I couldn't find the right one." });
+          const followUpResponse = followUpResult.response;
+          const text = followUpResponse.candidates[0].content.parts[0].text;
+          return NextResponse.json({ text });
+
+        } else {
+          // Function name not found
+          return NextResponse.json({ text: "Sorry, I tried to use a tool but I couldn't find the right one." });
+        }
+      } else if (firstPart.text) {
+        // It's a regular text response
+        const text = firstPart.text;
+        return NextResponse.json({ text });
       }
     } else {
-      // It's a regular text response
-      const text = response.text();
-      return NextResponse.json({ text });
+      // Fallback for unexpected response structure or empty candidates
+      console.error('Gemini response had unexpected structure or empty candidates:', response);
+      return NextResponse.json({ text: 'عذراً، حدث خطأ غير متوقع في استجابة الذكاء الاصطناعي.' });
     }
 
   } catch (error) {

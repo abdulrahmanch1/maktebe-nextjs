@@ -11,6 +11,11 @@ const nextConfig = {
         hostname: 'jldyyfkashoisxxyfhmb.supabase.co',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'jldyyfkashoisxxyfhmb.supabase.co',
+        pathname: '/storage/v1/object/public/book-pdfs/**',
+      },
     ],
   },
 };
