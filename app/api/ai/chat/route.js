@@ -93,6 +93,7 @@ export async function POST(request) {
       console.error('GEMINI_API_KEY is not set in .env.local');
       return NextResponse.json({ error: 'AI service is not configured.' }, { status: 500 });
     }
+    console.log('GEMINI_API_KEY (first 5 chars):', geminiApiKey ? geminiApiKey.substring(0, 5) : 'N/A');
 
     const supabase = await createClient();
     const { data: books, error: booksError } = await supabase
@@ -143,7 +144,6 @@ export async function POST(request) {
 - /suggest-book: Page to suggest a new book
 `;
 
-    console.log('userUsername passed to systemInstruction:', userUsername);
 
     const genAI = new GoogleGenerativeAI(geminiApiKey);
     const model = genAI.getGenerativeModel({ model: MODEL_NAME, tools });
