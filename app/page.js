@@ -2,6 +2,12 @@ import { createClient } from '@/utils/supabase/server';
 import HomePageClient from './HomePageClient';
 import './HomePage.css'; // Assuming styles are needed for the server component wrapper
 
+export const metadata = {
+  title: 'مكتبة دار القرَاء | تصفح وقراءة آلاف الكتب العربية مجاناً',
+  description: 'مكتبة دار القرَاء هي وجهتك الأولى لقراءة وتحميل آلاف الكتب والروايات العربية في جميع المجالات. اكتشف كتباً جديدة وتصفح أحدث الإصدارات واستمتع بتجربة قراءة فريدة.',
+  keywords: 'مكتبة كتب, كتب عربية, قراءة كتب, تحميل كتب, كتب إلكترونية, روايات عربية, قصص, أدب عربي, كتب دينية, كتب تاريخية, كتب علمية, مكتبة إلكترونية, كتب مجانية, قراءات, ثقافة, معرفة, دار القرَاء',
+};
+
 // Revalidate every hour
 export const revalidate = 3600;
 

@@ -23,6 +23,7 @@ export default async function RootLayout({ children }) {  const cookieStore = aw
 
   return (
     <html lang="ar" dir="rtl">
+      <meta name="google-site-verification" content="bsBB43qfT1FPKaWwZ_HeLlmhodeWwL0jakSb-Yyq2o8" />
       <body>
         <Providers>
           <ThemeBodyStyle>

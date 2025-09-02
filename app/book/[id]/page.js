@@ -56,7 +56,7 @@ export async function generateMetadata(props) {
     numberOfPages: book.pages,
     description: book.description,
     image: book.cover,
-    url: `https://maktebe.vercel.app/book/${params.id}`,
+    url: `https://www.dar-alqurra.com/book/${params.id}`,
     aggregateRating: {
       '@type': 'AggregateRating',
       ratingValue: '4.5', // Placeholder
@@ -73,7 +73,7 @@ export async function generateMetadata(props) {
       title: metadata.title,
       description: metadata.description,
       images: [book.cover],
-      url: `https://maktebe.vercel.app/book/${params.id}`,
+      url: `https://www.dar-alqurra.com/book/${params.id}`,
     },
     twitter: {
       card: 'summary_large_image',
