@@ -520,7 +520,7 @@ const BookDetailsClient = ({ initialBook }) => {
         </div>
       )}
 
-      {initialBook.relatedBooks && initialBook.relatedBooks.length > 0 && (
+      {/* {initialBook.relatedBooks && initialBook.relatedBooks.length > 0 && (
         <div className="related-books-section">
           <h2 className="related-books-title">كتب ذات صلة</h2>
           <div className="related-books-grid">
@@ -529,7 +529,7 @@ const BookDetailsClient = ({ initialBook }) => {
             ))}
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };
