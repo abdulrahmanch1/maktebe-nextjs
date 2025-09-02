@@ -26,6 +26,15 @@ export default async function RootLayout({ children }) {  const cookieStore = aw
     <html lang="ar" dir="rtl">
       <meta name="google-site-verification" content="bsBB43qfT1FPKaWwZ_HeLlmhodeWwL0jakSb-Yyq2o8" />
       <body>
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-YDBSPJW01T"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-YDBSPJW01T');
+        </script>
         <Providers>
           <ThemeBodyStyle>
             <div className="main-layout">
