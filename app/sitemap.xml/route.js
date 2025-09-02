@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 
 const URL = 'https://www.dar-alqurra.com';
 
-export default async function sitemap() {
+export async function GET() {
   const supabase = await createClient();
   const { data: books, error } = await supabase
     .from('books')
