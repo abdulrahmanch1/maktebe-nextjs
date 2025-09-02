@@ -6,11 +6,25 @@ export const ThemeContext = createContext({ toggleTheme: (themeName) => {}, them
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
+    // During SSR, return a default theme to prevent mismatch
     if (typeof window === 'undefined') {
-      return themes.theme2; // Default for server-side rendering
+      return themes.theme2;
     }
+
+    // 1. Check for a theme saved in localStorage
     const savedTheme = localStorage.getItem("theme");
-    return savedTheme ? JSON.parse(savedTheme) : themes.theme2;
+    if (savedTheme) {
+      return JSON.parse(savedTheme);
+    }
+
+    // 2. If no saved theme, check system preference
+    const userPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (userPrefersDark) {
+      return themes.theme4; // "فولاذي داكن" (Steel Dark)
+    }
+
+    // 3. Fallback to the default light theme
+    return themes.theme2; // "أزرق سماوي" (Sky Blue)
   });
 
   useEffect(() => {

@@ -379,3 +379,29 @@
   margin-bottom: 1.5rem;
   color: var(--accent-color);
 }
+
+/* --- Related Books Section --- */
+.related-books-section {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--secondary-color);
+}
+
+.related-books-title {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.related-books-grid {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  gap: 1rem;
+  padding-bottom: 1.5rem; /* Add some padding for the scrollbar */
+}
+
+/* Ensure book cards in the grid don't shrink */
+.related-books-grid .book-card {
+  flex-shrink: 0;
+}

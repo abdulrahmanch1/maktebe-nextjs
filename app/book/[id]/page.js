@@ -2,34 +2,57 @@ import BookDetailsClient from "./BookDetailsClient";
 import { createClient } from "@/utils/supabase/server";
 import { notFound } from 'next/navigation';
 
-async function getBookAndComments(id) {
+async function getBookData(id) {
   const supabase = await createClient();
 
-  const [bookResult, commentsResult] = await Promise.all([
-    supabase.from('books').select('*, profiles(username, email)').eq('id', id).single(),
-    supabase.from('comments').select('*, profiles(username, email, profilepicture)').eq('book_id', id).order('created_at', { ascending: false })
-  ]);
-
-  const { data: book, error: bookError } = bookResult;
-  const { data: comments, error: commentsError } = commentsResult;
+  // Fetch book, comments, and related books concurrently for better performance
+  const { data: book, error: bookError } = await supabase
+    .from('books')
+    .select('*, profiles(username, email)')
+    .eq('id', id)
+    .single();
 
   if (bookError || !book) {
     console.error('Error fetching book:', bookError);
-    return null;
+    return { book: null, comments: [], relatedBooks: [] };
   }
+
+  // Fetch comments and related books in parallel after getting the main book's category
+  const [commentsResult, relatedBooksResult] = await Promise.all([
+    supabase
+      .from('comments')
+      .select('*, profiles(username, email, profilepicture)')
+      .eq('book_id', id)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('books')
+      .select('id, title, author, cover, category') // Select only necessary fields for cards
+      .eq('category', book.category)
+      .eq('status', 'approved')
+      .neq('id', book.id)
+      .limit(5)
+  ]);
+
+  const { data: comments, error: commentsError } = commentsResult;
+  const { data: relatedBooks, error: relatedBooksError } = relatedBooksResult;
 
   if (commentsError) {
     console.error('Error fetching comments:', commentsError);
-    // Still return the book even if comments fail
-    return { ...book, comments: [] };
+  }
+  if (relatedBooksError) {
+    console.error('Error fetching related books:', relatedBooksError);
   }
 
-  return { ...book, comments };
+  return {
+    book,
+    comments: comments || [],
+    relatedBooks: relatedBooks || [],
+  };
 }
 
 export async function generateMetadata(props) {
   const params = await props.params;
-  const book = await getBookAndComments(params.id);
+  const { book } = await getBookData(params.id);
 
   if (!book) {
     return {
@@ -89,13 +112,16 @@ export async function generateMetadata(props) {
 
 const BookDetailsPage = async (props) => {
   const params = await props.params;
-  const book = await getBookAndComments(params.id);
+  const { book, comments, relatedBooks } = await getBookData(params.id);
 
   if (!book) {
     notFound();
   }
 
-  return <BookDetailsClient initialBook={book} />;
+  // Combine all data into a single object for the client component
+  const bookDetails = { ...book, comments, relatedBooks };
+
+  return <BookDetailsClient initialBook={bookDetails} />;
 };
 
 export default BookDetailsPage;

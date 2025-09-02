@@ -10,6 +10,7 @@ import { API_URL } from "@/constants";
 import './BookDetailsPage.css';
 import { FaTrash } from 'react-icons/fa';
 import { useRouter } from "next/navigation";
+import BookCard from "@/components/BookCard"; // Import BookCard
 
 // A small component to safely render dates only on the client-side
 const ClientOnlyDate = ({ dateString }) => {
@@ -185,7 +186,8 @@ const BookDetailsClient = ({ initialBook }) => {
     if (isProcessingAction) return;
     setIsProcessingAction(true);
     if (!user) {
-      toast.error('الرجاء تسجيل الدخول لإضافة الكتاب إلى قائمة القراءة');
+      // For guests, just open the book and don't do anything else.
+      handleReadBook();
       setIsProcessingAction(false);
       return;
     }
@@ -206,6 +208,8 @@ const BookDetailsClient = ({ initialBook }) => {
         if (user && user.readingList) {
           setUser(prevUser => ({ ...prevUser, readingList: [...prevUser.readingList, { book: initialBook.id, read: false }] }));
         }
+        // Also open the book for the logged-in user
+        handleReadBook();
       } else {
         const errorData = await response.json();
         toast.error(`فشل في إضافة الكتاب إلى قائمة القراءة: ${errorData.message || response.statusText}`);
@@ -513,6 +517,17 @@ const BookDetailsClient = ({ initialBook }) => {
           <h2 className="suggester-info-title">معلومات المقترح</h2>
           <p><strong>اسم المستخدم:</strong> {book.profiles.username}</p>
           <p><strong>البريد الإلكتروني:</strong> {book.profiles.email}</p>
+        </div>
+      )}
+
+      {initialBook.relatedBooks && initialBook.relatedBooks.length > 0 && (
+        <div className="related-books-section">
+          <h2 className="related-books-title">كتب ذات صلة</h2>
+          <div className="related-books-grid">
+            {initialBook.relatedBooks.map(relatedBook => (
+              <BookCard key={relatedBook.id} book={relatedBook} />
+            ))}
+          </div>
         </div>
       )}
     </div>

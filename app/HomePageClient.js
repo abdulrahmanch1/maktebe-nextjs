@@ -76,14 +76,24 @@ const HomePageClient = ({ initialBooks = [] }) => {
 
   // Filter books based on search term and category
   const filteredBooks = useMemo(() => {
+    const term = searchTerm.toLowerCase();
     return books
       .filter(book => 
         selectedCategory === "الكل" || book.category === selectedCategory
       )
-      .filter(book => 
-        book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        book.author.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      .filter(book => {
+        if (!term) return true;
+        return (
+          (book.title && book.title.toLowerCase().includes(term)) ||
+          (book.author && book.author.toLowerCase().includes(term)) ||
+          (book.category && book.category.toLowerCase().includes(term)) ||
+          (book.keywords && (
+            Array.isArray(book.keywords)
+              ? book.keywords.some(keyword => keyword.toLowerCase().includes(term))
+              : typeof book.keywords === 'string' && book.keywords.toLowerCase().includes(term)
+          ))
+        );
+      });
   }, [books, searchTerm, selectedCategory]);
 
   return (
