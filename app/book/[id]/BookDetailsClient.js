@@ -379,8 +379,8 @@ const BookDetailsClient = ({ initialBook }) => {
       return;
     }
 
-    // Open the PDF file
-    window.open(book.pdfFile, '_blank');
+    // Navigate to the in-app PDF viewer page
+    router.push(`/read/${book.id}`);
 
     // Increment readcount via API
     try {

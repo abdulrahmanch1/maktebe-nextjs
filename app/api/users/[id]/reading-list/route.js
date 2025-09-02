@@ -42,7 +42,7 @@ export const GET = protect(async (request, { params }) => {
 
 export const POST = protect(async (request, { params }) => {
   const supabase = await createClient();
-  const { id } = params;
+  const { id } = await params;
   const { bookId } = await request.json();
 
   if (!id) {

@@ -7,6 +7,9 @@
 .main-content {
   padding: 10px;
   margin: 0; /* Remove margin */
+  flex-grow: 1; /* Allow main content to take available vertical space */
+  display: flex; /* Make it a flex container */
+  flex-direction: column; /* Stack children vertically */
 }
 
 @media (max-width: 344px) {

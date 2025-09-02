@@ -3,7 +3,8 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ThemeBodyStyle from '@/components/ThemeBodyStyle';
 import ChatAssistant from '@/components/ChatAssistant';
-import '@/app/globals.css';import { cookies } from 'next/headers';
+import '@/app/globals.css';
+import { cookies } from 'next/headers';
 
 export const metadata = {
   title: 'مكتبة الكتب | تصفح واقرأ آلاف الكتب والروايات',
