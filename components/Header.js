@@ -23,9 +23,9 @@ const Header = () => {
   return (
     <header className="header">
       <div className="header-content">
-        <div className="menu-icon" onClick={toggleSidebar}>
+        <button className="menu-icon" onClick={toggleSidebar} aria-label="فتح القائمة">
           <FaBars />
-        </div>
+        </button>
         <nav className="header-nav">
           <Link href="/" className="header-link">الرئيسية</Link>
           <Link href="/suggest-book" className="header-link">اقترح كتاباً</Link>

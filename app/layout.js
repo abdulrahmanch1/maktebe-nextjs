@@ -2,7 +2,8 @@ import { Providers } from '@/contexts/Providers';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ThemeBodyStyle from '@/components/ThemeBodyStyle';
-import ChatAssistant from '@/components/ChatAssistant';
+import DynamicChatAssistant from '@/components/DynamicChatAssistant';
+import Script from 'next/script';
 import '@/app/globals.css';
 import { cookies } from 'next/headers';
 
@@ -26,17 +27,18 @@ export default async function RootLayout({ children }) {  const cookieStore = aw
     <html lang="ar" dir="rtl">
       <meta name="google-site-verification" content="bsBB43qfT1FPKaWwZ_HeLlmhodeWwL0jakSb-Yyq2o8" />
       <body>
-        {/* Google tag (gtag.js) */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-YDBSPJW01T"></script>
-        <script>
+        <Script
+          strategy="lazyOnload"
+          src={`https://www.googletagmanager.com/gtag/js?id=G-YDBSPJW01T`}
+        />
+        <Script strategy="lazyOnload" id="gtag-inline-script">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-
             gtag('config', 'G-YDBSPJW01T');
           `}
-        </script>
+        </Script>
         <Providers>
           <ThemeBodyStyle>
             <div className="main-layout">
@@ -45,7 +47,7 @@ export default async function RootLayout({ children }) {  const cookieStore = aw
               <Footer />
             </div>
             </ThemeBodyStyle>
-            <ChatAssistant />
+            <DynamicChatAssistant />
         </Providers>
       </body>
     </html>

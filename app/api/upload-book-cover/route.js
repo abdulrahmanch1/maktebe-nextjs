@@ -39,7 +39,7 @@ export async function POST(request) {
 
         const fileExt = coverImage.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-        const filePath = `book-covers/${fileName}`;
+        const filePath = fileName;
 
         const { data, error } = await supabaseAdmin.storage
             .from('book-covers')

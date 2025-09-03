@@ -100,14 +100,18 @@ const HomePageClient = ({ initialBooks = [] }) => {
     <div className="homepage-container">
       <h1 className="homepage-title">البحث عن الكتب</h1>
       <div className="search-filter-container">
+        <label htmlFor="search-input" className="visually-hidden">البحث عن الكتب</label>
         <input
           type="text"
+          id="search-input"
           placeholder="ابحث بالاسم أو المؤلف..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"
         />
+        <label htmlFor="category-select" className="visually-hidden">فلترة حسب التصنيف</label>
         <select
+          id="category-select"
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
           className="category-select"

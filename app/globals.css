@@ -17,7 +17,7 @@ html[data-theme="theme2"] {
 
 /* theme1 */
 html[data-theme="theme1"] {
-  --primary-color: #8D6B94;
+  --primary-color: #5D3A63;
   --secondary-color: #F7C5CC;
   --accent-color: #F3D5A5;
   --background-color: #FFF8F6;
@@ -136,4 +136,9 @@ button {
 
 button:hover {
   opacity: 0.9;
+}
+
+/* Accessibility fix for theme3 button contrast */
+html[data-theme="theme3"] button {
+  color: var(--background-color);
 }
