@@ -65,6 +65,8 @@ const AdminPageClient = () => {
   const [categories] = useState(["قصص أطفال", "كتب دينية", "كتب تجارية", "كتب رومانسية", "كتب بوليسية", "أدب", "تاريخ", "علوم", "فلسفة", "تكنولوجيا", "سيرة ذاتية", "شعر", "فن", "طبخ", "روايات تاريخية", "خيال علمي", "فانتازيا", "تشويق وإثارة", "دراما", "كوميديا", "أدب كلاسيكي", "أدب معاصر", "تنمية بشرية", "علم نفس", "اجتماع", "اقتصاد", "سياسة", "قانون", "تربية", "صحة", "رياضة", "رحلات", "مذكرات", "فنون جميلة", "تصميم", "هندسة", "برمجة", "لغات", "فلك", "جغرافيا", "بيئة", "حيوان", "نبات", "طب بديل"]);
   const [editingBook, setEditingBook] = useState(null);
   const [existingCoverUrl, setExistingCoverUrl] = useState(null);
+  const [aiTitle, setAiTitle] = useState("");
+  const [isFetchingAi, setIsFetchingAi] = useState(false);
 
   const coverInputRef = useRef(null);
   const pdfFileInputRef = useRef(null);
@@ -119,6 +121,34 @@ const AdminPageClient = () => {
       }
     }
   }, [editBookId, router, editingBook, clearForm]);
+
+  const handleAiFetch = async () => {
+    if (!aiTitle) {
+      toast.error("الرجاء إدخال عنوان الكتاب أولاً.");
+      return;
+    }
+    setIsFetchingAi(true);
+    try {
+      const response = await axios.post(`${API_URL}/api/ai/book-info`, { title: aiTitle });
+      const data = response.data;
+
+      // Populate form fields with AI data
+      setTitle(data.title || aiTitle);
+      setAuthor(data.author || '');
+      setCategory(data.category || '');
+      setDescription(data.description || '');
+      setPublishYear(data.publishYear || '');
+      setLanguage(data.language || '');
+      setKeywords(Array.isArray(data.keywords) ? data.keywords.join(', ') : '');
+
+      toast.success("تم جلب معلومات الكتاب بنجاح!");
+    } catch (error) {
+      console.error("Error fetching AI book info:", error);
+      toast.error("فشل في جلب معلومات الكتاب من الذكاء الاصطناعي.");
+    } finally {
+      setIsFetchingAi(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -232,6 +262,29 @@ const AdminPageClient = () => {
 
       <div className="admin-form-container" style={{ backgroundColor: theme.secondary, color: theme.primary }}>
         <h2 className="admin-form-title">{editingBook ? "تعديل الكتاب" : "إضافة كتاب جديد"}</h2>
+        
+        {/* AI Fetch Section */}
+        {!editingBook && (
+          <div className="ai-fetch-section" style={{ border: `1px solid ${theme.accent}`, padding: '15px', borderRadius: '5px', marginBottom: '20px' }}>
+            <h3 style={{ marginTop: 0 }}>إضافة سريعة بالذكاء الاصطناعي</h3>
+            <div className="admin-form-group">
+              <label>أدخل عنوان الكتاب لجلب معلوماته تلقائياً</label>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <input 
+                  type="text" 
+                  placeholder="مثال: 'كبرياء وتحامل'"
+                  value={aiTitle} 
+                  onChange={(e) => setAiTitle(e.target.value)} 
+                  style={{ flexGrow: 1, border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }}
+                />
+                <button type="button" onClick={handleAiFetch} disabled={isFetchingAi} style={{ backgroundColor: theme.accent, color: theme.primary }}>
+                  {isFetchingAi ? 'جاري الجلب...' : 'جلب المعلومات'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className="admin-form-group">
             <label>عنوان الكتاب</label>
