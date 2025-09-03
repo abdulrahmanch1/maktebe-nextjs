@@ -118,6 +118,10 @@
   transition: all 0.2s ease;
   width: 80%; /* Changed from 100% to 80% */
   margin-top: 0.5rem; /* Added margin to separate buttons */
+  text-decoration: none; /* Ensure no underline on links */
+  text-align: center; /* Center text for links */
+  display: inline-block; /* Ensure consistent display */
+  box-sizing: border-box; /* Ensure consistent sizing */
 }
 
 .book-action-button.primary {

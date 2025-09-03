@@ -454,6 +454,7 @@ const BookDetailsClient = ({ initialBook }) => {
                 <>
                   {!isInReadingList && (<button onClick={handleAddToReadingList} className="book-action-button primary" disabled={isProcessingAction}>ابدأ القراءة</button>)}
                   {isInReadingList && (<button onClick={handleReadBook} className="book-action-button primary" disabled={isProcessingAction}>متابعة القراءة</button>)}
+                  <a href={`/api/download?fileUrl=${encodeURIComponent(book.pdfFile)}`} className="book-action-button primary">تنزيل الكتاب</a>
                   {isInReadingList && !isRead && (<button onClick={handleMarkAsReadInList} className="book-action-button primary" disabled={isProcessingAction}>وضع علامة &quot;مقروء&quot;</button>)}
                   {isInReadingList && (<button onClick={handleRemoveFromReadingList} className="book-action-button secondary full-width-button" disabled={isProcessingAction}>إزالة من قائمة القراءة</button>)}
                   <button onClick={handleToggleFavorite} className="book-action-button secondary" disabled={isProcessingAction}>{isLiked ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}</button>
