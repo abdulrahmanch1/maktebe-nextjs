@@ -1,0 +1,134 @@
+/* Favorites Page Redesign */
+
+/* Main container for the page */
+.favorites-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}
+
+/* Header section with title and subtitle */
+.favorites-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--secondary-color);
+}
+
+.favorites-title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.favorites-subtitle {
+  font-size: 1.1rem;
+  color: var(--primary-color);
+  opacity: 0.8;
+}
+
+/* Grid for displaying the book cards */
+.favorites-books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 2.5rem 2rem; /* Larger gap for rows and columns */
+}
+
+/* Styling for the message shown when no favorites are found */
+.favorites-empty-state,
+.favorites-login-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background-color: var(--secondary-color);
+  padding: 4rem 2rem;
+  border-radius: 12px;
+  min-height: 50vh;
+  margin-top: 2rem;
+}
+
+.favorites-empty-state-icon {
+  font-size: 4.5rem;
+  color: var(--accent-color);
+  margin-bottom: 1.5rem;
+  line-height: 1;
+}
+
+.favorites-empty-state h2,
+.favorites-login-prompt h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin: 0 0 0.75rem 0;
+}
+
+.favorites-empty-state p,
+.favorites-login-prompt p {
+  font-size: 1.1rem;
+  color: var(--primary-color);
+  opacity: 0.9;
+  max-width: 500px;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+/* Container for action buttons (e.g., login, register) */
+.favorites-action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.favorites-action-button {
+  padding: 12px 28px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.favorites-action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .favorites-container {
+    padding: 2rem 1rem;
+  }
+
+  .favorites-title {
+    font-size: 2.2rem;
+  }
+
+  .favorites-books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 2rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .favorites-container {
+    padding: 1.5rem 0.75rem; /* Reduce padding for small phones */
+  }
+
+  .favorites-header {
+    margin-bottom: 2rem; /* Reduce space below header */
+  }
+
+  .favorites-title {
+    font-size: 1.8rem; /* Reduce title font size */
+  }
+
+  .favorites-books-grid {
+    /* Switch to 2 columns for small phones */
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem 1rem;
+  }
+}

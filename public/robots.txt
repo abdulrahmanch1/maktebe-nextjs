@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /login/
+Disallow: /register/
+Disallow: /settings/
+Disallow: /favorites/
+Disallow: /reading-list/
+Disallow: /suggest-book/
+
+Sitemap: https://www.dar-alqurra.com/sitemap.xml

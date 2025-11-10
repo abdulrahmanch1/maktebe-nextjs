@@ -1,0 +1,35 @@
+.suggested-books-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.admin-suggested-books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Adjusted minmax to fit 2 cards at 548px */
+  gap: 20px;
+  justify-items: center;
+}
+
+@media (max-width: 548px) {
+  .admin-suggested-books-grid {
+    grid-template-columns: repeat(2, 1fr); /* Force 2 columns */
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-suggested-books-grid {
+    grid-template-columns: 1fr; /* Single column for very small screens */
+  }
+}
+
+.no-books-message {
+  text-align: center;
+  font-size: 1.2rem;
+  margin-top: 50px;
+}

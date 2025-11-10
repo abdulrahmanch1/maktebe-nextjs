@@ -1,0 +1,109 @@
+.sidebar {
+  height: 100%;
+  width: 250px;
+  position: fixed;
+  top: 0;
+  right: -250px; /* Start off-screen */
+  background-color: #111;
+  overflow-x: hidden;
+  transition: 0.5s;
+  padding-top: 60px;
+  /* Removed padding-bottom from here */
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  /* Removed justify-content: space-between; */
+}
+
+.sidebar.open {
+  right: 0;
+}
+
+.sidebar-header {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5em; /* Reduced font size */
+  cursor: pointer;
+  padding: 0; /* Remove extra padding */
+  line-height: 1; /* Adjust line height */
+  margin-bottom: 10px; /* Add margin-bottom */
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-grow: 1; /* Allow nav to take available space */
+  /* Removed margin-bottom: auto; */
+}
+
+.sidebar-nav a {
+  padding: 10px 15px;
+  text-decoration: none;
+  font-size: 1.2em;
+  display: block;
+  transition: 0.3s;
+}
+
+.sidebar-nav a:hover {
+  opacity: 0.7;
+}
+
+.sidebar-logout-button {
+  margin-top: auto; /* Push button to the bottom */
+  margin: auto auto 70px auto; /* Control distance from the bottom of the sidebar and center horizontally */
+  width: 80%; /* Ensure it aligns with other links */
+  padding: 10px 15px;
+  border-radius: 25px;
+  text-align: center;
+  font-size: 1.2em;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Themed styles for Sidebar */
+.themed-secondary-background {
+  background-color: var(--secondary-color);
+}
+
+.themed-primary-text {
+  color: var(--primary-color);
+}
+
+.sidebar-link {
+  padding: 10px 15px;
+  text-decoration: none;
+  font-size: 1.2em;
+  display: block;
+  transition: 0.3s;
+  width: 80%;
+  border-radius: 25px;
+  text-align: center;
+  font-weight: normal;
+}
+
+.sidebar-link-active {
+  color: var(--background-color);
+  background-color: var(--accent-color);
+  font-weight: bold;
+}
+
+.sidebar-link-inactive {
+  color: var(--primary-color);
+  background-color: transparent;
+}
+
+.themed-button-accent {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+}

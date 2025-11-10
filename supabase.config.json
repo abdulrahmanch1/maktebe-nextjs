@@ -1,0 +1,13 @@
+{
+  "type": "supabase",
+  "url": "https://jldyyfkashoisxxyfhmb.supabase.co",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsZHl5Zmthc2hvaXN4eHlmaG1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4NTA3MTgsImV4cCI6MjA3MDQyNjcxOH0.oIu6TQhqJC26rCRNyxuizi7iTIjG7zW7p5bwF7Ymg0c",
+  "service_role_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsZHl5Zmthc2hvaXN4eHlmaG1iIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDg1MDcxOCwiZXhwIjoyMDcwNDI2NzE4fQ.o2bCoMcEJ_213W3Gk40znQx1TsGwGAZub8vISLHmcJ8",
+  "database": {
+    "host": "db.jldyyfkashoisxxyfhmb.supabase.co",
+    "port": 5432,
+    "user": "postgres",
+    "password": "Abdo2009!AB2009",
+    "name": "postgres"
+  }
+}

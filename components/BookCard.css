@@ -1,0 +1,170 @@
+.book-card {
+  background-color: var(--background-color);
+  color: var(--primary-color);
+  border: 1px solid var(--secondary-color);
+  border-radius: 8px;
+  padding: 10px;
+  margin: 10px; /* Reverted */
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out; /* Add transition */
+}
+
+.book-card:hover {
+  transform: translateY(-5px); /* Lift effect */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Enhanced box-shadow on hover */
+}
+
+ @media (max-width: 600px) {
+  .book-card {
+    width: 150px;
+  }
+
+  .book-card-image {
+    height: 225px;
+  }
+
+  .book-card-title {
+    font-size: 0.9em !important; /* Further reduced font size */
+  }
+
+  .read-button {
+    padding: 2px 5px;
+    font-size: 15px !important;
+  }
+
+  .favorite-icon {
+    font-size: 14px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 444px) {
+  .book-card {
+    width: 130px;
+    height: 260px;
+  }
+  .book-card-image {
+    height: 180px !important;
+  }
+}
+
+ @media (max-width: 400px) { /* Adjusted for smaller phones */
+  .book-card {
+    padding: 10px;
+    margin: 5px;
+  }
+
+  .book-card-title {
+    font-size: 0.8em;
+  }
+
+  .read-button {
+    padding: 5px 8px;
+    font-size: 0.7em;
+  }
+
+  .favorite-icon {
+    font-size: 12px;
+    width: 18px;
+    height: 18px;
+  }
+  
+}
+@media (max-width: 325px) {
+  .book-card {
+    width: 120px;
+    height: 260px;
+  }
+  .book-card-image{
+    width: 150px;
+  }
+}
+@media (max-width: 305px) {
+  .book-card{
+    padding: 3px;
+    margin: 1px;
+  }
+}
+.book-card-image-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 150%; /* 2:3 Aspect Ratio (height = 1.5 * width) */
+  overflow: hidden;
+}
+
+.book-card-image {
+  width: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+  margin: 0 auto;
+}
+
+.book-card-title {
+  font-size: 1.2em;
+  font-weight: bold;
+  text-align: center;
+  color: var(--accent-color);
+  margin: 0 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.book-card-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.read-button {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+  padding: 8px 12px; /* Smaller padding */
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  flex-grow: 1; /* Allow button to grow */
+}
+
+.favorite-icon {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 1;
+  cursor: pointer;
+  color: white; /* White by default, red when liked */
+  font-size: 20px; /* Adjusted font size */
+  background-color: var(--primary-color);
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 35px; /* Increased width for circular background */
+  height: 35px; /* Increased height for circular background */
+  transition: color 0.3s ease, background-color 0.3s ease, transform 0.2s ease-out;
+  border: none !important; /* Ensure no border */
+  outline: none; /* Remove outline on focus/click */
+}
+
+.favorite-icon:active {
+  transform: scale(0.9); /* Shrink slightly on click */
+}
+
+.favorite-icon.liked {
+  color: red; /* Red when liked */
+  transform: scale(1.05); /* Adjusted scale to fit within circle */
+}
+
+.book-image-wrapper {
+  position: relative;
+}

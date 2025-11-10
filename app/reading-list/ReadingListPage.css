@@ -1,0 +1,177 @@
+/* Reading List Page Redesign */
+
+/* Main container for the page */
+.reading-list-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}
+
+/* Header section with title */
+.reading-list-header {
+  text-align: center;
+  margin-bottom: 2rem; /* Space below the title */
+}
+
+.reading-list-title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+}
+
+/* Container for the toggle buttons */
+.reading-list-toggles {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 3rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--secondary-color);
+}
+
+.reading-list-toggle-button {
+  padding: 10px 24px;
+  border-radius: 20px; /* Pill-shaped */
+  border: 1px solid var(--secondary-color);
+  background-color: transparent;
+  color: var(--primary-color);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
+.reading-list-toggle-button.active {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+  border-color: var(--accent-color);
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+/* Grid for displaying the book cards */
+.reading-list-books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 2.5rem 2rem;
+}
+
+.reading-list-book-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.reading-list-progress-badge {
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+  text-align: center;
+  border-radius: 10px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+}
+
+/* Styling for empty/login states */
+.reading-list-empty-state,
+.reading-list-login-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background-color: var(--secondary-color);
+  padding: 4rem 2rem;
+  border-radius: 12px;
+  min-height: 50vh;
+  margin-top: 2rem;
+}
+
+.reading-list-empty-state-icon {
+  font-size: 4.5rem;
+  color: var(--accent-color);
+  margin-bottom: 1.5rem;
+  line-height: 1;
+}
+
+.reading-list-empty-state h2,
+.reading-list-login-prompt h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin: 0 0 0.75rem 0;
+}
+
+.reading-list-empty-state p,
+.reading-list-login-prompt p {
+  font-size: 1.1rem;
+  color: var(--primary-color);
+  opacity: 0.9;
+  max-width: 500px;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.reading-list-action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.reading-list-action-button {
+  padding: 12px 28px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.reading-list-action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .reading-list-container {
+    padding: 2rem 1rem;
+  }
+
+  .reading-list-title {
+    font-size: 2.2rem;
+  }
+
+  .reading-list-books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 2rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .reading-list-container {
+    padding: 1.5rem 0.75rem; /* Reduce padding for small phones */
+  }
+
+  .reading-list-header {
+    margin-bottom: 1.5rem; /* Reduce space below header */
+  }
+
+  .reading-list-title {
+    font-size: 1.8rem; /* Reduce title font size */
+  }
+
+  .reading-list-toggles {
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .reading-list-books-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem 1rem;
+  }
+}
