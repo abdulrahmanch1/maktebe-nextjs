@@ -264,7 +264,7 @@ const HomePageClient = ({ initialBooks = [], initialTotalCount = 0 }) => {
             {isFiltering ? "جاري تحميل الكتب..." : "لا توجد كتب تطابق بحثك."}
           </div>
         )}
-        {isFiltering && (
+        {isFiltering && books.length > 0 && (
           <div style={{ textAlign: "center", marginTop: "1rem" }}>جاري تحديث النتائج...</div>
         )}
         {isLoadingMore && !isFiltering && books.length > 0 && (

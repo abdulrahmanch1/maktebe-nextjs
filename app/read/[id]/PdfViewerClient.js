@@ -510,10 +510,10 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
             </div>
           </div>
         )}
-        {!errorMessage && (isLoading || isRendering) && (
+        {!errorMessage && isLoading && (
           <div className="pdf-viewer-overlay">
             <div className="pdf-viewer-status">
-              {isLoading ? 'جاري تحميل الكتاب...' : 'جاري عرض الصفحة...'}
+              جاري تحميل الكتاب...
             </div>
           </div>
         )}
