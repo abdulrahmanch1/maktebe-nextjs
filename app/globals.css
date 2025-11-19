@@ -1,0 +1,193 @@
+:root {
+  direction: rtl;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
+  --border-color: #ccc;
+  --box-shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Default theme (theme2) */
+html[data-theme="theme2"] {
+  --primary-color: #2C3E50;
+  --secondary-color: #ECF0F1;
+  --accent-color: #E74C3C;
+  --background-color: #FFFFFF;
+  --text-color: #2C3E50;
+  --card-bg: #F8F9FA;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --placeholder-color: #95a5a6;
+}
+
+/* theme1 */
+html[data-theme="theme1"] {
+  --primary-color: #4A148C;
+  --secondary-color: #F3E5F5;
+  --accent-color: #AB47BC;
+  --background-color: #FFFFFF;
+  --text-color: #4A148C;
+  --card-bg: #FAFAFA;
+  --shadow-sm: 0 2px 4px rgba(74, 20, 140, 0.05);
+  --shadow-md: 0 4px 6px rgba(74, 20, 140, 0.1);
+  --shadow-lg: 0 10px 15px rgba(74, 20, 140, 0.1);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --placeholder-color: #B39DDB;
+}
+
+/* theme3 */
+html[data-theme="theme3"] {
+  --primary-color: #E0E0E0;
+  --secondary-color: #424242;
+  --accent-color: #BB86FC;
+  --background-color: #121212;
+  --text-color: #E0E0E0;
+  --card-bg: #1E1E1E;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --placeholder-color: #757575;
+}
+
+/* theme4 */
+html[data-theme="theme4"] {
+  --primary-color: #D7D7D7;
+  --secondary-color: #2C3E50;
+  --accent-color: #E67E22;
+  --background-color: #1A252F;
+  --text-color: #ECF0F1;
+  --card-bg: #34495E;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --placeholder-color: #95a5a6;
+}
+
+/* Apply variables to body */
+html,
+body,
+#__next {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-align: right;
+  /* Align text to the right for RTL */
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {}
+
+@media (max-width: 400px) {
+  main {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  form {
+    gap: 8px;
+  }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 0;
+}
+
+nav a {
+  margin: 0 15px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 400px;
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px var(--box-shadow-color);
+  background-color: var(--secondary-color);
+  /* Use secondary color for form background */
+  color: var(--primary-color);
+  /* Use primary color for form text */
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  /* Include padding in width */
+  background-color: var(--background-color);
+  /* Use background color for input background */
+  color: var(--primary-color);
+  /* Use primary color for input text */
+  border-color: var(--accent-color);
+  /* Use accent color for input border */
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--placeholder-color, #a9a9a9);
+  /* Use CSS variable with a fallback */
+  opacity: 1;
+  /* Override Firefox's default opacity */
+}
+
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  background-color: var(--accent-color);
+  /* Use accent color for button background */
+  color: var(--primary-color);
+  /* Use primary color for button text */
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* Accessibility fix for theme3 button contrast */
+html[data-theme="theme3"] button {
+  color: var(--background-color);
+}

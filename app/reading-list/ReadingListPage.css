@@ -1,0 +1,214 @@
+.reading-list-container {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.reading-list-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  animation: fadeInDown 0.8s ease-out;
+}
+
+.reading-list-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.reading-list-toggles {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.8s ease-out 0.2s backwards;
+}
+
+.reading-list-toggle-button {
+  padding: 0.75rem 2rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 1rem;
+  border: 2px solid transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.reading-list-toggle-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.reading-list-toggle-button.active {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+.reading-list-books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+  padding: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeInUp 0.8s ease-out 0.4s backwards;
+}
+
+.reading-list-book-wrapper {
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+.reading-list-book-wrapper:hover {
+  transform: translateY(-5px);
+  z-index: 1;
+}
+
+.reading-list-progress-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: var(--accent-color);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  box-shadow: var(--shadow-md);
+  z-index: 2;
+  backdrop-filter: blur(4px);
+}
+
+.reading-list-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  border-radius: var(--radius-lg);
+  text-align: center;
+  max-width: 600px;
+  margin: 2rem auto;
+  box-shadow: var(--shadow-lg);
+  animation: zoomIn 0.5s ease-out;
+}
+
+.reading-list-empty-state-icon {
+  font-size: 5rem;
+  margin-bottom: 1.5rem;
+  animation: bounce 2s infinite;
+}
+
+.reading-list-login-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  border-radius: var(--radius-lg);
+  text-align: center;
+  max-width: 500px;
+  margin: 4rem auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.reading-list-action-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.reading-list-action-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-weight: bold;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.reading-list-action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounce {
+
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+
+  40% {
+    transform: translateY(-20px);
+  }
+
+  60% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (max-width: 768px) {
+  .reading-list-title {
+    font-size: 2rem;
+  }
+
+  .reading-list-books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+
+  .reading-list-action-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .reading-list-action-button {
+    width: 100%;
+    text-align: center;
+  }
+}

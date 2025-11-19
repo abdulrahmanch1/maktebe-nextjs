@@ -1,0 +1,33 @@
+{
+    "name": "دار القراء",
+    "short_name": "دار القراء",
+    "description": "مكتبة كتب عربية شاملة. تصفح واقرأ آلاف الكتب والروايات.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#0a3f54",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [],
+    "categories": [
+        "books",
+        "education",
+        "lifestyle"
+    ],
+    "lang": "ar",
+    "dir": "rtl",
+    "prefer_related_applications": false
+}

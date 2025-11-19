@@ -1,0 +1,19 @@
+.main-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  padding: 0;
+  margin: 0; /* Remove margin */
+  flex-grow: 1; /* Allow main content to take available vertical space */
+  display: flex; /* Make it a flex container */
+  flex-direction: column; /* Stack children vertically */
+}
+
+@media (max-width: 344px) {
+  .main-content {
+    padding: 0;
+  }
+}

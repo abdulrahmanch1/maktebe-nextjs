@@ -1,0 +1,152 @@
+.admin-page-container {
+  padding: 20px;
+}
+
+.admin-page-title {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.admin-form-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.admin-form-title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.admin-form-group {
+  margin-bottom: 15px;
+}
+
+.admin-form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.admin-form-group input,
+.admin-form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid;
+  box-sizing: border-box;
+}
+
+.admin-form-button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 4px;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.admin-form-button.cancel {
+  margin-top: 10px;
+}
+
+.admin-books-list-container {
+  margin-top: 40px;
+}
+
+.admin-books-list-title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.admin-book-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 15px; /* Add margin between items */
+}
+
+.admin-book-item p {
+  margin: 0;
+  font-weight: bold;
+}
+
+.admin-book-item button {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.admin-book-item button.delete {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* Fixed styles for admin form inputs */
+.admin-form-input {
+  background-color: #ffffff; /* White background */
+  color: #333333; /* Dark gray text */
+  border-color: #cccccc; /* Light gray border */
+}
+
+.admin-form-input::placeholder {
+  color: #999999; /* Lighter gray placeholder */
+}
+
+/* Themed styles for AdminPageClient */
+.themed-page-container {
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}
+
+.themed-title {
+  color: var(--primary-color);
+}
+
+.admin-nav-link {
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-decoration: none;
+}
+
+.themed-button-accent {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+}
+
+.themed-secondary-background {
+  background-color: var(--secondary-color);
+}
+
+.themed-primary-text {
+  color: var(--primary-color);
+}
+
+.themed-secondary-button {
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+}
+
+/* Style for the new Reply button */
+.reply-button {
+  display: inline-block; /* To apply padding and other box model properties */
+  background-color: #007bff; /* A nice blue color */
+  color: white !important; /* Ensure text is white */
+  padding: 8px 12px;
+  border-radius: 4px;
+  text-decoration: none; /* Remove underline from the link */
+  margin-left: 10px;
+  font-size: 14px; /* Match button font size if needed */
+  line-height: 1.5; /* Adjust line height for vertical alignment */
+}
+
+.reply-button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
