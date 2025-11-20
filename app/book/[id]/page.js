@@ -54,18 +54,58 @@ async function getBookData(id) {
 
 export async function generateMetadata(props) {
   const params = await props.params;
-  const { book } = await getBookData(params.id);
+  const { book, comments } = await getBookData(params.id);
 
   if (!book) {
     return {
       title: 'مكتبة الكتب | كتاب غير موجود',
       description: 'الكتاب الذي تبحث عنه غير موجود.',
+      robots: {
+        index: false,
+        follow: true,
+      },
     };
   }
 
+  // Calculate aggregate rating
+  let ratingValue = 0;
+  let reviewCount = 0;
+
+  if (comments && comments.length > 0) {
+    const ratedComments = comments.filter(c => c.rating > 0);
+    if (ratedComments.length > 0) {
+      const totalRating = ratedComments.reduce((acc, curr) => acc + curr.rating, 0);
+      ratingValue = (totalRating / ratedComments.length).toFixed(1);
+      reviewCount = ratedComments.length;
+    }
+  }
+
   const metadata = {
-    title: `مكتبة الكتب | ${book.title} - ${book.author}`,
-    description: book.description,
+    title: `${book.title} - ${book.author}`,
+    description: book.description ? book.description.substring(0, 160) : `اقرأ كتاب ${book.title} للمؤلف ${book.author} على موقع دار القرَاء.`,
+    alternates: {
+      canonical: `/book/${params.id}`,
+    },
+    openGraph: {
+      title: `${book.title} - ${book.author}`,
+      description: book.description ? book.description.substring(0, 200) : `اقرأ كتاب ${book.title} للمؤلف ${book.author} مجاناً.`,
+      images: [
+        {
+          url: book.cover || '/imgs/no_cover_available.png',
+          width: 800,
+          height: 1200,
+          alt: `غلاف كتاب ${book.title}`,
+        },
+      ],
+      type: 'book',
+      authors: [book.author],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${book.title} - ${book.author}`,
+      description: book.description ? book.description.substring(0, 200) : `اقرأ كتاب ${book.title} للمؤلف ${book.author}.`,
+      images: [book.cover || '/imgs/no_cover_available.png'],
+    },
   };
 
   const jsonLd = {
@@ -77,37 +117,58 @@ export async function generateMetadata(props) {
       name: book.author,
     },
     bookFormat: 'http://schema.org/EBook',
-    inLanguage: book.language,
+    inLanguage: book.language || 'ar',
     numberOfPages: book.pages,
     description: book.description,
     image: book.cover,
     url: `https://www.dar-alqurra.com/book/${params.id}`,
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.5', // Placeholder
-      reviewCount: book.comments ? book.comments.length : 0,
-    },
+    datePublished: book.created_at, // Or publish_date if available
+    publisher: {
+      '@type': 'Organization',
+      name: 'دار القرَاء'
+    }
   };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'الرئيسية',
+        item: 'https://www.dar-alqurra.com'
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'الكتب',
+        item: 'https://www.dar-alqurra.com' // Ideally this would be a category page
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: book.title,
+        item: `https://www.dar-alqurra.com/book/${params.id}`
+      }
+    ]
+  };
+
+  // Only add aggregateRating if there are actual ratings
+  if (reviewCount > 0) {
+    jsonLd.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: ratingValue,
+      reviewCount: reviewCount,
+      bestRating: "5",
+      worstRating: "1"
+    };
+  }
 
   return {
     ...metadata,
-    alternates: {
-      canonical: `/book/${params.id}`,
-    },
-    openGraph: {
-      title: metadata.title,
-      description: metadata.description,
-      images: [book.cover],
-      url: `https://www.dar-alqurra.com/book/${params.id}`,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: metadata.title,
-      description: metadata.description,
-      images: [book.cover],
-    },
     other: {
-      'application/ld+json': JSON.stringify(jsonLd),
+      'application/ld+json': JSON.stringify([jsonLd, breadcrumbSchema]),
     },
   };
 }

@@ -433,9 +433,16 @@ const BookDetailsClient = ({ initialBook }) => {
   const isLiked = hasMounted ? isFavorite(book.id) : false;
 
   return (
-    <div className="book-details-page-container">
+    <article className="book-details-page-container">
+      {/* Breadcrumbs */}
+      <nav aria-label="Breadcrumb" className="breadcrumb-nav" style={{ marginBottom: '20px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+        <a href="/" style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>الرئيسية</a>
+        <span style={{ margin: '0 8px' }}>/</span>
+        <span style={{ color: 'var(--text-secondary)' }}>{book.title}</span>
+      </nav>
+
       <div className="book-details-layout">
-        <div className="left-column">
+        <aside className="left-column">
           <Image
             src={book.cover}
             alt={`غلاف كتاب ${book.title}`}
@@ -443,6 +450,8 @@ const BookDetailsClient = ({ initialBook }) => {
             height={450}
             className="book-cover-image"
             priority
+            placeholder="blur"
+            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
             onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/imgs/no_cover_available.png"; }}
           />
           <div className="cover-meta-info">
@@ -459,9 +468,9 @@ const BookDetailsClient = ({ initialBook }) => {
               <span className="meta-stat-label">المفضلة</span>
             </div>
           </div>
-        </div>
+        </aside>
 
-        <div className="right-column">
+        <section className="right-column">
           <h1 className="book-title">{book.title}</h1>
           <h2 className="book-author">بواسطة {book.author}</h2>
           <ul className="book-meta-list">
@@ -497,15 +506,15 @@ const BookDetailsClient = ({ initialBook }) => {
             <h3 className="book-description-title">الوصف</h3>
             <p className="book-description-text">{book.description}</p>
           </div>
-        </div>
+        </section>
       </div>
 
       {hasMounted && (
-        <div className="comments-section">
+        <section className="comments-section">
           <h2 className="comments-title">التعليقات والمراجعات</h2>
           {isLoggedIn ? (
             <div className="comment-input-area">
-              <Image src={user?.profile_picture || '/imgs/user.jpg'} alt="صورتك الشخصية" width={45} height={45} className="comment-user-avatar" unoptimized />
+              <Image src={user?.profile_picture || '/imgs/user.jpg'} alt="صورتك الشخصية" width={45} height={45} className="comment-user-avatar" placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==" unoptimized />
               <div className="comment-input-box">
                 <textarea placeholder="أضف تعليقًا..." value={commentText} onFocus={() => setIsCommentBoxExpanded(true)} onChange={(e) => setCommentText(e.target.value)} className={`comment-textarea ${isCommentBoxExpanded ? 'expanded' : ''}`}></textarea>
                 {isCommentBoxExpanded && (
@@ -522,7 +531,7 @@ const BookDetailsClient = ({ initialBook }) => {
             {bookComments.length > 0 ? (
               bookComments.map((comment) => (
                 <div key={comment.id} className="comment-item">
-                  <Image src={comment.profiles?.profilepicture && (comment.profiles.profilepicture !== 'Untitled.jpg' && comment.profiles.profilepicture !== 'user.jpg') ? comment.profiles.profilepicture : '/imgs/user.jpg'} alt={`صورة ملف ${comment.profiles?.username || 'مستخدم غير معروف'}`} width={45} height={45} className="comment-user-avatar" unoptimized onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }} />
+                  <Image src={comment.profiles?.profilepicture && (comment.profiles.profilepicture !== 'Untitled.jpg' && comment.profiles.profilepicture !== 'user.jpg') ? comment.profiles.profilepicture : '/imgs/user.jpg'} alt={`صورة ملف ${comment.profiles?.username || 'مستخدم غير معروف'}`} width={45} height={45} className="comment-user-avatar" placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==" unoptimized onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }} />
                   <div className="comment-body">
                     <div className="comment-header">
                       <span className="comment-username">{comment.profiles?.username || 'مستخدم غير معروف'}</span>
@@ -540,15 +549,15 @@ const BookDetailsClient = ({ initialBook }) => {
               ))
             ) : (<p>لا توجد تعليقات حتى الآن. كن أول من يعلق!</p>)}
           </div>
-        </div>
+        </section>
       )}
 
       {book.status === 'pending' && book.profiles && (
-        <div className="suggester-info-section">
+        <section className="suggester-info-section">
           <h2 className="suggester-info-title">معلومات المقترح</h2>
           <p><strong>اسم المستخدم:</strong> {book.profiles.username}</p>
           <p><strong>البريد الإلكتروني:</strong> {book.profiles.email}</p>
-        </div>
+        </section>
       )}
 
       {/* {initialBook.relatedBooks && initialBook.relatedBooks.length > 0 && (
@@ -561,7 +570,7 @@ const BookDetailsClient = ({ initialBook }) => {
           </div>
         </div>
       )} */}
-    </div>
+    </article>
   );
 };
 

@@ -1,88 +1,100 @@
 .reading-list-container {
   min-height: 100vh;
-  padding: 2rem 1rem;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  padding: 2rem 1.5rem;
+  background-color: var(--background-primary);
+  transition: background-color 0.3s ease;
 }
 
 .reading-list-header {
-  text-align: center;
-  margin-bottom: 3rem;
-  animation: fadeInDown 0.8s ease-out;
+  text-align: left;
+  margin-bottom: 2rem;
+  animation: fadeIn 0.6s ease-out;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding-bottom: 1.5rem;
+}
+
+[data-theme='dark'] .reading-list-header {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
 }
 
 .reading-list-title {
-  font-size: 2.5rem;
-  font-weight: 800;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: inline-block;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
+/* Segmented Control Style Toggles */
 .reading-list-toggles {
   display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  animation: fadeInUp 0.8s ease-out 0.2s backwards;
+  background: var(--background-secondary);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='dark'] .reading-list-toggles {
+  border-color: rgba(255, 255, 255, 0.05);
 }
 
 .reading-list-toggle-button {
-  padding: 0.75rem 2rem;
-  border-radius: 50px;
-  font-weight: 600;
-  font-size: 1rem;
-  border: 2px solid transparent;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: var(--shadow-sm);
+  padding: 0.5rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  border: none;
   cursor: pointer;
+  background: transparent;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
 }
 
 .reading-list-toggle-button:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
 }
 
 .reading-list-toggle-button.active {
-  transform: scale(1.05);
-  box-shadow: var(--shadow-md);
+  background: var(--background-primary);
+  color: var(--text-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+}
+
+[data-theme='dark'] .reading-list-toggle-button.active {
+  background: #334155;
+  color: white;
 }
 
 .reading-list-books-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 2.5rem 2rem;
   padding: 1rem;
   max-width: 1400px;
   margin: 0 auto;
-  animation: fadeInUp 0.8s ease-out 0.4s backwards;
+  animation: fadeInUp 0.6s ease-out 0.2s backwards;
 }
 
 .reading-list-book-wrapper {
   position: relative;
-  transition: transform 0.3s ease;
+  height: 100%;
 }
 
-.reading-list-book-wrapper:hover {
-  transform: translateY(-5px);
-  z-index: 1;
-}
-
+/* Progress Badge is now handled inside BookCard or hidden, 
+   but if we need a specific override for the page: */
 .reading-list-progress-badge {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background-color: var(--accent-color);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: bold;
-  box-shadow: var(--shadow-md);
-  z-index: 2;
-  backdrop-filter: blur(4px);
+  display: none;
+  /* We moved progress inside the card info */
 }
 
 .reading-list-empty-state {
@@ -90,125 +102,91 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
-  border-radius: var(--radius-lg);
+  padding: 6rem 2rem;
   text-align: center;
-  max-width: 600px;
-  margin: 2rem auto;
-  box-shadow: var(--shadow-lg);
-  animation: zoomIn 0.5s ease-out;
+  max-width: 400px;
+  margin: 4rem auto;
+  opacity: 0.7;
 }
 
 .reading-list-empty-state-icon {
-  font-size: 5rem;
+  font-size: 4rem;
   margin-bottom: 1.5rem;
-  animation: bounce 2s infinite;
+  opacity: 0.5;
+  filter: grayscale(100%);
 }
 
-.reading-list-login-prompt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  border-radius: var(--radius-lg);
-  text-align: center;
-  max-width: 500px;
-  margin: 4rem auto;
-  box-shadow: var(--shadow-lg);
+.reading-list-empty-state h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
 }
 
-.reading-list-action-buttons {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
+.reading-list-empty-state p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
 }
 
-.reading-list-action-button {
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  font-weight: bold;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.reading-list-action-button:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-@keyframes fadeInDown {
+@keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-20px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
   }
+}
+
+.fade-in-page {
+  animation: fadeIn 0.8s ease-out;
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px);
   }
 
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes zoomIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes bounce {
-
-  0%,
-  20%,
-  50%,
-  80%,
-  100% {
-    transform: translateY(0);
-  }
-
-  40% {
-    transform: translateY(-20px);
-  }
-
-  60% {
-    transform: translateY(-10px);
   }
 }
 
 @media (max-width: 768px) {
+  .reading-list-container {
+    padding: 1.5rem 1rem;
+  }
+
+  .reading-list-header {
+    flex-direction: column;
+    text-align: center;
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
   .reading-list-title {
-    font-size: 2rem;
+    font-size: 1.75rem;
   }
 
   .reading-list-books-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 2rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .reading-list-books-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem 1rem;
   }
 
-  .reading-list-action-buttons {
-    flex-direction: column;
+  .reading-list-toggles {
     width: 100%;
   }
 
-  .reading-list-action-button {
-    width: 100%;
-    text-align: center;
+  .reading-list-toggle-button {
+    flex: 1;
   }
 }

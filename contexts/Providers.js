@@ -1,10 +1,10 @@
 'use client';
 
-import { ThemeProvider } from './ThemeContext';
 import { AuthProvider } from './AuthContext';
 import { FavoritesProvider } from './FavoritesContext';
-import { ToastContainer } from 'react-toastify';
+import { ThemeProvider } from './ThemeContext';
 import 'react-toastify/dist/ReactToastify.css';
+import DynamicToastContainer from '@/components/DynamicToastContainer';
 
 export function Providers({ children }) {
   return (
@@ -12,16 +12,16 @@ export function Providers({ children }) {
       <AuthProvider>
         <FavoritesProvider>
           {children}
-          <ToastContainer 
-            position="top-center" 
-            autoClose={3000} 
-            hideProgressBar={false} 
-            newestOnTop={false} 
-            closeOnClick 
-            rtl 
-            pauseOnFocusLoss 
-            draggable 
-            pauseOnHover 
+          <DynamicToastContainer
+            position="bottom-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            rtl
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
           />
         </FavoritesProvider>
       </AuthProvider>

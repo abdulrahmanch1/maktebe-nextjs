@@ -53,6 +53,8 @@ const Header = () => {
                 width={40}
                 height={40}
                 className="header-user-avatar"
+                placeholder="blur"
+                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
               />
               <button onClick={logout} className="header-button logout-button-header">تسجيل الخروج</button>
             </>

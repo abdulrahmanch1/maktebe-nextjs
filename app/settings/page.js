@@ -226,6 +226,8 @@ const AccountSettingsForm = ({ user, session, setUser }) => {
           width={100}
           height={100}
           className="profile-picture"
+          placeholder="blur"
+          blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
           onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }}
         />
         <span className="profile-email">{user ? user.email : "غير متاح"}</span>

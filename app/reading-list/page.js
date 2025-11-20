@@ -7,15 +7,16 @@ import BookCard from "@/components/BookCard";
 import Link from "next/link";
 import { API_URL } from "@/constants";
 import './ReadingListPage.css';
+import '@/components/SkeletonLoader.css';
 
 const ReadingListPage = () => {
   const { theme } = useContext(ThemeContext);
-  const { user, isLoggedIn } = useContext(AuthContext);
+  const { user, isLoggedIn, loading: authLoading } = useContext(AuthContext);
   const [showReadBooks, setShowReadBooks] = useState(false);
   const { data: readingListData, loading, error } = useFetch(
-    isLoggedIn && user?.id ? `${API_URL}/api/users/${user.id}/reading-list` : null,
+    !authLoading && isLoggedIn && user?.id ? `${API_URL}/api/users/${user.id}/reading-list` : null,
     undefined,
-    [isLoggedIn, user?.id]
+    [isLoggedIn, user?.id, authLoading]
   );
 
   const readingListBookIds = useMemo(() => {
@@ -52,24 +53,46 @@ const ReadingListPage = () => {
   const combinedLoading = loading || booksLoading;
   const combinedError = error || booksError;
 
-  if (combinedLoading) {
-    return <div className="reading-list-container" style={{ backgroundColor: theme.background, color: theme.primary, textAlign: "center" }}>جاري تحميل قائمة القراءة...</div>;
+  // Skeleton Loader Component
+  const SkeletonGrid = () => (
+    <div className="reading-list-books-grid">
+      {[...Array(8)].map((_, i) => (
+        <div key={i} className="reading-list-book-wrapper">
+          <div className="skeleton-card">
+            <div className="skeleton-cover"></div>
+            <div className="skeleton-text"></div>
+            <div className="skeleton-text short"></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  if (authLoading || (combinedLoading && isLoggedIn)) {
+    return (
+      <div className="reading-list-container">
+        <div className="reading-list-header">
+          <h1 className="reading-list-title">قائمة القراءة</h1>
+        </div>
+        <SkeletonGrid />
+      </div>
+    );
   }
 
   if (combinedError) {
-    return <div className="reading-list-container" style={{ backgroundColor: theme.background, color: theme.primary, textAlign: "center" }}>{combinedError.message}</div>;
+    return <div className="reading-list-container">{combinedError.message}</div>;
   }
 
   if (!isLoggedIn) {
     return (
-      <div className="reading-list-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
-        <div className="reading-list-login-prompt" style={{ backgroundColor: theme.secondary }}>
+      <div className="reading-list-container">
+        <div className="reading-list-login-prompt">
           <span className="reading-list-empty-state-icon" role="img" aria-label="Lock">🔒</span>
-          <h2 style={{ color: theme.primary }}>الوصول مقيد</h2>
-          <p style={{ color: theme.primary }}>يجب تسجيل الدخول لإدارة قائمة القراءة الخاصة بك.</p>
+          <h2>الوصول مقيد</h2>
+          <p>يجب تسجيل الدخول لإدارة قائمة القراءة الخاصة بك.</p>
           <div className="reading-list-action-buttons">
-            <Link href="/login" className="reading-list-action-button" style={{ backgroundColor: theme.accent, color: theme.primary }}>تسجيل الدخول</Link>
-            <Link href="/register" className="reading-list-action-button" style={{ backgroundColor: theme.primary, color: theme.background }}>إنشاء حساب</Link>
+            <Link href="/login" className="reading-list-action-button">تسجيل الدخول</Link>
+            <Link href="/register" className="reading-list-action-button">إنشاء حساب</Link>
           </div>
         </div>
       </div>
@@ -77,26 +100,23 @@ const ReadingListPage = () => {
   }
 
   return (
-    <div className="reading-list-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
+    <div className="reading-list-container fade-in-page">
       <div className="reading-list-header">
         <h1 className="reading-list-title">قائمة القراءة</h1>
-      </div>
-
-      <div className="reading-list-toggles">
-        <button
-          onClick={() => setShowReadBooks(false)}
-          className={`reading-list-toggle-button ${!showReadBooks ? 'active' : ''}`}
-          style={!showReadBooks ? { backgroundColor: theme.accent, color: theme.primary, borderColor: theme.accent } : { backgroundColor: theme.secondary, color: theme.primary }}
-        >
-          لم تقرأ
-        </button>
-        <button
-          onClick={() => setShowReadBooks(true)}
-          className={`reading-list-toggle-button ${showReadBooks ? 'active' : ''}`}
-          style={showReadBooks ? { backgroundColor: theme.accent, color: theme.primary, borderColor: theme.accent } : { backgroundColor: theme.secondary, color: theme.primary }}
-        >
-          مقروءة
-        </button>
+        <div className="reading-list-toggles">
+          <button
+            onClick={() => setShowReadBooks(false)}
+            className={`reading-list-toggle-button ${!showReadBooks ? 'active' : ''}`}
+          >
+            لم تقرأ
+          </button>
+          <button
+            onClick={() => setShowReadBooks(true)}
+            className={`reading-list-toggle-button ${showReadBooks ? 'active' : ''}`}
+          >
+            مقروءة
+          </button>
+        </div>
       </div>
 
       {booksToDisplay.length > 0 ? (
@@ -104,21 +124,14 @@ const ReadingListPage = () => {
           {booksToDisplay.map((book) => (
             <div key={book.id} className="reading-list-book-wrapper">
               <BookCard book={book} />
-              {book.progress && (
-                <div className="reading-list-progress-badge">
-                  {book.progress.percentage !== null && book.progress.percentage !== undefined
-                    ? `تمت قراءة ${book.progress.percentage}%`
-                    : `آخر صفحة: ${book.progress.page || 1}`}
-                </div>
-              )}
             </div>
           ))}
         </div>
       ) : (
-        <div className="reading-list-empty-state" style={{ backgroundColor: theme.secondary }}>
+        <div className="reading-list-empty-state">
           <span className="reading-list-empty-state-icon" role="img" aria-label="Books">📚</span>
-          <h2 style={{ color: theme.primary }}>لا توجد كتب في هذه القائمة</h2>
-          <p style={{ color: theme.primary }}>قائمة القراءة الخاصة بك فارغة حاليًا. ابدأ بتصفح المكتبة!</p>
+          <h2>لا توجد كتب في هذه القائمة</h2>
+          <p>قائمة القراءة الخاصة بك فارغة حاليًا. ابدأ بتصفح المكتبة!</p>
         </div>
       )}
     </div>

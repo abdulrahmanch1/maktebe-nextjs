@@ -27,6 +27,14 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+    optimizePackageImports: ['react-icons'],
+  },
+  modularizeImports: {
+    'react-icons': {
+      transform: 'react-icons/{{member}}',
+    },
+  },
 };
 
 export default withBundleAnalyzer(nextConfig);

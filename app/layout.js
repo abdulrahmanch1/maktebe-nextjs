@@ -7,12 +7,55 @@ import Script from 'next/script';
 import '@/app/globals.css';
 
 export const metadata = {
-  title: 'مكتبة الكتب | تصفح واقرأ آلاف الكتب والروايات',
+  metadataBase: new URL('https://www.dar-alqurra.com'),
+  title: {
+    default: 'مكتبة دار القرَاء | تصفح واقرأ آلاف الكتب والروايات',
+    template: '%s | دار القرَاء'
+  },
   description: 'دار القرَاء، مكتبة كتب عربية شاملة. تصفح، ابحث، واقرأ آلاف الكتب والروايات في مختلف التصنيفات. انضم إلينا واستمتع بتجربة قراءة فريدة.',
-  keywords: 'مكتبة كتب, كتب عربية, قراءة كتب, تحميل كتب, كتب إلكترونية, روايات عربية, قصص, أدب عربي, كتب دينية, كتب تاريخية, كتب علمية, مكتبة إلكترونية, كتب مجانية, قراءات, ثقافة, معرفة',
-  author: 'Abdulrahman Chibon',
+  keywords: ['مكتبة كتب', 'كتب عربية', 'قراءة كتب', 'تحميل كتب', 'كتب إلكترونية', 'روايات عربية', 'قصص', 'أدب عربي', 'كتب دينية', 'كتب تاريخية', 'كتب علمية', 'مكتبة إلكترونية', 'كتب مجانية', 'قراءات', 'ثقافة', 'معرفة'],
+  authors: [{ name: 'Abdulrahman Chibon' }],
+  creator: 'Abdulrahman Chibon',
+  publisher: 'دار القرَاء',
   applicationName: 'دار القراء',
   manifest: '/manifest.json',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'مكتبة دار القرَاء | تصفح واقرأ آلاف الكتب والروايات',
+    description: 'دار القرَاء، مكتبة كتب عربية شاملة. تصفح، ابحث، واقرأ آلاف الكتب والروايات في مختلف التصنيفات.',
+    url: 'https://www.dar-alqurra.com',
+    siteName: 'دار القرَاء',
+    images: [
+      {
+        url: '/icons/icon-512.png', // Ensure you have a high-res OG image
+        width: 512,
+        height: 512,
+        alt: 'شعار دار القرَاء',
+      },
+    ],
+    locale: 'ar_AR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'مكتبة دار القرَاء',
+    description: 'تصفح واقرأ آلاف الكتب والروايات العربية مجاناً.',
+    images: ['/icons/icon-512.png'],
+    creator: '@dar_alqurra', // Replace with actual handle if available
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -27,17 +70,37 @@ export const metadata = {
 
 export const viewport = {
   themeColor: '#0a3f54',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 import '@/components/MainLayout.css';
 import ConditionalLayout from '@/components/ConditionalLayout';
 
 export default async function RootLayout({ children }) {
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'دار القرَاء',
+    url: 'https://www.dar-alqurra.com',
+    logo: 'https://www.dar-alqurra.com/icons/icon-512.png',
+    sameAs: [
+      'https://twitter.com/dar_alqurra',
+      'https://facebook.com/dar_alqurra',
+      'https://instagram.com/dar_alqurra'
+    ]
+  };
+
   return (
     <html lang="ar" dir="rtl">
       <head>
         <meta name="google-site-verification" content="bsBB43qfT1FPKaWwZ_HeLlmhodeWwL0jakSb-Yyq2o8" />
         <link rel="preconnect" href="https://jldyyfkashoisxxyfhmb.supabase.co" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
       </head>
       <body>
         <Script
