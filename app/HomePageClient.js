@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import BookCard from "@/components/BookCard";
+import BookCardSkeleton from "@/components/BookCardSkeleton";
 import './HomePage.css';
 import axios from "axios";
 import { API_URL, BOOKS_PAGE_SIZE, BOOK_CATEGORIES } from "@/constants";
@@ -259,16 +260,19 @@ const HomePageClient = ({ initialBooks = [], initialTotalCount = 0 }) => {
               )}
             </React.Fragment>
           ))
+        ) : isFiltering ? (
+          // Show skeleton loaders during initial filtering
+          Array.from({ length: 8 }).map((_, index) => (
+            <BookCardSkeleton key={`skeleton-${index}`} />
+          ))
         ) : (
-          <div style={{ textAlign: "center" }}>
-            {isFiltering ? "جاري تحميل الكتب..." : "لا توجد كتب تطابق بحثك."}
-          </div>
-        )}
-        {isFiltering && books.length > 0 && (
-          <div style={{ textAlign: "center", marginTop: "1rem" }}>جاري تحديث النتائج...</div>
+          <div style={{ textAlign: "center" }}>لا توجد كتب تطابق بحثك.</div>
         )}
         {isLoadingMore && !isFiltering && books.length > 0 && (
-          <div style={{ textAlign: "center", marginTop: "1rem" }}>جاري تحميل المزيد...</div>
+          // Show skeleton loaders when loading more
+          Array.from({ length: 4 }).map((_, index) => (
+            <BookCardSkeleton key={`skeleton-more-${index}`} />
+          ))
         )}
         <div ref={loadMoreRef} style={{ height: 1 }} />
       </div>
@@ -277,3 +281,4 @@ const HomePageClient = ({ initialBooks = [], initialTotalCount = 0 }) => {
 };
 
 export default HomePageClient;
+```

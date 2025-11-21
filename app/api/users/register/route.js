@@ -29,7 +29,10 @@ export async function POST(request) {
             return NextResponse.json({ message: 'Could not create user.', error: error.message }, { status: 400 });
         }
 
-        return NextResponse.json({ message: 'User created successfully. Please check your email to verify your account.', user: data.user });
+        return NextResponse.json({
+            message: `مرحباً بك في مكتبة دار القراء، ${username}! 📚✨ يرجى التحقق من بريدك الإلكتروني لتفعيل حسابك.`,
+            user: data.user
+        });
     } catch (error) {
         if (error instanceof z.ZodError) {
             return NextResponse.json({ message: 'Invalid input', errors: error.errors }, { status: 400 });

@@ -7,8 +7,8 @@ export const AuthContext = createContext({
   isLoggedIn: false,
   user: null,
   session: null,
-  login: async () => {},
-  logout: () => {},
+  login: async () => { },
+  logout: () => { },
 });
 
 export const AuthProvider = ({ children }) => {
@@ -60,12 +60,12 @@ export const AuthProvider = ({ children }) => {
         setIsLoggedIn(false);
       }
     } catch (e) {
-        console.error("Error refreshing profile:", e);
-        setSession(null);
-        setUser(null);
-        setIsLoggedIn(false);
+      console.error("Error refreshing profile:", e);
+      setSession(null);
+      setUser(null);
+      setIsLoggedIn(false);
     } finally {
-        setLoading(false); // <-- ADDED
+      setLoading(false); // <-- ADDED
     }
   }, [normalizeReadingList, supabase]);
 
@@ -81,9 +81,12 @@ export const AuthProvider = ({ children }) => {
 
   const login = useCallback(async (email, password) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error, data } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      toast.success("تم تسجيل الدخول بنجاح!");
+
+      // Get username for personalized message
+      const username = data?.user?.user_metadata?.username || 'عزيزي القارئ';
+      toast.success(`مرحباً بك ${username}! 📚✨`);
       return true;
     } catch (error) {
       console.error("Login failed:", error);

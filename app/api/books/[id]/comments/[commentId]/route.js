@@ -61,37 +61,58 @@ export const PATCH = protect(async (request, { params }) => {
 
   try {
     const userId = request.user.id;
-    let currentLikes = comment.likes || []; // Ensure it's an array
-    
 
-    const userLikedIndex = currentLikes.indexOf(userId);
+    // Log for debugging
+    console.log('Comment likes data:', comment.likes);
+    console.log('User ID:', userId);
+
+    // Ensure currentLikes is an array, handle null/undefined/corrupted data
+    let currentLikes = [];
+    if (Array.isArray(comment.likes)) {
+      currentLikes = comment.likes;
+    } else if (comment.likes === null || comment.likes === undefined) {
+      currentLikes = [];
+    } else {
+      // If it's corrupted (e.g., a string or object), reset to empty array
+      console.warn('Corrupted likes data, resetting to empty array:', comment.likes);
+      currentLikes = [];
+    }
+
+    // Convert all likes to strings for consistent comparison
+    currentLikes = currentLikes.map(id => String(id));
+    const userIdString = String(userId);
+
+    const userLikedIndex = currentLikes.indexOf(userIdString);
 
     let liked = false;
     if (userLikedIndex === -1) {
       // User has not liked, so add like
-      currentLikes.push(userId);
+      currentLikes.push(userIdString);
       liked = true;
     } else {
       // User has liked, so remove like
       currentLikes.splice(userLikedIndex, 1);
       liked = false;
     }
-    
 
-    const { data: updatedComment, error: updateError } = await supabase
+
+    const { data: updatedComments, error: updateError } = await supabase
       .from('comments')
       .update({ likes: currentLikes })
       .eq('id', commentId)
-      .select()
-      .single();
+      .select();
 
     if (updateError) {
-      
+      console.error('Supabase update error:', updateError);
       throw new Error(updateError.message);
     }
-    
 
-    return NextResponse.json({ likes: updatedComment.likes.length, liked });
+    // Check if comment was found and updated
+    if (!updatedComments || updatedComments.length === 0) {
+      return NextResponse.json({ message: 'التعليق غير موجود أو تم حذفه' }, { status: 404 });
+    }
+
+    return NextResponse.json({ likes: updatedComments[0].likes.length, liked });
   } catch (err) {
     console.error('Error toggling like:', err);
     return NextResponse.json({ message: "خطأ في تبديل الإعجاب" }, { status: 500 });
