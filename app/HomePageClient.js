@@ -281,4 +281,3 @@ const HomePageClient = ({ initialBooks = [], initialTotalCount = 0 }) => {
 };
 
 export default HomePageClient;
-```
