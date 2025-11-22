@@ -1,3 +1,4 @@
+'use client';
 import FavoritesClient from './FavoritesClient';
 
 export const metadata = {
