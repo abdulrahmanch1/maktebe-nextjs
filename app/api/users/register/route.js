@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { validateRegister } from '@/lib/validation';
+
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 

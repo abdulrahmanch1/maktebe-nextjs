@@ -1,6 +1,6 @@
 'use client';
 // Cache buster: v5-minimalist
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FavoritesContext } from "@/contexts/FavoritesContext";
 import { AuthContext } from "@/contexts/AuthContext";
@@ -13,6 +13,13 @@ const BookCard = ({ book }) => {
   const { isLoggedIn } = useContext(AuthContext);
   const router = useRouter();
   const isLiked = book?.id ? isFavorite(book.id) : false;
+  const [coverSrc, setCoverSrc] = useState(book.cover || '/imgs/no_cover_available.png');
+
+  useEffect(() => {
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCoverSrc(book.cover || '/imgs/no_cover_available.png');
+  }, [book.cover]);
 
   const handleCardClick = () => {
     router.push(`/book/${book.id}`);
@@ -31,7 +38,7 @@ const BookCard = ({ book }) => {
     <div className="book-card" onClick={handleCardClick}>
       <div className="book-card-cover">
         <Image
-          src={book.cover || '/imgs/no_cover_available.png'}
+          src={coverSrc}
           alt={book.title}
           fill
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
@@ -39,6 +46,8 @@ const BookCard = ({ book }) => {
           loading="lazy"
           placeholder="blur"
           blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
+          onError={() => setCoverSrc('/imgs/no_cover_available.png')}
+          unoptimized
         />
         <div className="book-card-overlay">
           <button
@@ -54,7 +63,7 @@ const BookCard = ({ book }) => {
       </div>
 
       <div className="book-card-info">
-        <h3 className="book-title">{book.title}</h3>
+        <h3 className="book-title" title={book.title}>{book.title}</h3>
         {book.author && <p className="book-author">{book.author}</p>}
 
         {/* Progress Bar (Only if progress exists) */}

@@ -1,6 +1,6 @@
 .favorites-container {
   min-height: 100vh;
-  padding: 2rem 1.5rem;
+  padding: 2rem 0;
   background-color: var(--background-primary);
   transition: background-color 0.3s ease;
 }
@@ -37,20 +37,39 @@
 }
 
 .favorites-books-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  /* Smaller min-width for books */
-  gap: 2.5rem 2rem;
-  /* Vertical gap larger */
-  padding: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  min-height: auto;
+  gap: 0;
+  /* Flexbox handles spacing via margins on items */
+  padding: 1rem 0;
   max-width: 1400px;
   margin: 0 auto;
   animation: fadeInUp 0.6s ease-out 0.1s backwards;
 }
 
-.favorites-book-wrapper {
-  position: relative;
-  height: 100%;
+.favorites-container .favorites-books-grid>* {
+  width: 200px;
+  margin: 10px;
+}
+
+@media (max-width: 600px) {
+  .favorites-container .favorites-books-grid>* {
+    width: 150px;
+  }
+}
+
+@media (max-width: 444px) {
+  .favorites-container .favorites-books-grid>* {
+    width: 130px;
+  }
+}
+
+@media (max-width: 325px) {
+  .favorites-container .favorites-books-grid>* {
+    width: 120px;
+  }
 }
 
 /* Empty State - Minimalist */
@@ -85,6 +104,22 @@
   font-size: 0.95rem;
 }
 
+.favorites-action-button {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--accent-color);
+  color: var(--background-color);
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.favorites-action-button:hover {
+  opacity: 0.9;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -113,7 +148,7 @@
 
 @media (max-width: 768px) {
   .favorites-container {
-    padding: 1.5rem 1rem;
+    padding: 1.5rem 0;
   }
 
   .favorites-header {
@@ -125,18 +160,5 @@
 
   .favorites-title {
     font-size: 1.75rem;
-  }
-
-  .favorites-books-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 2rem 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .favorites-books-grid {
-    grid-template-columns: repeat(2, 1fr);
-    /* Force 2 columns */
-    gap: 1.5rem 1rem;
   }
 }

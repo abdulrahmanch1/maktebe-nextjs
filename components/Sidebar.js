@@ -30,6 +30,7 @@ const Sidebar = ({ isOpen, toggle, isLoggedIn, logout }) => {
         {isLoggedIn && user && user.role === 'admin' && (
           <>
             <Link href="/admin" onClick={toggle} className={getLinkClassName('/admin')}>لوحة التحكم</Link>
+            <Link href="/admin/analytics" onClick={toggle} className={getLinkClassName('/admin/analytics')}>الإحصائيات</Link>
             <Link href="/admin/suggested-books" onClick={toggle} className={getLinkClassName('/admin/suggested-books')}>الكتب المقترحة</Link>
           </>
         )}

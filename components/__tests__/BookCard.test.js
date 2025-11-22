@@ -6,14 +6,17 @@ import { FavoritesContext } from '@/contexts/FavoritesContext';
 
 // محاكاة next/link
 jest.mock('next/link', () => {
-    return ({ children, href }) => {
+    const MockLink = ({ children, href }) => {
         return <a href={href}>{children}</a>;
     };
+    MockLink.displayName = 'MockLink';
+    return MockLink;
 });
 
 // محاكاة next/image
 jest.mock('next/image', () => ({
     __esModule: true,
+    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
     default: ({ unoptimized, priority, ...props }) => <img {...props} />,
 }));
 

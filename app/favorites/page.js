@@ -10,6 +10,21 @@ import { API_URL } from "@/constants";
 import './FavoritesPage.css';
 import '@/components/SkeletonLoader.css';
 
+// Skeleton Loader Component
+const SkeletonGrid = () => (
+  <div className="favorites-books-grid">
+    {[...Array(8)].map((_, i) => (
+      <div key={i} className="favorites-book-wrapper">
+        <div className="skeleton-card">
+          <div className="skeleton-cover"></div>
+          <div className="skeleton-text"></div>
+          <div className="skeleton-text short"></div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 const FavoritesPage = () => {
   const { theme } = useContext(ThemeContext);
   const { favorites } = useContext(FavoritesContext);
@@ -42,20 +57,7 @@ const FavoritesPage = () => {
     }
   }, [favorites, isLoggedIn, authLoading]);
 
-  // Skeleton Loader Component
-  const SkeletonGrid = () => (
-    <div className="favorites-books-grid">
-      {[...Array(8)].map((_, i) => (
-        <div key={i} className="favorites-book-wrapper">
-          <div className="skeleton-card">
-            <div className="skeleton-cover"></div>
-            <div className="skeleton-text"></div>
-            <div className="skeleton-text short"></div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+
 
   if (authLoading || (loading && isLoggedIn && favorites.length > 0)) {
     return (
@@ -103,9 +105,7 @@ const FavoritesPage = () => {
       {favoriteBooksData.length > 0 ? (
         <div className="favorites-books-grid">
           {favoriteBooksData.map((book) => (
-            <div key={book.id} className="favorites-book-wrapper">
-              <BookCard book={book} />
-            </div>
+            <BookCard key={book.id} book={book} />
           ))}
         </div>
       ) : (
@@ -113,6 +113,7 @@ const FavoritesPage = () => {
           <span className="favorites-empty-state-icon" role="img" aria-label="Heart">❤️</span>
           <h2>قائمة المفضلة فارغة</h2>
           <p>لم تقم بإضافة أي كتب إلى المفضلة بعد. ابدأ بتصفح المكتبة!</p>
+          <Link href="/" className="favorites-action-button">تصفح الكتب</Link>
         </div>
       )}
     </div>

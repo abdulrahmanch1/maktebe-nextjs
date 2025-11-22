@@ -9,6 +9,21 @@ import { API_URL } from "@/constants";
 import './ReadingListPage.css';
 import '@/components/SkeletonLoader.css';
 
+// Skeleton Loader Component
+const SkeletonGrid = () => (
+  <div className="reading-list-books-grid">
+    {[...Array(8)].map((_, i) => (
+      <div key={i} className="reading-list-book-wrapper">
+        <div className="skeleton-card">
+          <div className="skeleton-cover"></div>
+          <div className="skeleton-text"></div>
+          <div className="skeleton-text short"></div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 const ReadingListPage = () => {
   const { theme } = useContext(ThemeContext);
   const { user, isLoggedIn, loading: authLoading } = useContext(AuthContext);
@@ -53,20 +68,7 @@ const ReadingListPage = () => {
   const combinedLoading = loading || booksLoading;
   const combinedError = error || booksError;
 
-  // Skeleton Loader Component
-  const SkeletonGrid = () => (
-    <div className="reading-list-books-grid">
-      {[...Array(8)].map((_, i) => (
-        <div key={i} className="reading-list-book-wrapper">
-          <div className="skeleton-card">
-            <div className="skeleton-cover"></div>
-            <div className="skeleton-text"></div>
-            <div className="skeleton-text short"></div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+
 
   if (authLoading || (combinedLoading && isLoggedIn)) {
     return (
@@ -122,9 +124,7 @@ const ReadingListPage = () => {
       {booksToDisplay.length > 0 ? (
         <div className="reading-list-books-grid">
           {booksToDisplay.map((book) => (
-            <div key={book.id} className="reading-list-book-wrapper">
-              <BookCard book={book} />
-            </div>
+            <BookCard key={book.id} book={book} />
           ))}
         </div>
       ) : (

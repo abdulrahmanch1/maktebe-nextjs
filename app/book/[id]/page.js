@@ -10,7 +10,7 @@ async function getBookData(id) {
   // Fetch book, comments, and related books concurrently for better performance
   const { data: book, error: bookError } = await supabase
     .from('books')
-    .select('*, profiles(username, email)')
+    .select('*, profiles!books_user_id_fkey(username, email)')
     .eq('id', id)
     .single();
 

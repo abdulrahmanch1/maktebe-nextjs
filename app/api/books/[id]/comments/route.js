@@ -3,7 +3,7 @@ import { protect } from '@/lib/middleware';
 // import { validateMongoId } from '@/lib/validation'; // Remove this import
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
-export const GET = protect(async (request, { params }) => {
+export const GET = protect(async (_request, { params }) => {
   const supabase = await createClient(); // Instantiate supabase client
   const { id } = await params;
 
@@ -27,7 +27,7 @@ export const GET = protect(async (request, { params }) => {
       throw new Error(commentsError.message);
     }
 
-    
+
     return NextResponse.json(comments);
   } catch (err) {
     console.error('Error fetching comments:', err);
@@ -65,7 +65,7 @@ export const POST = protect(async (request, { params }) => {
       throw new Error(insertError.message);
     }
 
-    
+
     return NextResponse.json(newComment, { status: 201 });
   } catch (err) {
     console.error('Error adding comment:', err);

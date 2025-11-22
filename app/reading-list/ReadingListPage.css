@@ -1,6 +1,6 @@
 .reading-list-container {
   min-height: 100vh;
-  padding: 2rem 1.5rem;
+  padding: 2rem 0;
   background-color: var(--background-primary);
   transition: background-color 0.3s ease;
 }
@@ -76,27 +76,41 @@
 }
 
 .reading-list-books-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 2.5rem 2rem;
-  padding: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  min-height: auto;
+  gap: 0;
+  padding: 1rem 0;
   max-width: 1400px;
   margin: 0 auto;
   animation: fadeInUp 0.6s ease-out 0.2s backwards;
 }
 
-.reading-list-book-wrapper {
-  position: relative;
-  height: 100%;
+.reading-list-container .reading-list-books-grid>* {
+  width: 200px;
+  margin: 10px;
 }
 
-/* Progress Badge is now handled inside BookCard or hidden, 
-   but if we need a specific override for the page: */
-.reading-list-progress-badge {
-  display: none;
-  /* We moved progress inside the card info */
+@media (max-width: 600px) {
+  .reading-list-container .reading-list-books-grid>* {
+    width: 150px;
+  }
 }
 
+@media (max-width: 444px) {
+  .reading-list-container .reading-list-books-grid>* {
+    width: 130px;
+  }
+}
+
+@media (max-width: 325px) {
+  .reading-list-container .reading-list-books-grid>* {
+    width: 120px;
+  }
+}
+
+/* Empty State */
 .reading-list-empty-state {
   display: flex;
   flex-direction: column;
@@ -156,7 +170,7 @@
 
 @media (max-width: 768px) {
   .reading-list-container {
-    padding: 1.5rem 1rem;
+    padding: 1.5rem 0;
   }
 
   .reading-list-header {
@@ -169,19 +183,9 @@
   .reading-list-title {
     font-size: 1.75rem;
   }
-
-  .reading-list-books-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 2rem 1rem;
-  }
 }
 
 @media (max-width: 480px) {
-  .reading-list-books-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem 1rem;
-  }
-
   .reading-list-toggles {
     width: 100%;
   }

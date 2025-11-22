@@ -9,8 +9,10 @@ import Image from "next/image";
 import { API_URL } from "@/constants";
 import './BookDetailsPage.css';
 import { FaTrash } from 'react-icons/fa';
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import BookCard from "@/components/BookCard"; // Import BookCard
+import BookCard from "@/components/BookCard";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 // A small component to safely render dates only on the client-side
 const ClientOnlyDate = ({ dateString }) => {
@@ -51,6 +53,7 @@ const BookDetailsClient = ({ initialBook }) => {
   const { toggleFavorite, isFavorite } = useContext(FavoritesContext);
   const { isLoggedIn, user, session, setUser } = useContext(AuthContext);
   const [book, setBook] = useState(initialBook);
+  const [coverSrc, setCoverSrc] = useState(initialBook.cover || '/imgs/no_cover_available.png');
   const [isInReadingList, setIsInReadingList] = useState(false);
   const [isRead, setIsRead] = useState(false);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
@@ -59,6 +62,17 @@ const BookDetailsClient = ({ initialBook }) => {
   const [commentText, setCommentText] = useState('');
   const [bookComments, setBookComments] = useState([]);
   const [isCommentBoxExpanded, setIsCommentBoxExpanded] = useState(false);
+  const { trackBookView, trackBookRead } = useAnalytics();
+
+  // Track book view on mount
+  useEffect(() => {
+    if (initialBook?.id) {
+      trackBookView(initialBook.id, {
+        title: initialBook.title,
+        author: initialBook.author,
+      });
+    }
+  }, [initialBook?.id, initialBook.title, initialBook.author, trackBookView]);
 
   useEffect(() => {
     setHasMounted(true);
@@ -106,6 +120,10 @@ const BookDetailsClient = ({ initialBook }) => {
       })));
     }
   }, [initialBook.comments, user]);
+
+  useEffect(() => {
+    setCoverSrc(book?.cover || '/imgs/no_cover_available.png');
+  }, [book?.cover]);
 
   useEffect(() => {
     if (hasMounted && user) {
@@ -436,7 +454,7 @@ const BookDetailsClient = ({ initialBook }) => {
     <article className="book-details-page-container">
       {/* Breadcrumbs */}
       <nav aria-label="Breadcrumb" className="breadcrumb-nav" style={{ marginBottom: '20px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-        <a href="/" style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>الرئيسية</a>
+        <Link href="/" style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>الرئيسية</Link>
         <span style={{ margin: '0 8px' }}>/</span>
         <span style={{ color: 'var(--text-secondary)' }}>{book.title}</span>
       </nav>
@@ -444,7 +462,7 @@ const BookDetailsClient = ({ initialBook }) => {
       <div className="book-details-layout">
         <aside className="left-column">
           <Image
-            src={book.cover}
+            src={coverSrc}
             alt={`غلاف كتاب ${book.title}`}
             width={300}
             height={450}
@@ -452,7 +470,8 @@ const BookDetailsClient = ({ initialBook }) => {
             priority
             placeholder="blur"
             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
-            onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/imgs/no_cover_available.png"; }}
+            onError={() => setCoverSrc('/imgs/no_cover_available.png')}
+            unoptimized
           />
           <div className="cover-meta-info">
             <div className="meta-stat">
