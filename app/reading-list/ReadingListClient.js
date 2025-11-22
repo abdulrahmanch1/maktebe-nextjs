@@ -138,4 +138,4 @@ const ReadingListClient = () => {
   );
 };
 
-export default ReadingListPage;
+export default ReadingListClient;
