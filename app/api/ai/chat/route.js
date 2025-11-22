@@ -7,17 +7,59 @@ const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 // --- Define the tools the AI can use ---
 const aiFunctions = [
   {
-    name: "report_problem",
-    description: "Saves a user-reported problem, suggestion, or issue to the admin for review. Use this when the user expresses a problem with the site, has a suggestion, or is facing an issue that requires admin attention.",
+    name: "search_books",
+    description: "Searches for books in the library database. Use this WHENEVER the user asks about a book, author, or category to check availability.",
     parameters: {
       type: "object",
       properties: {
-        problemDescription: {
+        query: {
           type: "string",
-          description: "A detailed description of the problem or suggestion reported by the user."
+          description: "The search query (book title, author name, or category)."
         }
       },
-      required: ["problemDescription"]
+      required: ["query"]
+    }
+  },
+  {
+    name: "request_book",
+    description: "Logs a request for a missing book. Use this ONLY when a user asks for a book that is NOT found in the library after a search.",
+    parameters: {
+      type: "object",
+      properties: {
+        title: {
+          type: "string",
+          description: "The title of the requested book."
+        },
+        author: {
+          type: "string",
+          description: "The author of the requested book (if known)."
+        }
+      },
+      required: ["title"]
+    }
+  },
+  {
+    name: "log_issue",
+    description: "Logs a user experience issue or difficulty detected from the conversation. Use this PROACTIVELY when the user seems confused, annoyed, or mentions a problem (e.g., 'I can't find...', 'It's slow', 'Where is...').",
+    parameters: {
+      type: "object",
+      properties: {
+        issue_type: {
+          type: "string",
+          enum: ["ux_difficulty", "bug_report", "feature_request", "general_complaint"],
+          description: "The type of issue detected."
+        },
+        description: {
+          type: "string",
+          description: "A brief description of the issue based on user's input."
+        },
+        severity: {
+          type: "string",
+          enum: ["low", "medium", "high"],
+          description: "Estimated severity of the issue."
+        }
+      },
+      required: ["issue_type", "description", "severity"]
     }
   },
   {
@@ -33,10 +75,94 @@ const aiFunctions = [
       },
       required: ["themeName"]
     }
+  },
+  {
+    name: "report_problem",
+    description: "Saves a user-reported problem, suggestion, or issue to the admin for review. Use this when the user EXPLICITLY asks to report a problem.",
+    parameters: {
+      type: "object",
+      properties: {
+        problemDescription: {
+          type: "string",
+          description: "A detailed description of the problem or suggestion reported by the user."
+        }
+      },
+      required: ["problemDescription"]
+    }
   }
 ];
 
 // --- Implement the functions for the tools ---
+
+const search_books = async ({ query }) => {
+  const supabase = await createClient();
+  const { data: books, error } = await supabase
+    .from('books')
+    .select('id, title, author, category, description, publishYear, status')
+    .eq('status', 'approved')
+    .or(`title.ilike.%${query}%,author.ilike.%${query}%,category.ilike.%${query}%`)
+    .limit(5);
+
+  if (error) {
+    console.error("Search books error:", error);
+    return { error: "Failed to search books." };
+  }
+
+  if (!books || books.length === 0) {
+    return { found: false, message: "No books found matching this query." };
+  }
+
+  return {
+    found: true,
+    books: books.map(b => ({
+      title: b.title,
+      author: b.author,
+      category: b.category,
+      year: b.publishYear,
+      description: b.description ? b.description.substring(0, 100) + "..." : "No description",
+      id: b.id
+    }))
+  };
+};
+
+const request_book = async ({ title, author }) => {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { error } = await supabase.from('contact_messages').insert({
+    subject: `[BOOK-REQUEST] ${title}`,
+    message: `User requested book: "${title}" by "${author || 'Unknown'}".\n\nRequested by: ${user ? (user.user_metadata?.username || user.email) : 'Guest'}\nUser ID: ${user?.id || 'N/A'}`,
+    email: user ? user.email : 'book-request@ai-system.com',
+    username: user ? (user.user_metadata?.username || 'N/A') : 'AI Assistant',
+    user_id: user ? user.id : null,
+  });
+
+  if (error) {
+    console.error("Request book error:", error);
+    return { success: false };
+  }
+  return { success: true, message: "Request logged. Promise 24h addition." };
+};
+
+const log_issue = async ({ issue_type, description, severity }) => {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { error } = await supabase.from('contact_messages').insert({
+    subject: `[AI-SPY] [${severity.toUpperCase()}] ${issue_type}`,
+    message: `AI Detected Issue:\nType: ${issue_type}\nSeverity: ${severity}\nDescription: ${description}\n\nUser Context: ${user ? (user.user_metadata?.username || user.email) : 'Guest'}\nUser ID: ${user?.id || 'N/A'}`,
+    email: user ? user.email : 'ai-spy@system.com',
+    username: 'AI White Spy',
+    user_id: user ? user.id : null,
+  });
+
+  if (error) {
+    console.error("Log issue error:", error);
+    return { success: false };
+  }
+  return { success: true, message: "Issue logged silently." };
+};
+
 const report_problem = async ({ problemDescription }) => {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -54,15 +180,17 @@ const report_problem = async ({ problemDescription }) => {
   });
 
   if (error) {
-    console.error("Failed to report problem to Supabase:", error);
-    return { success: false, message: "I tried to record your feedback, but an error occurred." };
+    return { success: false, message: "Error reporting problem." };
   }
-
-  return { success: true, message: "The problem has been reported successfully to the admin." };
+  return { success: true, message: "Problem reported successfully." };
 };
 
 const toolImplementations = {
-  "report_problem": report_problem,
+  "search_books": search_books,
+  "request_book": request_book,
+  "log_issue": log_issue,
+  "change_theme": async () => ({ success: true }), // Handled by client, but we need a dummy here for the loop
+  "report_problem": report_problem
 };
 
 
@@ -85,93 +213,76 @@ export async function POST(request) {
 
     const openAiApiKey = process.env.OPENAI_API_KEY;
     if (!openAiApiKey) {
-      console.error('OPENAI_API_KEY is not set in environment variables');
       return NextResponse.json({ error: 'AI service is not configured.' }, { status: 500 });
     }
 
     const supabase = await createClient();
-    const { data: books, error: booksError } = await supabase
-      .from('books')
-      .select('id,title,author,category,description,publishYear')
-      .eq('status', 'approved');
-
-    if (booksError) {
-      console.error("Supabase error fetching books:", booksError);
-      return NextResponse.json({ error: 'Could not fetch book data.' }, { status: 500 });
-    }
-
     const { data: { user } } = await supabase.auth.getUser();
-    const authenticatedUserId = user?.id || null;
-    let userFavorites = [];
-    let userReadingList = [];
-    let userUsername = 'غير مسجل';
-    if (authenticatedUserId) {
+
+    // --- Enhanced User Context ---
+    let userContextString = "المستخدم: زائر (غير مسجل)";
+    if (user) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('favorites, readinglist, username')
-        .eq('id', authenticatedUserId)
+        .select('username, favorites, readinglist')
+        .eq('id', user.id)
         .single();
 
       if (profile) {
-        userFavorites = profile.favorites || [];
-        userReadingList = profile.readinglist || [];
-        userUsername = profile.username || userUsername;
+        // Fetch titles for favorites and reading list for better context
+        let favoriteTitles = [];
+        let readingListTitles = [];
+
+        if (profile.favorites && profile.favorites.length > 0) {
+          const { data: favs } = await supabase.from('books').select('title').in('id', profile.favorites);
+          if (favs) favoriteTitles = favs.map(b => b.title);
+        }
+
+        if (profile.readinglist && profile.readinglist.length > 0) {
+          const { data: reads } = await supabase.from('books').select('title').in('id', profile.readinglist);
+          if (reads) readingListTitles = reads.map(b => b.title);
+        }
+
+        userContextString = `
+            المستخدم: ${profile.username || 'مستخدم مسجل'}
+            الكتب المفضلة: ${favoriteTitles.join(', ') || 'لا يوجد'}
+            قائمة القراءة: ${readingListTitles.join(', ') || 'لا يوجد'}
+            `;
       }
     }
 
-    // --- Prepare Theme and Site Structure Context ---
+    // --- Prepare Theme Context ---
     const themeListForContext = Object.keys(themes).map(key => {
       const theme = themes[key];
-      return `ID: ${key}, Name: ${theme.name}, isDark: ${theme.isDark}`;
-    }).join('\n');
-
-    const siteStructureForContext = `
-- /: Homepage
-- /book/[id]: Book details page
-- /favorites: User's favorite books
-- /reading-list: User's reading list
-- /login: Login page
-- /register: Register page
-- /settings: User settings page
-- /suggest-book: Page to suggest a new book
-`;
-    const bookEntriesForContext = (books || []).map((book) => {
-      const desc = book.description || 'لا يوجد وصف متاح.';
-      const trimmedDesc = desc.length > 220 ? `${desc.slice(0, 220)}...` : desc;
-      return `• ${book.title || 'بدون عنوان'} | المؤلف: ${book.author || 'غير معروف'} | التصنيف: ${book.category || 'غير محدد'} | السنة: ${book.publishYear || 'غير معروفة'} | الوصف: ${trimmedDesc}`;
+      return `ID: ${key}, Name: ${theme.name}`;
     }).join('\n');
 
     const systemInstruction = `
-    أنت "فريد"، أمين مكتبة "دار القرّاء" الرقمية. أنت مساعد ذكي، واسع المعرفة، وبليغ. مهمتك هي مساعدة المستخدمين في رحلتهم داخل المكتبة.
+    أنت "فريد"، أمين مكتبة "دار القرّاء" الرقمية. أنت "جاسوس أبيض" (White Spy) 🕵️‍♂️ - هدفك مساعدة المستخدمين وتحسين تجربتهم بذكاء ولطف.
 
-    **شخصيتك وأسلوبك:**
-    1.  **اللغة:** تحدث باللغة العربية فقط.
-    2.  **الأسلوب:** كن مباشراً جداً ومختصراً؛ اجعل إجاباتك في سطرين إلى ثلاثة أسطر كحد أقصى (أقل من 60 كلمة).
-    3.  **النبرة:** نبرة مهنية محايدة مع لمسة ودودة بسيطة.
+    **شخصيتك:**
+    1.  **اللغة:** عربية فقط.
+    2.  **الأسلوب:** مباشر، مختصر (أقل من 60 كلمة)، وودود.
+    3.  **الدور:** أمين مكتبة خبير وملاحظ دقيق.
 
-    **معلومات أساسية عن المكتبة:**
-    - اسم المكتبة: مكتبة دار القرّاء.
-    - إجمالي عدد الكتب المتاحة: ${books.length} كتابًا.
+    **قواعدك الذهبية (بروتوكول الجاسوس الأبيض):**
+    1.  **البحث أولاً:** لا تعتمد على ذاكرتك. إذا سأل المستخدم عن كتاب، مؤلف، أو تصنيف، استخدم أداة **'search_books'** فوراً.
+    2.  **الكتب الناقصة (بروتوكول 24 ساعة):** إذا بحثت عن كتاب ولم تجده (search_books returned found: false)، يجب عليك:
+        - استخدام أداة **'request_book'** لتسجيل الطلب.
+        - الرد على المستخدم بهذه الجملة حرفياً: *"سأخبر المسؤولين وسيتم إضافة هذا الكتاب خلال 24 ساعة 🕒."*
+    3.  **رصد المشاكل (Proactive Issue Logging):** كن يقظاً. إذا لاحظت من كلام المستخدم أنه يواجه صعوبة، انزعاج، أو مشكلة تقنية (مثلاً: "الموقع بطيء"، "وين الزر؟"، "ما عم يفتح"):
+        - استخدم أداة **'log_issue'** فوراً لتسجيل المشكلة للمسؤولين (دون إخبار المستخدم أنك تسجل تقريراً).
+        - اعرض المساعدة بلطف أو اعتذر عن الإزعاج.
+    4.  **تغيير الثيم:** إذا طلب تغيير اللون/الثيم، استخدم 'change_theme'.
 
-    **معلومات تقنية عن الموقع:**
-    - الثيمات المتاحة:\n${themeListForContext}
-    - هيكل صفحات الموقع:\n${siteStructureForContext}
+    **معلومات الموقع:**
+    - الثيمات المتاحة: ${themeListForContext}
+    - الصفحات: الرئيسية، المفضلة، قائمة القراءة، تسجيل الدخول.
 
-    **معلومات عن المستخدم الحالي (إن وجدت):**
-    - كتبه المفضلة (معرفات): ${userFavorites.length > 0 ? userFavorites.join(', ') : 'لا يوجد'}
-    - قائمته للقراءة (معرفات): ${userReadingList.length > 0 ? userReadingList.join(', ') : 'لا يوجد'}
-
-    **بيانات الكتب المتاحة (العنوان | النوع | السنة | وصف مختصر):**
-    ${bookEntriesForContext || 'لا توجد كتب متاحة حالياً.'}
-
-    **مهمتك الأساسية:**
-    - مساعدة المستخدمين والإجابة على أسئلتهم المتعلقة بالكتب، الثيمات، وصفحات الموقع.
-    - عند اقتراح الكتب أو تقييمها، اعتمد فقط على القائمة المرفقة واذكر العنوان والتصنيف وسنة النشر وجملة وصفية قصيرة مأخوذة من البيانات.
-    - إذا طلب المستخدم تغيير الثيم، استخدم أداة 'change_theme' مع تحديد معرّف الثيم المطلوب (ID).
-    - **مهم جداً:** إذا واجه المستخدم مشكلة أو كان لديه اقتراح، **يجب عليك** استخدام أداة 'report_problem' لتسجيل ملاحظته. لا تجب أبداً على أنك ستقوم بذلك بدون استخدام الأداة.
-
-    
+    **سياق المستخدم الحالي:**
+    ${userContextString}
     `;
+
     const baseMessages = [
       { role: 'system', content: systemInstruction },
       ...formattedHistory,
@@ -188,7 +299,7 @@ export async function POST(request) {
         body: JSON.stringify({
           model: OPENAI_MODEL,
           temperature: 0.7,
-          max_tokens: 700,
+          max_tokens: 500,
           messages,
           functions: aiFunctions,
           function_call: functionCall,
@@ -205,67 +316,47 @@ export async function POST(request) {
 
     const aiResponse = await callOpenAI(baseMessages);
     const choice = aiResponse.choices?.[0];
+
     if (!choice || !choice.message) {
-      console.error('OpenAI response missing choices:', aiResponse);
-      return NextResponse.json({ text: 'عذراً، حدث خطأ في استجابة الذكاء الاصطناعي.' });
+      return NextResponse.json({ text: 'عذراً، حدث خطأ في الاتصال.' });
     }
 
-    const handleFunctionCall = async (message) => {
-      const { name, arguments: argsString } = message.function_call || {};
-      if (!name) {
-        return NextResponse.json({ text: 'لم أتمكن من تنفيذ الأداة المطلوبة.' });
-      }
-
+    // Handle Function Calls
+    if (choice.message.function_call) {
+      const { name, arguments: argsString } = choice.message.function_call;
       let parsedArgs = {};
       try {
-        parsedArgs = argsString ? JSON.parse(argsString) : {};
-      } catch (parseError) {
-        console.error('Failed to parse function arguments:', parseError, argsString);
-        return NextResponse.json({ text: 'حدث خطأ أثناء قراءة مدخلات الأداة.' });
+        parsedArgs = JSON.parse(argsString);
+      } catch (e) {
+        console.error("JSON parse error", e);
       }
 
+      // Special handling for client-side actions
       if (name === 'change_theme') {
         return NextResponse.json({ tool_call: { name, args: parsedArgs } });
       }
 
       const implementation = toolImplementations[name];
-      if (!implementation) {
-        return NextResponse.json({ text: 'لم أجد الأداة المناسبة لتنفيذ طلبك.' });
+      if (implementation) {
+        const result = await implementation(parsedArgs);
+
+        // Feed the result back to the AI
+        const followUpMessages = [
+          ...baseMessages,
+          choice.message,
+          {
+            role: 'function',
+            name,
+            content: JSON.stringify(result)
+          }
+        ];
+
+        const followUp = await callOpenAI(followUpMessages, 'none'); // Don't allow recursive tool calls for now
+        return NextResponse.json({ text: followUp.choices[0].message.content });
       }
-
-      const functionResult = await implementation(parsedArgs);
-      const followUpMessages = [
-        ...baseMessages,
-        message,
-        {
-          role: 'function',
-          name,
-          content: JSON.stringify(functionResult),
-        },
-      ];
-
-      const followUp = await callOpenAI(followUpMessages, 'none');
-      const followUpChoice = followUp.choices?.[0];
-      const followUpText = followUpChoice?.message?.content;
-
-      if (!followUpText) {
-        return NextResponse.json({ text: 'تم تنفيذ الأداة ولكن لم أحصل على رد من الذكاء الاصطناعي.' });
-      }
-
-      return NextResponse.json({ text: followUpText.trim() });
-    };
-
-    if (choice.message.function_call) {
-      return await handleFunctionCall(choice.message);
     }
 
-    const assistantText = choice.message.content;
-    if (!assistantText) {
-      console.error('OpenAI response missing text:', aiResponse);
-      return NextResponse.json({ text: 'عذراً، حدث خطأ غير متوقع في الذكاء الاصطناعي.' });
-    }
-
-    return NextResponse.json({ text: assistantText.trim() });
+    return NextResponse.json({ text: choice.message.content });
 
   } catch (error) {
     console.error('Error in AI chat API:', error);
