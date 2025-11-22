@@ -19,9 +19,7 @@ export const metadata = {
   publisher: 'دار القرَاء',
   applicationName: 'دار القراء',
   manifest: '/manifest.json',
-  alternates: {
-    canonical: '/',
-  },
+
   openGraph: {
     title: 'مكتبة دار القرَاء | تصفح واقرأ آلاف الكتب والروايات',
     description: 'دار القرَاء، مكتبة كتب عربية شاملة. تصفح، ابحث، واقرأ آلاف الكتب والروايات في مختلف التصنيفات.',
