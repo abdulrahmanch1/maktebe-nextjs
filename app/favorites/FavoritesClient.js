@@ -120,4 +120,4 @@ const FavoritesClient = () => {
   );
 };
 
-export default FavoritesPage;
+export default FavoritesClient;
