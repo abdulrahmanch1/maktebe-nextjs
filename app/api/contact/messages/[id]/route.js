@@ -3,7 +3,7 @@ import { protect, admin } from '@/lib/middleware';
 import { createClient } from '@/utils/supabase/server';
 
 export const GET = protect(admin(async (request, context) => {
-  const { id } = context.params;
+  const { id } = (await context.params);
 
   if (!id) {
     return NextResponse.json({ message: 'Message ID is required' }, { status: 400 });
@@ -28,7 +28,7 @@ export const GET = protect(admin(async (request, context) => {
 }));
 
 export const DELETE = protect(admin(async (request, context) => {
-  const { id } = context.params;
+  const { id } = (await context.params);
 
   if (!id) {
     return NextResponse.json({ message: 'Message ID is required' }, { status: 400 });

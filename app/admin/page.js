@@ -1,10 +1,10 @@
 import { Suspense } from 'react';
-import AdminPageClient from './AdminPageClient';
+import DashboardPage from './DashboardPage';
 
 export default function AdminPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <AdminPageClient />
+      <DashboardPage />
     </Suspense>
   );
 }

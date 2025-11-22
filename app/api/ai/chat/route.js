@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/admin';
 import { themes } from '@/data/themes';
 
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
@@ -22,7 +23,7 @@ const aiFunctions = [
   },
   {
     name: "request_book",
-    description: "Logs a request for a missing book. Use this ONLY when a user asks for a book that is NOT found in the library after a search.",
+    description: "MANDATORY: Logs a request for a missing book. You MUST call this function IMMEDIATELY after search_books returns found:false. This is NOT optional - you must call this function before responding to the user about a missing book.",
     parameters: {
       type: "object",
       properties: {
@@ -32,7 +33,7 @@ const aiFunctions = [
         },
         author: {
           type: "string",
-          description: "The author of the requested book (if known)."
+          description: "The author of the requested book (if known, otherwise use 'Unknown')."
         }
       },
       required: ["title"]
@@ -126,33 +127,88 @@ const search_books = async ({ query }) => {
 };
 
 const request_book = async ({ title, author }) => {
+  console.log('🔔 AI is requesting book:', title, 'by', author);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const supabaseAdmin = createAdminClient();
 
-  const { error } = await supabase.from('contact_messages').insert({
-    subject: `[BOOK-REQUEST] ${title}`,
-    message: `User requested book: "${title}" by "${author || 'Unknown'}".\n\nRequested by: ${user ? (user.user_metadata?.username || user.email) : 'Guest'}\nUser ID: ${user?.id || 'N/A'}`,
+  const formattedMessage = `
+📚 طلب إضافة كتاب جديد
+
+📖 اسم الكتاب: ${title}
+✍️ المؤلف: ${author || 'غير محدد'}
+
+👤 معلومات المستخدم:
+${user ? `
+• الاسم: ${user.user_metadata?.username || 'غير متوفر'}
+• البريد الإلكتروني: ${user.email}
+• معرّف المستخدم: ${user.id}
+` : '• مستخدم غير مسجل (زائر)'}
+
+⏰ تاريخ الطلب: ${new Date().toLocaleString('ar-EG')}
+
+📌 ملاحظة: تم الوعد بإضافة هذا الكتاب خلال 24 ساعة.
+  `.trim();
+
+  const { error } = await supabaseAdmin.from('contact_messages').insert({
+    subject: title,
+    message: formattedMessage,
     email: user ? user.email : 'book-request@ai-system.com',
-    username: user ? (user.user_metadata?.username || 'N/A') : 'AI Assistant',
+    username: user ? (user.user_metadata?.username || 'مستخدم') : 'المساعد الذكي 🤖',
     user_id: user ? user.id : null,
   });
 
   if (error) {
-    console.error("Request book error:", error);
+    console.error("❌ Request book error:", error);
     return { success: false };
   }
+  console.log('✅ Book request logged successfully!');
   return { success: true, message: "Request logged. Promise 24h addition." };
 };
 
 const log_issue = async ({ issue_type, description, severity }) => {
+  console.log('🔍 AI is logging issue:', issue_type, severity);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const supabaseAdmin = createAdminClient();
 
-  const { error } = await supabase.from('contact_messages').insert({
-    subject: `[AI-SPY] [${severity.toUpperCase()}] ${issue_type}`,
-    message: `AI Detected Issue:\nType: ${issue_type}\nSeverity: ${severity}\nDescription: ${description}\n\nUser Context: ${user ? (user.user_metadata?.username || user.email) : 'Guest'}\nUser ID: ${user?.id || 'N/A'}`,
+  // Translate issue types to Arabic
+  const issueTypeArabic = {
+    'ux_difficulty': 'صعوبة في الاستخدام',
+    'bug_report': 'بلاغ عن خطأ تقني',
+    'feature_request': 'طلب ميزة جديدة',
+    'general_complaint': 'شكوى عامة'
+  };
+
+  const severityArabic = {
+    'low': 'منخفضة',
+    'medium': 'متوسطة',
+    'high': 'عالية'
+  };
+
+  // Format a clean Arabic message
+  const formattedMessage = `
+📋 تفاصيل المشكلة:
+${description}
+
+🏷️ نوع المشكلة: ${issueTypeArabic[issue_type] || issue_type}
+⚠️ الأولوية: ${severityArabic[severity] || severity}
+
+👤 معلومات المستخدم:
+${user ? `
+• الاسم: ${user.user_metadata?.username || 'غير متوفر'}
+• البريد الإلكتروني: ${user.email}
+• معرّف المستخدم: ${user.id}
+` : '• مستخدم غير مسجل (زائر)'}
+
+⏰ تاريخ التقرير: ${new Date().toLocaleString('ar-EG')}
+  `.trim();
+
+  const { error } = await supabaseAdmin.from('contact_messages').insert({
+    subject: `${issueTypeArabic[issue_type] || issue_type}`,
+    message: formattedMessage,
     email: user ? user.email : 'ai-spy@system.com',
-    username: 'AI White Spy',
+    username: 'الجاسوس الأبيض 🕵️‍♂️',
     user_id: user ? user.id : null,
   });
 
@@ -160,28 +216,45 @@ const log_issue = async ({ issue_type, description, severity }) => {
     console.error("Log issue error:", error);
     return { success: false };
   }
+  console.log('✅ Issue logged successfully!');
   return { success: true, message: "Issue logged silently." };
 };
 
 const report_problem = async ({ problemDescription }) => {
+  console.log('📢 User is reporting a problem:', problemDescription);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  const supabaseAdmin = createAdminClient();
 
-  const { error } = await supabase.from('contact_messages').insert({
-    subject: user
-      ? `User issue reported by AI Assistant (User ID: ${user.id})`
-      : 'User issue reported by AI Assistant',
-    message: user
-      ? `${problemDescription}\n\nReported by User: ${user.user_metadata?.username || 'N/A'} (ID: ${user.id}, Email: ${user.email})\nAdmin Link: /admin/users/${user.id}`
-      : problemDescription,
+  const formattedMessage = `
+📢 بلاغ من المستخدم
+
+📋 التفاصيل:
+${problemDescription}
+
+👤 معلومات المستخدم:
+${user ? `
+• الاسم: ${user.user_metadata?.username || 'غير متوفر'}
+• البريد الإلكتروني: ${user.email}
+• معرّف المستخدم: ${user.id}
+` : '• مستخدم غير مسجل (زائر)'}
+
+⏰ تاريخ البلاغ: ${new Date().toLocaleString('ar-EG')}
+  `.trim();
+
+  const { error } = await supabaseAdmin.from('contact_messages').insert({
+    subject: 'بلاغ مستخدم',
+    message: formattedMessage,
     email: user ? user.email : 'ai-reported@example.com',
-    username: user ? (user.user_metadata?.username || 'N/A') : 'Anonymous User',
+    username: user ? (user.user_metadata?.username || 'مستخدم') : 'المساعد الذكي 🤖',
     user_id: user ? user.id : null,
   });
 
   if (error) {
+    console.error("❌ Report problem error:", error);
     return { success: false, message: "Error reporting problem." };
   }
+  console.log('✅ Problem reported successfully!');
   return { success: true, message: "Problem reported successfully." };
 };
 
@@ -195,6 +268,7 @@ const toolImplementations = {
 
 
 export async function POST(request) {
+  console.log('🚀 AI Chat API called');
   try {
     const body = await request.json();
     const history = body.history ? body.history.slice(-10) : [];
@@ -266,13 +340,23 @@ export async function POST(request) {
     3.  **الدور:** أمين مكتبة خبير وملاحظ دقيق.
 
     **قواعدك الذهبية (بروتوكول الجاسوس الأبيض):**
-    1.  **البحث أولاً:** لا تعتمد على ذاكرتك. إذا سأل المستخدم عن كتاب، مؤلف، أو تصنيف، استخدم أداة **'search_books'** فوراً.
-    2.  **الكتب الناقصة (بروتوكول 24 ساعة):** إذا بحثت عن كتاب ولم تجده (search_books returned found: false)، يجب عليك:
-        - استخدام أداة **'request_book'** لتسجيل الطلب.
-        - الرد على المستخدم بهذه الجملة حرفياً: *"سأخبر المسؤولين وسيتم إضافة هذا الكتاب خلال 24 ساعة 🕒."*
-    3.  **رصد المشاكل (Proactive Issue Logging):** كن يقظاً. إذا لاحظت من كلام المستخدم أنه يواجه صعوبة، انزعاج، أو مشكلة تقنية (مثلاً: "الموقع بطيء"، "وين الزر؟"، "ما عم يفتح"):
-        - استخدم أداة **'log_issue'** فوراً لتسجيل المشكلة للمسؤولين (دون إخبار المستخدم أنك تسجل تقريراً).
-        - اعرض المساعدة بلطف أو اعتذر عن الإزعاج.
+    1.  **البحث أولاً (MANDATORY):** 
+        - عندما يسأل المستخدم عن كتاب، مؤلف، أو تصنيف، يجب عليك استخدام أداة 'search_books' فوراً.
+        - لا تجب أبداً بناءً على ذاكرتك. استخدم الأداة دائماً.
+    
+    2.  **الكتب الناقصة (بروتوكول 24 ساعة - CRITICAL):** 
+        - إذا استخدمت 'search_books' وكانت النتيجة found: false، يجب عليك فوراً:
+          a) استخدام أداة 'request_book' مع عنوان الكتاب واسم المؤلف
+          b) الرد على المستخدم بالجملة التالية حرفياً: "سأخبر المسؤولين وسيتم إضافة هذا الكتاب خلال 24 ساعة 🕒"
+        - هذا إلزامي! لا تتجاهل هذه الخطوة أبداً.
+    
+    3.  **رصد المشاكل (Proactive Issue Logging - CRITICAL):** 
+        - كن يقظاً جداً. إذا لاحظت من كلام المستخدم أنه يواجه صعوبة، انزعاج، أو مشكلة تقنية (مثلاً: "الموقع بطيء"، "تعليق المتصفح"، "الصور تظهر وتختفي"، "ما عم يفتح"، "الزر لا يعمل"):
+          a) استخدم أداة 'log_issue' فوراً لتسجيل المشكلة للمسؤولين
+          b) بعد تسجيل المشكلة، اعتذر للمستخدم وطمئنه بأن المشكلة ستُحل قريباً
+          c) لا تعطِ نصائح عامة مثل "أعد تحميل الصفحة" - بدلاً من ذلك قل: "شكراً لإبلاغك! سجّلت المشكلة للفريق التقني وسيتم حلها في أقرب وقت."
+        - هذا إلزامي! يجب تسجيل كل مشكلة يذكرها المستخدم.
+    
     4.  **تغيير الثيم:** إذا طلب تغيير اللون/الثيم، استخدم 'change_theme'.
 
     **معلومات الموقع:**
@@ -317,6 +401,11 @@ export async function POST(request) {
     const aiResponse = await callOpenAI(baseMessages);
     const choice = aiResponse.choices?.[0];
 
+    console.log('🤖 AI Response received. Has function_call?', !!choice?.message?.function_call);
+    if (choice?.message?.function_call) {
+      console.log('📞 Function call:', choice.message.function_call.name);
+    }
+
     if (!choice || !choice.message) {
       return NextResponse.json({ text: 'عذراً، حدث خطأ في الاتصال.' });
     }
@@ -351,11 +440,42 @@ export async function POST(request) {
           }
         ];
 
-        const followUp = await callOpenAI(followUpMessages, 'none'); // Don't allow recursive tool calls for now
-        return NextResponse.json({ text: followUp.choices[0].message.content });
+        const followUp = await callOpenAI(followUpMessages, 'auto'); // Allow follow-up tool calls
+        const followUpChoice = followUp.choices[0];
+
+        // Check if AI wants to call another tool after getting the result
+        if (followUpChoice.message.function_call) {
+          console.log('🔄 AI wants to call another tool:', followUpChoice.message.function_call.name);
+          const followUpName = followUpChoice.message.function_call.name;
+          const followUpArgs = JSON.parse(followUpChoice.message.function_call.arguments);
+
+          // Execute the second tool
+          const followUpImpl = toolImplementations[followUpName];
+          if (followUpImpl) {
+            const followUpResult = await followUpImpl(followUpArgs);
+
+            // Get final response after second tool
+            const finalMessages = [
+              ...followUpMessages,
+              followUpChoice.message,
+              {
+                role: 'function',
+                name: followUpName,
+                content: JSON.stringify(followUpResult)
+              }
+            ];
+
+            const finalResponse = await callOpenAI(finalMessages, 'none');
+            return NextResponse.json({ text: finalResponse.choices[0].message.content });
+          }
+        }
+
+        return NextResponse.json({ text: followUpChoice.message.content });
       }
     }
 
+    // If we reach here, AI responded with text without calling any tool
+    console.log('⚠️ AI responded without calling tools. Response:', choice.message.content);
     return NextResponse.json({ text: choice.message.content });
 
   } catch (error) {

@@ -9,6 +9,7 @@ import axios from "axios";
 import { toast } from 'react-toastify';
 import { API_URL } from "@/constants";
 import './AdminPage.css';
+import './add-book/AddBookPage.css';
 
 import { createClient as createSupabaseClient } from "@/utils/supabase/client";
 
@@ -29,7 +30,7 @@ function generateRandomCounts(ratingTier) {
       readMin = 15; readMax = 25; // Excellent for reads
       break;
     case 'very_good': // Assuming this is a separate tier for reads
-      favoriteMin = 50; favoriteMax = 70; 
+      favoriteMin = 50; favoriteMax = 70;
       readMin = 40; readMax = 55;
       break;
     case 'normal':
@@ -90,8 +91,7 @@ const AdminPageClient = () => {
     setExistingCoverUrl(null);
     if (coverInputRef.current) coverInputRef.current.value = '';
     if (pdfFileInputRef.current) pdfFileInputRef.current.value = '';
-    router.push('/admin');
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     if (editBookId) {
@@ -115,12 +115,8 @@ const AdminPageClient = () => {
           toast.error("الكتاب المراد تعديله غير موجود");
           router.push('/admin');
         });
-    } else {
-      if (!editingBook) {
-        clearForm();
-      }
     }
-  }, [editBookId, router, editingBook, clearForm]);
+  }, [editBookId, router]);
 
   const handleAiFetch = async () => {
     if (!aiTitle) {
@@ -247,125 +243,225 @@ const AdminPageClient = () => {
   }
 
   return (
-    <div className="admin-page-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
-       <div style={{display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '20px'}}>
-        <Link href="/admin/books" style={{ backgroundColor: theme.accent, color: theme.primary, padding: "10px 20px", borderRadius: "5px", textDecoration: "none" }}>
-          عرض كل الكتب
-        </Link>
-        <Link href="/admin/contact-messages" style={{ backgroundColor: theme.accent, color: theme.primary, padding: "10px 20px", borderRadius: "5px", textDecoration: "none" }}>
-          عرض رسائل التواصل
-        </Link>
-        <Link href="/admin/suggested-books" style={{ backgroundColor: theme.accent, color: theme.primary, padding: "10px 20px", borderRadius: "5px", textDecoration: "none" }}>
-          إدارة الكتب المقترحة
-        </Link>
+    <div className="add-book-container">
+      {/* Back Button */}
+      <Link href="/admin" className="back-button">
+        ← العودة للوحة التحكم
+      </Link>
+
+      {/* Header */}
+      <div className="add-book-header">
+        <h1 className="add-book-title">{editingBook ? "تعديل الكتاب" : "إضافة كتاب جديد"}</h1>
+        <p className="add-book-subtitle">
+          {editingBook ? "قم بتعديل معلومات الكتاب أدناه" : "املأ النموذج أدناه لإضافة كتاب جديد للمكتبة"}
+        </p>
       </div>
 
-      <div className="admin-form-container" style={{ backgroundColor: theme.secondary, color: theme.primary }}>
-        <h2 className="admin-form-title">{editingBook ? "تعديل الكتاب" : "إضافة كتاب جديد"}</h2>
-        
+      <div className="book-form-container" style={{ backgroundColor: theme.secondary, color: theme.primary }}>
+
         {/* AI Fetch Section */}
         {!editingBook && (
-          <div className="ai-fetch-section" style={{ border: `1px solid ${theme.accent}`, padding: '15px', borderRadius: '5px', marginBottom: '20px' }}>
-            <h3 style={{ marginTop: 0 }}>إضافة سريعة بالذكاء الاصطناعي</h3>
-            <div className="admin-form-group">
-              <label>أدخل عنوان الكتاب لجلب معلوماته تلقائياً</label>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <input 
-                  type="text" 
-                  placeholder="مثال: 'كبرياء وتحامل'"
-                  value={aiTitle} 
-                  onChange={(e) => setAiTitle(e.target.value)} 
-                  style={{ flexGrow: 1, border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }}
-                />
-                <button type="button" onClick={handleAiFetch} disabled={isFetchingAi} style={{ backgroundColor: theme.accent, color: theme.primary }}>
-                  {isFetchingAi ? 'جاري الجلب...' : 'جلب المعلومات'}
-                </button>
-              </div>
+          <div className="ai-section">
+            <h3 className="ai-section-title">
+              <span>🤖</span> إضافة سريعة بالذكاء الاصطناعي
+            </h3>
+            <p style={{ color: '#7c3aed', marginBottom: '1rem', fontSize: '0.95rem' }}>
+              أدخل عنوان الكتاب وسنقوم بجلب معلوماته تلقائياً
+            </p>
+            <div className="ai-input-group">
+              <input
+                type="text"
+                className="ai-input"
+                placeholder="مثال: 'كبرياء وتحامل'"
+                value={aiTitle}
+                onChange={(e) => setAiTitle(e.target.value)}
+              />
+              <button
+                type="button"
+                className="ai-button"
+                onClick={handleAiFetch}
+                disabled={isFetchingAi}
+              >
+                {isFetchingAi ? 'جاري الجلب...' : 'جلب المعلومات'}
+              </button>
             </div>
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="admin-form-group">
-            <label>عنوان الكتاب</label>
-            <input type="text" placeholder="أدخل عنوان الكتاب" value={title} onChange={(e) => setTitle(e.target.value)} required style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
+          {/* Basic Information Section */}
+          <div className="form-section">
+            <h3 className="section-title">📖 المعلومات الأساسية</h3>
+            <div className="form-grid">
+              <div>
+                <label className="form-label required">عنوان الكتاب</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="أدخل عنوان الكتاب"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="form-label required">اسم الكاتب</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="أدخل اسم الكاتب"
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="form-label required">التصنيف</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  list="category-options"
+                  placeholder="أدخل أو اختر تصنيف"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  required
+                />
+                <datalist id="category-options">
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat} />
+                  ))}
+                </datalist>
+              </div>
+              <div>
+                <label className="form-label required">اللغة</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="أدخل اللغة"
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="form-label required">عدد الصفحات</label>
+                <input
+                  type="number"
+                  className="form-input"
+                  placeholder="أدخل عدد الصفحات"
+                  value={pages}
+                  onChange={(e) => setPages(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="form-label required">سنة التأليف</label>
+                <input
+                  type="number"
+                  className="form-input"
+                  placeholder="أدخل سنة التأليف"
+                  value={publishYear}
+                  onChange={(e) => setPublishYear(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <div className="form-group-full">
+              <label className="form-label required">الوصف</label>
+              <textarea
+                className="form-textarea"
+                placeholder="أدخل وصف الكتاب"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+              ></textarea>
+            </div>
+            <div className="form-group-full">
+              <label className="form-label">الكلمات المفتاحية (افصل بينها بفاصلة)</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="أدخل كلمات مفتاحية"
+                value={keywords}
+                onChange={(e) => setKeywords(e.target.value)}
+              />
+            </div>
           </div>
-          <div className="admin-form-group">
-            <label>اسم الكاتب</label>
-            <input type="text" placeholder="أدخل اسم الكاتب" value={author} onChange={(e) => setAuthor(e.target.value)} required style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
-          </div>
-          <div className="admin-form-group">
-            <label>التصنيف</label>
-            <input
-              type="text"
-              list="category-options"
-              placeholder="أدخل أو اختر تصنيف"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              required
-              style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }}
-            />
-            <datalist id="category-options">
-              {categories.map((cat) => (
-                <option key={cat} value={cat} />
-              ))}
-            </datalist>
-          </div>
-          <div className="admin-form-group">
-            <label>الوصف</label>
-            <textarea placeholder="أدخل وصف الكتاب" rows="4" value={description} onChange={(e) => setDescription(e.target.value)} required style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }}></textarea>
-          </div>
-          <div className="admin-form-group">
-            <label>عدد الصفحات</label>
-            <input type="number" placeholder="أدخل عدد الصفحات" value={pages} onChange={(e) => setPages(e.target.value)} required style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
-          </div>
-          <div className="admin-form-group">
-            <label>سنة التأليف</label>
-            <input type="number" placeholder="أدخل سنة التأليف" value={publishYear} onChange={(e) => setPublishYear(e.target.value)} required style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
-          </div>
-          <div className="admin-form-group">
-            <label>اللغة</label>
-            <input type="text" placeholder="أدخل اللغة" value={language} onChange={(e) => setLanguage(e.target.value)} required style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
-          </div>
-          <div className="admin-form-group">
-            <label>صورة الغلاف</label>
-            {existingCoverUrl && !cover && (
-              <Image src={existingCoverUrl} alt="Current Cover" width={100} height={150} style={{ maxWidth: '100px', maxHeight: '150px', marginBottom: '10px' }} />
-            )}
-            <input type="file" accept="image/*" onChange={(e) => setCover(e.target.files[0])} ref={coverInputRef} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
-          </div>
-          <div className="admin-form-group">
-            <label>ملف PDF</label>
-            <input type="file" accept="application/pdf" onChange={(e) => setPdfFile(e.target.files[0])} ref={pdfFileInputRef} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
-          </div>
-          <div className="admin-form-group">
-            <label>الكلمات المفتاحية (افصل بينها بفاصلة)</label>
-            <input type="text" placeholder="أدخل كلمات مفتاحية" value={keywords} onChange={(e) => setKeywords(e.target.value)} className="admin-form-input" />
+
+          {/* Files Section */}
+          <div className="form-section">
+            <h3 className="section-title">📁 الملفات</h3>
+            <div className="form-grid">
+              <div>
+                <label className="form-label">صورة الغلاف</label>
+                {existingCoverUrl && !cover && (
+                  <div className="image-preview">
+                    <Image src={existingCoverUrl} alt="Current Cover" width={100} height={150} />
+                  </div>
+                )}
+                <input
+                  type="file"
+                  className="form-input form-file-input"
+                  accept="image/*"
+                  onChange={(e) => setCover(e.target.files[0])}
+                  ref={coverInputRef}
+                />
+              </div>
+              <div>
+                <label className="form-label">ملف PDF</label>
+                <input
+                  type="file"
+                  className="form-input form-file-input"
+                  accept="application/pdf"
+                  onChange={(e) => setPdfFile(e.target.files[0])}
+                  ref={pdfFileInputRef}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Random Likes and Reads Generation */}
-          <div className="admin-form-group">
-            <label>توليد أرقام عشوائية للإعجابات والقراءات</label>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-              <button type="button" onClick={() => handleGenerateRandomCounts('normal')} style={{ backgroundColor: '#4CAF50', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer' }}>عادي</button>
-              <button type="button" onClick={() => handleGenerateRandomCounts('medium')} style={{ backgroundColor: '#FFC107', color: 'black', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer' }}>متوسط</button>
-              <button type="button" onClick={() => handleGenerateRandomCounts('excellent')} style={{ backgroundColor: '#007BFF', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer' }}>ممتاز</button>
-              <button type="button" onClick={() => handleGenerateRandomCounts('very_good')} style={{ backgroundColor: '#6C757D', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer' }}>جيد جداً</button>
+          <div className="random-counts-section">
+            <h4 className="random-counts-title">🎲 توليد أرقام عشوائية للإعجابات والقراءات</h4>
+            <div className="tier-buttons">
+              <button type="button" onClick={() => handleGenerateRandomCounts('normal')} className="tier-button tier-normal">عادي</button>
+              <button type="button" onClick={() => handleGenerateRandomCounts('medium')} className="tier-button tier-medium">متوسط</button>
+              <button type="button" onClick={() => handleGenerateRandomCounts('excellent')} className="tier-button tier-excellent">ممتاز</button>
+              <button type="button" onClick={() => handleGenerateRandomCounts('very_good')} className="tier-button tier-very-good">جيد جداً</button>
             </div>
-            <div className="admin-form-group">
-              <label>الإعجابات</label>
-              <input type="number" value={likes} onChange={(e) => setLikes(parseInt(e.target.value) || 0)} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
-            </div>
-            <div className="admin-form-group">
-              <label>القراءات</label>
-              <input type="number" value={reads} onChange={(e) => setReads(parseInt(e.target.value) || 0)} style={{ border: `1px solid ${theme.accent}`, backgroundColor: theme.background, color: theme.primary }} />
+            <div className="counts-grid">
+              <div>
+                <label className="form-label">الإعجابات</label>
+                <input
+                  type="number"
+                  className="form-input"
+                  value={likes}
+                  onChange={(e) => setLikes(parseInt(e.target.value) || 0)}
+                />
+              </div>
+              <div>
+                <label className="form-label">القراءات</label>
+                <input
+                  type="number"
+                  className="form-input"
+                  value={reads}
+                  onChange={(e) => setReads(parseInt(e.target.value) || 0)}
+                />
+              </div>
             </div>
           </div>
 
-          <button type="submit" className="admin-form-button" style={{ backgroundColor: theme.accent, color: theme.primary }}>{editingBook ? "تحديث الكتاب" : "إضافة الكتاب"}</button>
-          {editingBook && (
-            <button type="button" onClick={clearForm} className="admin-form-button cancel themed-secondary-button">إلغاء التعديل</button>
-          )}
+          {/* Submit Buttons */}
+          <div className="submit-section">
+            <button type="submit" className="submit-button submit-primary">
+              {editingBook ? "تحديث الكتاب" : "إضافة الكتاب"}
+            </button>
+            {editingBook && (
+              <button type="button" onClick={clearForm} className="submit-button submit-secondary">
+                إلغاء التعديل
+              </button>
+            )}
+          </div>
         </form>
       </div>
     </div>

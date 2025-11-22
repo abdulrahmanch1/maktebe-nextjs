@@ -1,106 +1,370 @@
+/* ============================================
+   ADMIN PANEL - PREMIUM DESIGN SYSTEM
+   ============================================ */
+
+:root {
+  --admin-primary: #2563eb;
+  --admin-primary-dark: #1e40af;
+  --admin-success: #10b981;
+  --admin-danger: #ef4444;
+  --admin-warning: #f59e0b;
+  --admin-info: #06b6d4;
+  --admin-gray-50: #f9fafb;
+  --admin-gray-100: #f3f4f6;
+  --admin-gray-200: #e5e7eb;
+  --admin-gray-300: #d1d5db;
+  --admin-gray-700: #374151;
+  --admin-gray-900: #111827;
+  --admin-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --admin-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --admin-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --admin-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================
+   CONTAINER & LAYOUT
+   ============================================ */
+
 .admin-page-container {
-  padding: 20px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--admin-gray-50) 0%, #ffffff 100%);
+  padding: clamp(1rem, 3vw, 2.5rem);
 }
 
 .admin-page-title {
   text-align: center;
-  margin-bottom: 30px;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-info) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.02em;
+  position: relative;
+  padding-bottom: 1rem;
 }
 
+.admin-page-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--admin-primary), var(--admin-info));
+  border-radius: 2px;
+}
+
+/* ============================================
+   FORM CONTAINER
+   ============================================ */
+
 .admin-form-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  margin: 0 auto clamp(2rem, 4vw, 3rem);
+  background: white;
+  border-radius: 20px;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  box-shadow: var(--admin-shadow-xl);
+  border: 1px solid var(--admin-gray-200);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-form-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--admin-primary), var(--admin-info), var(--admin-success));
 }
 
 .admin-form-title {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  color: var(--admin-gray-900);
+  margin-bottom: 2rem;
   text-align: center;
-  margin-bottom: 20px;
 }
 
+/* ============================================
+   FORM GROUPS
+   ============================================ */
+
 .admin-form-group {
-  margin-bottom: 15px;
+  margin-bottom: 1.75rem;
 }
 
 .admin-form-group label {
   display: block;
-  margin-bottom: 5px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--admin-gray-700);
+  margin-bottom: 0.5rem;
+  transition: color 0.3s ease;
+}
+
+.admin-form-group:focus-within label {
+  color: var(--admin-primary);
 }
 
 .admin-form-group input,
-.admin-form-group textarea {
+.admin-form-group textarea,
+.admin-form-group select {
   width: 100%;
-  padding: 10px;
-  border-radius: 4px;
-  border: 1px solid;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  border: 2px solid var(--admin-gray-200);
+  border-radius: 12px;
+  background: var(--admin-gray-50);
+  color: var(--admin-gray-900);
+  transition: all 0.3s ease;
   box-sizing: border-box;
 }
 
+.admin-form-group input:hover,
+.admin-form-group textarea:hover,
+.admin-form-group select:hover {
+  border-color: var(--admin-gray-300);
+  background: white;
+}
+
+.admin-form-group input:focus,
+.admin-form-group textarea:focus,
+.admin-form-group select:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  background: white;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.admin-form-group textarea {
+  min-height: 140px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.6;
+}
+
+.admin-form-input {
+  background-color: var(--admin-gray-50);
+  color: var(--admin-gray-900);
+  border-color: var(--admin-gray-200);
+}
+
+.admin-form-input::placeholder {
+  color: var(--admin-gray-300);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+
 .admin-form-button {
   width: 100%;
-  padding: 12px;
-  border-radius: 4px;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
   border: none;
-  font-size: 16px;
-  font-weight: bold;
+  border-radius: 12px;
   cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-form-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.admin-form-button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.admin-form-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow-lg);
+}
+
+.admin-form-button:active {
+  transform: translateY(0);
 }
 
 .admin-form-button.cancel {
-  margin-top: 10px;
+  margin-top: 1rem;
+  background: var(--admin-gray-200);
+  color: var(--admin-gray-700);
 }
 
+.admin-form-button.cancel:hover {
+  background: var(--admin-gray-300);
+}
+
+/* ============================================
+   BOOKS LIST
+   ============================================ */
+
 .admin-books-list-container {
-  margin-top: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .admin-books-list-title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: var(--admin-gray-900);
+  margin-bottom: 2rem;
   text-align: center;
-  margin-bottom: 20px;
 }
 
 .admin-book-item {
+  background: white;
+  border-radius: 16px;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  margin-bottom: 1.25rem;
+  box-shadow: var(--admin-shadow);
+  border: 1px solid var(--admin-gray-200);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 15px; /* Add margin between items */
+  flex-direction: column;
+  gap: 1.25rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-book-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--admin-primary), var(--admin-info));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.admin-book-item:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--admin-shadow-xl);
+  border-color: var(--admin-primary);
+}
+
+.admin-book-item:hover::before {
+  opacity: 1;
 }
 
 .admin-book-item p {
   margin: 0;
-  font-weight: bold;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--admin-gray-700);
 }
 
-.admin-book-item button {
+.admin-book-item strong {
+  color: var(--admin-gray-900);
+  font-weight: 600;
+}
+
+.admin-book-item>div:last-child {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+/* ============================================
+   ACTION BUTTONS
+   ============================================ */
+
+.admin-book-item button,
+.admin-book-item a.reply-button,
+.admin-nav-link {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
   border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
+  border-radius: 10px;
   cursor: pointer;
-  margin-left: 10px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  min-width: 140px;
+}
+
+.admin-book-item button::before,
+.admin-book-item a.reply-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.5s, height 0.5s;
+}
+
+.admin-book-item button:hover::before,
+.admin-book-item a.reply-button:hover::before {
+  width: 200px;
+  height: 200px;
+}
+
+.admin-book-item button:hover,
+.admin-book-item a.reply-button:hover,
+.admin-nav-link:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow-lg);
+}
+
+.admin-book-item button:active,
+.admin-book-item a.reply-button:active {
+  transform: translateY(0);
 }
 
 .admin-book-item button.delete {
-  background-color: #dc3545;
+  background: linear-gradient(135deg, var(--admin-danger) 0%, #dc2626 100%);
   color: white;
 }
 
-/* Fixed styles for admin form inputs */
-.admin-form-input {
-  background-color: #ffffff; /* White background */
-  color: #333333; /* Dark gray text */
-  border-color: #cccccc; /* Light gray border */
+.admin-book-item button.delete:hover {
+  box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
 }
 
-.admin-form-input::placeholder {
-  color: #999999; /* Lighter gray placeholder */
+.reply-button {
+  background: linear-gradient(135deg, var(--admin-info) 0%, #0891b2 100%);
+  color: white !important;
 }
 
-/* Themed styles for AdminPageClient */
+.reply-button:hover {
+  box-shadow: 0 8px 16px rgba(6, 182, 212, 0.3);
+}
+
+/* ============================================
+   THEMED STYLES
+   ============================================ */
+
 .themed-page-container {
   background-color: var(--background-color);
   color: var(--primary-color);
@@ -110,15 +374,13 @@
   color: var(--primary-color);
 }
 
-.admin-nav-link {
-  padding: 10px 20px;
-  border-radius: 5px;
-  text-decoration: none;
+.themed-button-accent {
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--primary-color) 100%);
+  color: white;
 }
 
-.themed-button-accent {
-  background-color: var(--accent-color);
-  color: var(--primary-color);
+.themed-button-accent:hover {
+  box-shadow: 0 8px 16px rgba(var(--accent-color-rgb, 0, 0, 0), 0.3);
 }
 
 .themed-secondary-background {
@@ -134,19 +396,138 @@
   color: var(--primary-color);
 }
 
-/* Style for the new Reply button */
-.reply-button {
-  display: inline-block; /* To apply padding and other box model properties */
-  background-color: #007bff; /* A nice blue color */
-  color: white !important; /* Ensure text is white */
-  padding: 8px 12px;
-  border-radius: 4px;
-  text-decoration: none; /* Remove underline from the link */
-  margin-left: 10px;
-  font-size: 14px; /* Match button font size if needed */
-  line-height: 1.5; /* Adjust line height for vertical alignment */
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (min-width: 768px) {
+  .admin-book-item {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .admin-book-item>div:first-child {
+    flex: 1;
+  }
+
+  .admin-book-item>div:last-child {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    margin-top: 0;
+  }
+
+  .admin-book-item button,
+  .admin-book-item a.reply-button {
+    flex: 0 0 auto;
+    min-width: auto;
+  }
 }
 
-.reply-button:hover {
-  background-color: #0056b3; /* Darker blue on hover */
+@media (max-width: 767px) {
+  .admin-page-container {
+    padding: 1rem;
+  }
+
+  .admin-form-container {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+
+  .admin-book-item button,
+  .admin-book-item a.reply-button {
+    width: 100%;
+  }
+
+  .admin-book-item>div:last-child {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-page-title {
+    margin-bottom: 1.5rem;
+  }
+
+  .admin-form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .admin-book-item {
+    padding: 1rem;
+  }
+
+  .admin-form-button {
+    padding: 0.875rem 1.25rem;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-book-item {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.admin-book-item:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.admin-book-item:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.admin-book-item:nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.admin-book-item:nth-child(4) {
+  animation-delay: 0.2s;
+}
+
+.admin-book-item:nth-child(5) {
+  animation-delay: 0.25s;
+}
+
+/* ============================================
+   LOADING & EMPTY STATES
+   ============================================ */
+
+.admin-loading,
+.admin-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--admin-gray-700);
+}
+
+.admin-loading::before,
+.admin-empty::before {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1.5rem;
+  border: 4px solid var(--admin-gray-200);
+  border-top-color: var(--admin-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
