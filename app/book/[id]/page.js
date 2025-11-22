@@ -83,6 +83,7 @@ export async function generateMetadata(props) {
   const metadata = {
     title: `${book.title} - ${book.author}`,
     description: book.description ? book.description.substring(0, 160) : `اقرأ كتاب ${book.title} للمؤلف ${book.author} على موقع دار القرَاء.`,
+    keywords: book.keywords || ['كتب', 'روايات', 'قراءة', book.category],
     alternates: {
       canonical: `/book/${params.id}`,
     },
