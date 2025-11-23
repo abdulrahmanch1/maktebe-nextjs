@@ -17,11 +17,6 @@ export default async function sitemap() {
             lastModified: new Date(book.updated_at || book.created_at),
             changeFrequency: 'weekly',
             priority: 0.8,
-            images: book.cover ? [{
-                loc: book.cover,
-                title: book.title,
-                caption: `غلاف كتاب ${book.title}`
-            }] : []
         }))
         : [];
 
