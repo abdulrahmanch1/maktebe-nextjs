@@ -94,7 +94,13 @@ export default async function RootLayout({ children }) {
     <html lang="ar" dir="rtl">
       <head>
         <meta name="google-site-verification" content="bsBB43qfT1FPKaWwZ_HeLlmhodeWwL0jakSb-Yyq2o8" />
-        <link rel="alternate" type="application/rss+xml" title="مكتبة دار القرّاء - أحدث الكتب" href="/feed.xml" />
+        <link rel="alternate" type="application/rss+xml" title="دار القرّاء - آخر الكتب" href="/feed.xml" />
+
+        {/* Favicon */}
+        <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="shortcut icon" href="/favicon.png" />
         <link rel="preconnect" href="https://jldyyfkashoisxxyfhmb.supabase.co" />
         <script
           type="application/ld+json"
