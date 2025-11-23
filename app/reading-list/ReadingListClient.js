@@ -81,10 +81,16 @@ const ReadingListClient = () => {
   }, [fetchedBooks, readingListData]);
 
   // Filter by read status
-  const booksToDisplay = useMemo(
-    () => readingListBooks.filter(book => book.read === showReadBooks),
-    [readingListBooks, showReadBooks]
-  );
+  const booksToDisplay = useMemo(() => {
+    const filtered = readingListBooks.filter(book => book.read === showReadBooks);
+    return filtered
+      .slice()
+      .sort((a, b) => {
+        const aProg = a?.progress?.percentage ?? 0;
+        const bProg = b?.progress?.percentage ?? 0;
+        return bProg - aProg;
+      });
+  }, [readingListBooks, showReadBooks]);
 
   const combinedLoading = listLoading || booksLoading;
   const combinedError = listError || booksError;

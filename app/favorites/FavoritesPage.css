@@ -37,33 +37,16 @@
 }
 
 .favorites-books-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0;
   padding: 1rem 0;
 }
 
-.favorites-container .favorites-books-grid>* {
+.favorites-books-grid .book-card {
   width: 200px;
   margin: 10px;
-}
-
-@media (max-width: 600px) {
-  .favorites-container .favorites-books-grid>* {
-    width: 150px;
-  }
-}
-
-@media (max-width: 444px) {
-  .favorites-container .favorites-books-grid>* {
-    width: 130px;
-  }
-}
-
-@media (max-width: 325px) {
-  .favorites-container .favorites-books-grid>* {
-    width: 120px;
-  }
 }
 
 /* Empty State - Minimalist */
@@ -137,6 +120,24 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .favorites-books-grid .book-card {
+    width: 150px;
+  }
+}
+
+@media (max-width: 444px) {
+  .favorites-books-grid .book-card {
+    width: 130px;
+  }
+}
+
+@media (max-width: 325px) {
+  .favorites-books-grid .book-card {
+    width: 120px;
   }
 }
 

@@ -224,10 +224,11 @@
 
 /* Progress Bar */
 .progress-container {
-  margin-top: 8px;
+  margin-top: 0;
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 22px;
 }
 
 .progress-bar {
@@ -252,4 +253,8 @@
   font-size: 0.75rem;
   color: #64748b;
   font-weight: 500;
+  white-space: nowrap;
+  line-height: 1.2;
+  min-width: 42px;
+  text-align: center;
 }
