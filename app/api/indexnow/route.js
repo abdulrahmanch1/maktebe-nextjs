@@ -40,8 +40,8 @@ export async function POST(request) {
     }
 }
 
-// Helper function to call from other parts of the app
-export async function submitToIndexNow(urls) {
+// Helper function to call from other parts of the app (kept internal to avoid invalid Route exports)
+async function submitToIndexNow(urls) {
     try {
         const response = await fetch('/api/indexnow', {
             method: 'POST',
