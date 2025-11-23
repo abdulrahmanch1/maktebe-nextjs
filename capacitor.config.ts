@@ -7,7 +7,6 @@ const serverUrl =
 const config: CapacitorConfig = {
   appId: 'com.daralqurra.app',
   appName: 'دار القراء',
-  bundledWebRuntime: false,
   webDir: 'public',
   server: {
     url: serverUrl,
