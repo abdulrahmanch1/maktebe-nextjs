@@ -18,7 +18,7 @@ export default async function sitemap() {
             changeFrequency: 'weekly',
             priority: 0.8,
             images: book.cover ? [{
-                url: book.cover,
+                loc: book.cover,
                 title: book.title,
                 caption: `غلاف كتاب ${book.title}`
             }] : []
