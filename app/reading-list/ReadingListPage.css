@@ -76,11 +76,9 @@
 }
 
 .reading-list-books-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  min-height: auto;
-  gap: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.5rem;
   padding: 1rem 0;
   max-width: 1400px;
   margin: 0 auto;
