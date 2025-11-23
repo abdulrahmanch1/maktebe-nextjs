@@ -3,7 +3,7 @@ export default function robots() {
         rules: {
             userAgent: '*',
             allow: '/',
-            disallow: ['/admin/', '/api/', '/settings/'],
+            disallow: ['/admin/', '/api/', '/settings/', '/login', '/register', '/suggest-book/'],
         },
         sitemap: 'https://www.dar-alqurra.com/sitemap.xml',
     };

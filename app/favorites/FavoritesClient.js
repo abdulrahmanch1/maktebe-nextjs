@@ -1,14 +1,14 @@
 'use client';
-import React, { useContext, useEffect, useState } from "react";
-import { ThemeContext } from "@/contexts/ThemeContext";
+import React, { useContext, useMemo } from "react";
 import { FavoritesContext } from "@/contexts/FavoritesContext";
 import BookCard from "@/components/BookCard";
-import axios from "axios";
 import { AuthContext } from "@/contexts/AuthContext";
 import Link from "next/link";
-import { API_URL } from "@/constants";
 import './FavoritesPage.css';
 import '@/components/SkeletonLoader.css';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { API_URL } from '@/constants';
 
 // Skeleton Loader Component
 const SkeletonGrid = () => (
@@ -26,40 +26,30 @@ const SkeletonGrid = () => (
 );
 
 const FavoritesClient = () => {
-  const { theme } = useContext(ThemeContext);
   const { favorites } = useContext(FavoritesContext);
-  const [favoriteBooksData, setFavoriteBooksData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const { isLoggedIn, loading: authLoading } = useContext(AuthContext);
+  const { isLoggedIn, user, loading: authLoading } = useContext(AuthContext);
 
-  useEffect(() => {
-    const fetchFavoriteBookDetails = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const ids = favorites.join(',');
-        const response = await axios.get(`${API_URL}/api/books?ids=${ids}`);
-        setFavoriteBooksData(response.data);
-      } catch (err) {
-        console.error("Failed to fetch favorite book details:", err);
-        setError("Failed to load favorite books.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const favoriteIds = useMemo(() => favorites.join(','), [favorites]);
 
-    if (!authLoading && isLoggedIn && favorites.length > 0) {
-      fetchFavoriteBookDetails();
-    } else if (!authLoading && (!isLoggedIn || favorites.length === 0)) {
-      setFavoriteBooksData([]);
-      setLoading(false);
-    }
-  }, [favorites, isLoggedIn, authLoading]);
+  const {
+    data: favoriteBooksData = [],
+    isLoading: isQueryLoading,
+    error
+  } = useQuery({
+    queryKey: ['favoriteBooks', favoriteIds],
+    queryFn: async () => {
+      if (!favoriteIds) return [];
+      const { data } = await axios.get(`${API_URL}/api/books?ids=${favoriteIds}`);
+      return data;
+    },
+    enabled: !!favoriteIds && isLoggedIn,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
 
+  const isLoading = authLoading || (isLoggedIn && isQueryLoading);
 
-
-  if (authLoading || (loading && isLoggedIn && favorites.length > 0)) {
+  if (isLoading) {
     return (
       <div className="favorites-container">
         <div className="favorites-header">
@@ -72,7 +62,7 @@ const FavoritesClient = () => {
   }
 
   if (error) {
-    return <div className="favorites-container">{error}</div>;
+    return <div className="favorites-container">حدث خطأ أثناء تحميل المفضلة.</div>;
   }
 
   if (!isLoggedIn) {

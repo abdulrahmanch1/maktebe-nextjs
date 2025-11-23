@@ -15,6 +15,15 @@
   border: 1px solid transparent;
 }
 
+@media (max-width: 346px) {
+  .book-card {
+    max-width: none;
+    width: 100%;
+    padding: 6px;
+    margin: 0.5rem auto;
+  }
+}
+
 [data-theme='dark'] .book-card {
   background-color: #1e293b;
   /* Dark theme bg */
@@ -69,7 +78,7 @@
 .book-card-overlay {
   position: absolute;
   top: 0;
-  left: 0;
+  right: 0;
   width: 100%;
   height: 100%;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, transparent 30%);
@@ -77,7 +86,8 @@
   /* Show subtly by default */
   transition: opacity 0.3s ease;
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  align-items: flex-start;
   padding: 10px;
 }
 
@@ -165,13 +175,26 @@
 }
 
 .favorite-btn.liked svg {
-  filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.3));
+  fill: #e74c3c;
+  stroke: #e74c3c;
+  animation: heartbeat 0.3s ease;
+}
+
+@keyframes heartbeat {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 /* Info Section */
 .book-card-info {
   margin-top: 12px;
-  text-align: right;
 }
 
 .book-title {

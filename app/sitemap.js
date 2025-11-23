@@ -4,18 +4,24 @@ export default async function sitemap() {
     const supabase = await createClient();
     const baseUrl = 'https://www.dar-alqurra.com';
 
-    // Fetch all approved books
+    // Fetch all approved books with accurate dates
     const { data: books } = await supabase
         .from('books')
-        .select('id, updated_at')
-        .eq('status', 'approved');
+        .select('id, title, cover, updated_at, created_at')
+        .eq('status', 'approved')
+        .order('updated_at', { ascending: false });
 
     const bookUrls = books
         ? books.map((book) => ({
             url: `${baseUrl}/book/${book.id}`,
-            lastModified: new Date(book.updated_at || new Date()),
+            lastModified: new Date(book.updated_at || book.created_at),
             changeFrequency: 'weekly',
             priority: 0.8,
+            images: book.cover ? [{
+                url: book.cover,
+                title: book.title,
+                caption: `غلاف كتاب ${book.title}`
+            }] : []
         }))
         : [];
 
@@ -30,31 +36,19 @@ export default async function sitemap() {
             url: `${baseUrl}/favorites`,
             lastModified: new Date(),
             changeFrequency: 'weekly',
-            priority: 0.7,
+            priority: 0.6,
         },
         {
             url: `${baseUrl}/reading-list`,
             lastModified: new Date(),
             changeFrequency: 'weekly',
-            priority: 0.7,
+            priority: 0.6,
         },
         {
             url: `${baseUrl}/suggest-book`,
             lastModified: new Date(),
             changeFrequency: 'monthly',
-            priority: 0.5,
-        },
-        {
-            url: `${baseUrl}/login`,
-            lastModified: new Date(),
-            changeFrequency: 'monthly',
-            priority: 0.5,
-        },
-        {
-            url: `${baseUrl}/register`,
-            lastModified: new Date(),
-            changeFrequency: 'monthly',
-            priority: 0.5,
+            priority: 0.4,
         },
         ...bookUrls,
     ];

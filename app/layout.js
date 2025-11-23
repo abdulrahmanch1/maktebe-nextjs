@@ -9,11 +9,11 @@ import '@/app/globals.css';
 export const metadata = {
   metadataBase: new URL('https://www.dar-alqurra.com'),
   title: {
-    default: 'مكتبة دار القرَاء | تصفح واقرأ آلاف الكتب والروايات',
+    default: 'مكتبة دار القرَاء - تحميل وقراءة آلاف الكتب والروايات العربية مجاناً',
     template: '%s | دار القرَاء'
   },
-  description: 'دار القرَاء، مكتبة كتب عربية شاملة. تصفح، ابحث، واقرأ آلاف الكتب والروايات في مختلف التصنيفات. انضم إلينا واستمتع بتجربة قراءة فريدة.',
-  keywords: ['مكتبة كتب', 'كتب عربية', 'قراءة كتب', 'تحميل كتب', 'كتب إلكترونية', 'روايات عربية', 'قصص', 'أدب عربي', 'كتب دينية', 'كتب تاريخية', 'كتب علمية', 'مكتبة إلكترونية', 'كتب مجانية', 'قراءات', 'ثقافة', 'معرفة'],
+  description: 'اكتشف أكبر مكتبة كتب عربية إلكترونية. حمل واقرأ آلاف الروايات والكتب الدينية والعلمية مجاناً بصيغة PDF. تجربة قراءة ممتعة وسريعة في دار القرَاء.',
+  keywords: ['مكتبة كتب', 'كتب pdf', 'تحميل كتب', 'قراءة كتب', 'روايات عربية', 'كتب إلكترونية', 'كتب دينية', 'روايات عالمية مترجمة', 'كتب تنمية بشرية', 'كتب تاريخية', 'كتب علم النفس', 'أفضل موقع لتحميل الكتب', 'قراءة روايات بدون نت'],
   authors: [{ name: 'Abdulrahman Chibon' }],
   creator: 'Abdulrahman Chibon',
   publisher: 'دار القرَاء',
@@ -21,13 +21,13 @@ export const metadata = {
   manifest: '/manifest.json',
 
   openGraph: {
-    title: 'مكتبة دار القرَاء | تصفح واقرأ آلاف الكتب والروايات',
-    description: 'دار القرَاء، مكتبة كتب عربية شاملة. تصفح، ابحث، واقرأ آلاف الكتب والروايات في مختلف التصنيفات.',
+    title: 'مكتبة دار القرَاء - تحميل وقراءة آلاف الكتب والروايات العربية مجاناً',
+    description: 'اكتشف أكبر مكتبة كتب عربية إلكترونية. حمل واقرأ آلاف الروايات والكتب الدينية والعلمية مجاناً بصيغة PDF.',
     url: 'https://www.dar-alqurra.com',
     siteName: 'دار القرَاء',
     images: [
       {
-        url: '/icons/icon-512.png', // Ensure you have a high-res OG image
+        url: '/icons/icon-512.png',
         width: 512,
         height: 512,
         alt: 'شعار دار القرَاء',
@@ -38,10 +38,10 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'مكتبة دار القرَاء',
-    description: 'تصفح واقرأ آلاف الكتب والروايات العربية مجاناً.',
+    title: 'مكتبة دار القرَاء - تحميل وقراءة كتب وروايات',
+    description: 'اكتشف أكبر مكتبة كتب عربية إلكترونية. حمل واقرأ آلاف الروايات والكتب الدينية والعلمية مجاناً.',
     images: ['/icons/icon-512.png'],
-    creator: '@dar_alqurra', // Replace with actual handle if available
+    creator: '@dar_alqurra',
   },
   robots: {
     index: true,
@@ -94,10 +94,26 @@ export default async function RootLayout({ children }) {
     <html lang="ar" dir="rtl">
       <head>
         <meta name="google-site-verification" content="bsBB43qfT1FPKaWwZ_HeLlmhodeWwL0jakSb-Yyq2o8" />
+        <link rel="alternate" type="application/rss+xml" title="مكتبة دار القرّاء - أحدث الكتب" href="/feed.xml" />
         <link rel="preconnect" href="https://jldyyfkashoisxxyfhmb.supabase.co" />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              organizationSchema,
+              {
+                '@context': 'https://schema.org',
+                '@type': 'WebSite',
+                name: 'دار القرَاء',
+                url: 'https://www.dar-alqurra.com',
+                potentialAction: {
+                  '@type': 'SearchAction',
+                  target: 'https://www.dar-alqurra.com/?search={search_term_string}',
+                  'query-input': 'required name=search_term_string'
+                }
+              }
+            ])
+          }}
         />
       </head>
       <body>

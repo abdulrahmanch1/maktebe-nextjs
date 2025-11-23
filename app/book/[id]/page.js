@@ -2,7 +2,26 @@ import BookDetailsClient from "./BookDetailsClient";
 import { createClient } from "@/utils/supabase/server";
 import { notFound } from 'next/navigation';
 
-export const dynamic = 'force-dynamic';
+// Pre-generate top 100 books for faster indexing
+export async function generateStaticParams() {
+  // Use direct Supabase client (no cookies needed for build-time)
+  const { createClient: createDirectClient } = await import('@supabase/supabase-js');
+  const supabase = createDirectClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+
+  const { data: books } = await supabase
+    .from('books')
+    .select('id')
+    .eq('status', 'approved')
+    .order('created_at', { ascending: false })
+    .limit(100);
+
+  return books?.map((book) => ({
+    id: book.id,
+  })) || [];
+}
 
 async function getBookData(id) {
   const supabase = await createClient();
@@ -81,15 +100,15 @@ export async function generateMetadata(props) {
   }
 
   const metadata = {
-    title: `${book.title} - ${book.author}`,
-    description: book.description ? book.description.substring(0, 160) : `اقرأ كتاب ${book.title} للمؤلف ${book.author} على موقع دار القرَاء.`,
-    keywords: book.keywords || ['كتب', 'روايات', 'قراءة', book.category],
+    title: `${book.title} - ${book.author} | تحميل وقراءة pdf`,
+    description: book.description ? book.description.substring(0, 160) : `حمل واقرأ كتاب ${book.title} للمؤلف ${book.author} مجاناً بصيغة PDF. استمتع بقراءة أونلاين أو تحميل مباشر من مكتبة دار القرَاء.`,
+    keywords: book.keywords || ['كتب', 'روايات', 'قراءة', 'تحميل كتب', 'pdf', book.category, book.author],
     alternates: {
       canonical: `/book/${params.id}`,
     },
     openGraph: {
-      title: `${book.title} - ${book.author}`,
-      description: book.description ? book.description.substring(0, 200) : `اقرأ كتاب ${book.title} للمؤلف ${book.author} مجاناً.`,
+      title: `${book.title} - ${book.author} | تحميل وقراءة مجاناً`,
+      description: book.description ? book.description.substring(0, 200) : `حمل واقرأ كتاب ${book.title} للمؤلف ${book.author} مجاناً. متوفر الآن للقراءة والتحميل على دار القرَاء.`,
       images: [
         {
           url: book.cover || '/imgs/no_cover_available.png',
@@ -104,7 +123,7 @@ export async function generateMetadata(props) {
     twitter: {
       card: 'summary_large_image',
       title: `${book.title} - ${book.author}`,
-      description: book.description ? book.description.substring(0, 200) : `اقرأ كتاب ${book.title} للمؤلف ${book.author}.`,
+      description: book.description ? book.description.substring(0, 200) : `اقرأ وحمل كتاب ${book.title} للمؤلف ${book.author} مجاناً.`,
       images: [book.cover || '/imgs/no_cover_available.png'],
     },
   };
@@ -127,6 +146,12 @@ export async function generateMetadata(props) {
     publisher: {
       '@type': 'Organization',
       name: 'دار القرَاء'
+    },
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock'
     }
   };
 
@@ -143,8 +168,8 @@ export async function generateMetadata(props) {
       {
         '@type': 'ListItem',
         position: 2,
-        name: 'الكتب',
-        item: 'https://www.dar-alqurra.com' // Ideally this would be a category page
+        name: book.category || 'الكتب',
+        item: `https://www.dar-alqurra.com/?category=${encodeURIComponent(book.category || '')}`
       },
       {
         '@type': 'ListItem',

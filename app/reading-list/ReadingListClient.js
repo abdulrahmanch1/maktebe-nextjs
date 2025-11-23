@@ -1,13 +1,13 @@
 'use client';
 import React, { useContext, useState, useMemo } from "react";
-import { ThemeContext } from "@/contexts/ThemeContext";
 import { AuthContext } from "@/contexts/AuthContext";
-import useFetch from "@/hooks/useFetch";
 import BookCard from "@/components/BookCard";
 import Link from "next/link";
-import { API_URL } from "@/constants";
 import './ReadingListPage.css';
 import '@/components/SkeletonLoader.css';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { API_URL } from '@/constants';
 
 // Skeleton Loader Component
 const SkeletonGrid = () => (
@@ -25,30 +25,50 @@ const SkeletonGrid = () => (
 );
 
 const ReadingListClient = () => {
-  const { theme } = useContext(ThemeContext);
   const { user, isLoggedIn, loading: authLoading } = useContext(AuthContext);
   const [showReadBooks, setShowReadBooks] = useState(false);
-  const { data: readingListData, loading, error } = useFetch(
-    !authLoading && isLoggedIn && user?.id ? `${API_URL}/api/users/${user.id}/reading-list` : null,
-    undefined,
-    [isLoggedIn, user?.id, authLoading]
-  );
 
+  // Fetch reading list entries
+  const {
+    data: readingListData = [],
+    isLoading: listLoading,
+    error: listError
+  } = useQuery({
+    queryKey: ['readingList', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data } = await axios.get(`${API_URL}/api/users/${user.id}/reading-list`);
+      return data;
+    },
+    enabled: !!user?.id && isLoggedIn,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+
+  // Extract book IDs
   const readingListBookIds = useMemo(() => {
     if (!Array.isArray(readingListData) || readingListData.length === 0) return null;
     return readingListData.map(item => item.book).join(',');
   }, [readingListData]);
 
+  // Fetch book details
   const {
-    data: fetchedBooks,
-    loading: booksLoading,
+    data: fetchedBooks = [],
+    isLoading: booksLoading,
     error: booksError,
-  } = useFetch(
-    readingListBookIds ? `${API_URL}/api/books?ids=${readingListBookIds}` : null,
-    undefined,
-    [readingListBookIds]
-  );
+  } = useQuery({
+    queryKey: ['books', 'ids', readingListBookIds],
+    queryFn: async () => {
+      if (!readingListBookIds) return [];
+      const { data } = await axios.get(`${API_URL}/api/books?ids=${readingListBookIds}`);
+      return data;
+    },
+    enabled: !!readingListBookIds,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
 
+  // Merge reading list data with book details
   const readingListBooks = useMemo(() => {
     if (!Array.isArray(readingListData) || !Array.isArray(fetchedBooks)) return [];
     const fetchedBooksMap = new Map(fetchedBooks.map(book => [book.id, book]));
@@ -60,15 +80,14 @@ const ReadingListClient = () => {
       .filter(Boolean);
   }, [fetchedBooks, readingListData]);
 
+  // Filter by read status
   const booksToDisplay = useMemo(
     () => readingListBooks.filter(book => book.read === showReadBooks),
     [readingListBooks, showReadBooks]
   );
 
-  const combinedLoading = loading || booksLoading;
-  const combinedError = error || booksError;
-
-
+  const combinedLoading = listLoading || booksLoading;
+  const combinedError = listError || booksError;
 
   if (authLoading || (combinedLoading && isLoggedIn)) {
     return (
@@ -82,7 +101,7 @@ const ReadingListClient = () => {
   }
 
   if (combinedError) {
-    return <div className="reading-list-container">{combinedError.message}</div>;
+    return <div className="reading-list-container">حدث خطأ أثناء تحميل قائمة القراءة.</div>;
   }
 
   if (!isLoggedIn) {
