@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import ThemeBodyStyle from '@/components/ThemeBodyStyle';
 import DynamicComponents from '@/components/DynamicComponents';
 import Script from 'next/script';
-import '@/app/globals.css';
+import './globals.css';
 
 export const metadata = {
   metadataBase: new URL('https://www.dar-alqurra.com'),
@@ -19,6 +19,14 @@ export const metadata = {
   publisher: 'دار القرَاء',
   applicationName: 'دار القراء',
   manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/favicon.png' },
+      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: '/icons/apple-touch-icon.png',
+  },
 
   openGraph: {
     title: 'مكتبة دار القرَاء - تحميل وقراءة آلاف الكتب والروايات العربية مجاناً',
@@ -95,12 +103,6 @@ export default async function RootLayout({ children }) {
       <head>
         <meta name="google-site-verification" content="bsBB43qfT1FPKaWwZ_HeLlmhodeWwL0jakSb-Yyq2o8" />
         <link rel="alternate" type="application/rss+xml" title="دار القرّاء - آخر الكتب" href="/feed.xml" />
-
-        {/* Favicon */}
-        <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
-        <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
-        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-        <link rel="shortcut icon" href="/favicon.png" />
         <link rel="preconnect" href="https://jldyyfkashoisxxyfhmb.supabase.co" />
         <script
           type="application/ld+json"
