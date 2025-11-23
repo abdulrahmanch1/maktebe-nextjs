@@ -116,14 +116,14 @@
   gap: 1.5rem;
 }
 
-.book-title {
+.book-details-page-container .book-title {
   font-size: 2.8rem;
   font-weight: 700;
   line-height: 1.2;
   margin: 0;
 }
 
-.book-author {
+.book-details-page-container .book-author {
   font-size: 1.5rem;
   font-weight: 300;
   color: var(--accent-color);
@@ -437,11 +437,11 @@
     padding-top: 1.5rem;
   }
 
-  .book-title {
+  .book-details-page-container .book-title {
     font-size: 2rem;
   }
 
-  .book-author {
+  .book-details-page-container .book-author {
     font-size: 1.2rem;
   }
 
