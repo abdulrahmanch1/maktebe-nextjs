@@ -55,15 +55,16 @@ const BookCard = ({ book, isPriority = false }) => {
             src={coverSrc}
             alt={book.title}
             fill
-            sizes="(max-width: 640px) 45vw, (max-width: 1024px) 25vw, 220px"
+            sizes="(max-width: 640px) 38vw, (max-width: 1024px) 18vw, 220px"
             className="book-card-image"
-            quality={70}
+            quality={60}
             loading={isPriority ? 'eager' : 'lazy'}
             priority={isPriority}
             fetchPriority={isPriority ? 'high' : 'auto'}
             placeholder="blur"
             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
             onError={() => setCoverSrc('/imgs/no_cover_available.png')}
+            unoptimized={!!coverSrc && !coverSrc.startsWith('/')}
           />
           <div className="book-card-overlay">
             <button
@@ -79,7 +80,7 @@ const BookCard = ({ book, isPriority = false }) => {
         </div>
 
         <div className="book-card-info">
-          <h3 className="book-title" title={book.title}>{book.title}</h3>
+          <p className="book-title" title={book.title}>{book.title}</p>
           {book.author && <p className="book-author">{book.author}</p>}
 
           {/* Progress Bar (Only if progress exists) */}

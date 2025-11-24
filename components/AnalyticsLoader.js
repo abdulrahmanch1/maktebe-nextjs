@@ -44,22 +44,11 @@ export default function AnalyticsLoader() {
       window.removeEventListener('keydown', triggerLoad);
     };
 
-    const idleId = window.requestIdleCallback
-      ? window.requestIdleCallback(triggerLoad, { timeout: 2000 })
-      : setTimeout(triggerLoad, 1500);
-
     window.addEventListener('scroll', triggerLoad, { once: true, passive: true });
     window.addEventListener('pointerdown', triggerLoad, { once: true });
     window.addEventListener('keydown', triggerLoad, { once: true });
 
-    return () => {
-      cleanup();
-      if (window.cancelIdleCallback && typeof idleId === 'number') {
-        window.cancelIdleCallback(idleId);
-      } else {
-        clearTimeout(idleId);
-      }
-    };
+    return () => cleanup();
   }, [loaded]);
 
   return null;
