@@ -9,7 +9,7 @@ import Image from 'next/image';
 import './BookCard.css';
 
 
-const BookCard = ({ book }) => {
+const BookCard = ({ book, isPriority = false }) => {
   const { isFavorite, toggleFavorite } = useContext(FavoritesContext);
   const { isLoggedIn } = useContext(AuthContext);
   const isLiked = book?.id ? isFavorite(book.id) : false;
@@ -57,11 +57,12 @@ const BookCard = ({ book }) => {
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
             className="book-card-image"
-            loading="lazy"
+            loading={isPriority ? 'eager' : 'lazy'}
+            priority={isPriority}
+            fetchPriority={isPriority ? 'high' : 'auto'}
             placeholder="blur"
             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
             onError={() => setCoverSrc('/imgs/no_cover_available.png')}
-            unoptimized
           />
           <div className="book-card-overlay">
             <button

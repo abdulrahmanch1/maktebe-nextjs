@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
     const supabase = await createClient();
-    const baseUrl = 'https://www.dar-alqurra.com';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.dar-alqurra.com';
 
     // Fetch latest 50 books
     const { data: books } = await supabase

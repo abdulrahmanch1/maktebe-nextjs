@@ -26,6 +26,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  min-width: 55px;
+  min-height: 55px;
 }
 
 .chat-assistant-button:hover {
@@ -83,6 +85,9 @@
   font-size: 24px; /* Larger icon */
   cursor: pointer;
   transition: color 0.2s ease;
+  padding: 8px;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .close-chat-btn:hover {

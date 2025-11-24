@@ -19,7 +19,7 @@ const Sidebar = ({ isOpen, toggle, isLoggedIn, logout }) => {
   return (
     <div className={`sidebar ${isOpen ? 'open' : ''} themed-secondary-background`}>
       <div className="sidebar-header">
-        <button onClick={toggle} className="close-btn themed-primary-text">&times;</button>
+        <button onClick={toggle} className="close-btn themed-primary-text" aria-label="إغلاق القائمة الجانبية">&times;</button>
       </div>
       <nav className="sidebar-nav">
         <Link href="/" onClick={toggle} className={getLinkClassName('/')}>الرئيسية</Link>

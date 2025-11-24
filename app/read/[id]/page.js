@@ -21,8 +21,23 @@ async function getBookPdfUrl(id) {
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
   const book = await getBookPdfUrl(resolvedParams.id);
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.dar-alqurra.com';
+  const canonicalUrl = `/book/${resolvedParams.id}`;
   return {
     title: `قراءة: ${book.title}`,
+    description: `قراءة مباشرة لكتاب ${book.title} بصيغة PDF.`,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    robots: {
+      index: false,
+      follow: true,
+    },
+    openGraph: {
+      title: `قراءة: ${book.title}`,
+      description: `قراءة مباشرة لكتاب ${book.title} بصيغة PDF.`,
+      url: `${siteUrl}${canonicalUrl}`,
+    },
   };
 }
 

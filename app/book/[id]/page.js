@@ -74,6 +74,7 @@ async function getBookData(id) {
 export async function generateMetadata(props) {
   const params = await props.params;
   const { book, comments } = await getBookData(params.id);
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.dar-alqurra.com';
 
   if (!book) {
     return {
@@ -99,16 +100,26 @@ export async function generateMetadata(props) {
     }
   }
 
+  const baseDescription = book.description?.trim()
+    ? book.description.trim()
+    : `حمل واقرأ كتاب ${book.title} للمؤلف ${book.author} مجاناً بصيغة PDF. استمتع بقراءة أونلاين أو تحميل مباشر من مكتبة دار القرَاء.`;
+  const pageDescription = baseDescription.length > 180 ? `${baseDescription.slice(0, 177)}...` : baseDescription;
+
+  const pageKeywords = Array.isArray(book.keywords) && book.keywords.length > 0
+    ? book.keywords
+    : ['كتب', 'روايات', 'قراءة', 'تحميل كتب', 'pdf', book.category, book.author, book.title].filter(Boolean);
+
   const metadata = {
     title: `${book.title} - ${book.author} | تحميل وقراءة pdf`,
-    description: book.description ? book.description.substring(0, 160) : `حمل واقرأ كتاب ${book.title} للمؤلف ${book.author} مجاناً بصيغة PDF. استمتع بقراءة أونلاين أو تحميل مباشر من مكتبة دار القرَاء.`,
-    keywords: book.keywords || ['كتب', 'روايات', 'قراءة', 'تحميل كتب', 'pdf', book.category, book.author],
+    description: pageDescription,
+    keywords: pageKeywords,
     alternates: {
       canonical: `/book/${params.id}`,
     },
     openGraph: {
       title: `${book.title} - ${book.author} | تحميل وقراءة مجاناً`,
-      description: book.description ? book.description.substring(0, 200) : `حمل واقرأ كتاب ${book.title} للمؤلف ${book.author} مجاناً. متوفر الآن للقراءة والتحميل على دار القرَاء.`,
+      description: pageDescription,
+      url: `${siteUrl}/book/${params.id}`,
       images: [
         {
           url: book.cover || '/imgs/no_cover_available.png',
@@ -123,7 +134,7 @@ export async function generateMetadata(props) {
     twitter: {
       card: 'summary_large_image',
       title: `${book.title} - ${book.author}`,
-      description: book.description ? book.description.substring(0, 200) : `اقرأ وحمل كتاب ${book.title} للمؤلف ${book.author} مجاناً.`,
+      description: pageDescription,
       images: [book.cover || '/imgs/no_cover_available.png'],
     },
   };
@@ -141,7 +152,7 @@ export async function generateMetadata(props) {
     numberOfPages: book.pages,
     description: book.description,
     image: book.cover,
-    url: `https://www.dar-alqurra.com/book/${params.id}`,
+    url: `${siteUrl}/book/${params.id}`,
     datePublished: book.created_at, // Or publish_date if available
     publisher: {
       '@type': 'Organization',
@@ -163,19 +174,19 @@ export async function generateMetadata(props) {
         '@type': 'ListItem',
         position: 1,
         name: 'الرئيسية',
-        item: 'https://www.dar-alqurra.com'
+        item: siteUrl
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: book.category || 'الكتب',
-        item: `https://www.dar-alqurra.com/?category=${encodeURIComponent(book.category || '')}`
+        item: `${siteUrl}/?category=${encodeURIComponent(book.category || '')}`
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: book.title,
-        item: `https://www.dar-alqurra.com/book/${params.id}`
+        item: `${siteUrl}/book/${params.id}`
       }
     ]
   };

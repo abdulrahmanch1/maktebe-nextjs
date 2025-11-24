@@ -1,8 +1,10 @@
 import { createClient } from '@/utils/supabase/server';
 
+export const revalidate = 3600;
+
 export default async function sitemap() {
     const supabase = await createClient();
-    const baseUrl = 'https://www.dar-alqurra.com';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.dar-alqurra.com';
 
     // Fetch all approved books with accurate dates
     const { data: books } = await supabase
@@ -40,10 +42,10 @@ export default async function sitemap() {
             priority: 0.6,
         },
         {
-            url: `${baseUrl}/suggest-book`,
+            url: `${baseUrl}/feed.xml`,
             lastModified: new Date(),
-            changeFrequency: 'monthly',
-            priority: 0.4,
+            changeFrequency: 'daily',
+            priority: 0.3,
         },
         ...bookUrls,
     ];

@@ -6,8 +6,10 @@ import DynamicComponents from '@/components/DynamicComponents';
 import Script from 'next/script';
 import './globals.css';
 
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.dar-alqurra.com';
+
 export const metadata = {
-  metadataBase: new URL('https://www.dar-alqurra.com'),
+  metadataBase: new URL(siteUrl),
   title: {
     default: 'مكتبة دار القرَاء - تحميل وقراءة آلاف الكتب والروايات العربية مجاناً',
     template: '%s | دار القرَاء'
@@ -24,14 +26,16 @@ export const metadata = {
       { url: '/favicon.png' },
       { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
       { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { url: '/icons/icon-maskable.png', sizes: '512x512', type: 'image/png', rel: 'mask-icon' },
     ],
     apple: '/icons/apple-touch-icon.png',
+    shortcut: '/icons/icon-192.png',
   },
 
   openGraph: {
     title: 'مكتبة دار القرَاء - تحميل وقراءة آلاف الكتب والروايات العربية مجاناً',
     description: 'اكتشف أكبر مكتبة كتب عربية إلكترونية. حمل واقرأ آلاف الروايات والكتب الدينية والعلمية مجاناً بصيغة PDF.',
-    url: 'https://www.dar-alqurra.com',
+    url: siteUrl,
     siteName: 'دار القرَاء',
     images: [
       {
@@ -67,11 +71,6 @@ export const metadata = {
     statusBarStyle: 'black-translucent',
     title: 'دار القراء',
   },
-  icons: {
-    icon: '/favicon.png',
-    apple: '/icons/apple-touch-icon.png',
-    shortcut: '/icons/icon-192.png',
-  },
 };
 
 export const viewport = {
@@ -89,8 +88,8 @@ export default async function RootLayout({ children }) {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'دار القرَاء',
-    url: 'https://www.dar-alqurra.com',
-    logo: 'https://www.dar-alqurra.com/icons/icon-512.png',
+    url: siteUrl,
+    logo: `${siteUrl}/icons/icon-512.png`,
     sameAs: [
       'https://twitter.com/dar_alqurra',
       'https://facebook.com/dar_alqurra',
@@ -116,7 +115,7 @@ export default async function RootLayout({ children }) {
                 url: 'https://www.dar-alqurra.com',
                 potentialAction: {
                   '@type': 'SearchAction',
-                  target: 'https://www.dar-alqurra.com/?search={search_term_string}',
+                  target: `${siteUrl}/?search={search_term_string}`,
                   'query-input': 'required name=search_term_string'
                 }
               }
