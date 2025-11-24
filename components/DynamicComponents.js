@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
+import AnalyticsLoader from '@/components/AnalyticsLoader';
 
 const DynamicChatAssistant = dynamic(() => import('@/components/DynamicChatAssistant'), {
     ssr: false,
@@ -32,6 +33,7 @@ export default function DynamicComponents() {
         <>
             {loadChat && <DynamicChatAssistant />}
             <PWAServiceWorker />
+            <AnalyticsLoader />
         </>
     );
 }

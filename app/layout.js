@@ -3,7 +3,6 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ThemeBodyStyle from '@/components/ThemeBodyStyle';
 import DynamicComponents from '@/components/DynamicComponents';
-import Script from 'next/script';
 import './globals.css';
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.dar-alqurra.com';
@@ -77,7 +76,7 @@ export const viewport = {
   themeColor: '#0a3f54',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
+  maximumScale: 5,
 };
 
 import '@/components/MainLayout.css';
@@ -124,18 +123,6 @@ export default async function RootLayout({ children }) {
         />
       </head>
       <body>
-        <Script
-          strategy="lazyOnload"
-          src={`https://www.googletagmanager.com/gtag/js?id=G-YDBSPJW01T`}
-        />
-        <Script strategy="lazyOnload" id="gtag-inline-script">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-YDBSPJW01T');
-          `}
-        </Script>
         <Providers>
           <ThemeBodyStyle>
             <ConditionalLayout>{children}</ConditionalLayout>

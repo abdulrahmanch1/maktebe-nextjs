@@ -87,7 +87,7 @@ const HomePageClient = ({ initialBooks = [], initialTotalCount = 0 }) => {
           ))
         ) : books.length > 0 ? (
           books.map((book, index) => (
-            <BookCard key={`${book.id}-${index}`} book={book} isPriority={index < 4} />
+            <BookCard key={`${book.id}-${index}`} book={book} isPriority={index === 0} />
           ))
         ) : (
           <div style={{ textAlign: "center" }}>لا توجد كتب تطابق بحثك.</div>
