@@ -1,5 +1,6 @@
 import BookDetailsClient from "./BookDetailsClient";
 import { createClient } from "@/utils/supabase/server";
+import { slugify } from '@/utils/slugify';
 import { notFound } from 'next/navigation';
 
 // Pre-generate top 100 books for faster indexing
@@ -24,6 +25,12 @@ export async function generateStaticParams() {
 }
 
 async function getBookData(id) {
+  // Validate ID - prevent source map files and other invalid IDs
+  if (!id || id.includes('.map') || id.includes('.js') || id.length < 10) {
+    console.error('Invalid book ID:', id);
+    return { book: null, comments: [], relatedBooks: [] };
+  }
+
   const supabase = await createClient();
 
   // Fetch book, comments, and related books concurrently for better performance
@@ -114,12 +121,12 @@ export async function generateMetadata(props) {
     description: pageDescription,
     keywords: pageKeywords,
     alternates: {
-      canonical: `/book/${params.id}`,
+      canonical: `/book/${slugify(book.title)}/${params.id}`,
     },
     openGraph: {
       title: `${book.title} - ${book.author} | تحميل وقراءة مجاناً`,
       description: pageDescription,
-      url: `${siteUrl}/book/${params.id}`,
+      url: `${siteUrl}/book/${slugify(book.title)}/${params.id}`,
       images: [
         {
           url: book.cover || '/imgs/no_cover_available.png',
@@ -152,7 +159,7 @@ export async function generateMetadata(props) {
     numberOfPages: book.pages,
     description: book.description,
     image: book.cover,
-    url: `${siteUrl}/book/${params.id}`,
+    url: `${siteUrl}/book/${slugify(book.title)}/${params.id}`,
     datePublished: book.created_at, // Or publish_date if available
     publisher: {
       '@type': 'Organization',
@@ -186,7 +193,7 @@ export async function generateMetadata(props) {
         '@type': 'ListItem',
         position: 3,
         name: book.title,
-        item: `${siteUrl}/book/${params.id}`
+        item: `${siteUrl}/book/${slugify(book.title)}/${params.id}`
       }
     ]
   };

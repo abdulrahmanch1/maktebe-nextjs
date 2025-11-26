@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import { protect } from '@/lib/middleware';
+import { protect, getUserFromRequest } from '@/lib/middleware';
 import { validateBook } from '@/lib/validation';
 import { createClient } from '@/utils/supabase/server';
 
+
 export const POST = protect(async (request) => {
   const supabase = await createClient();
-  
+
   try {
     // 1. Get the JSON data from the request
     const bookData = await request.json();
@@ -32,8 +33,10 @@ export const POST = protect(async (request) => {
     }
 
     // 2. Add server-side data (user_id, status)
-    bookData.user_id = request.user.id;
+    const user = getUserFromRequest(request);
+    bookData.user_id = user.id;
     bookData.status = 'pending';
+
 
     // 3. Validate the final book data
     const errors = validateBook(bookData);
@@ -62,7 +65,7 @@ export const POST = protect(async (request) => {
     console.error('Error in POST /api/books/suggest:', error);
     // Check if the error is a JSON parsing error
     if (error instanceof SyntaxError) {
-        return NextResponse.json({ message: 'Invalid JSON format.' }, { status: 400 });
+      return NextResponse.json({ message: 'Invalid JSON format.' }, { status: 400 });
     }
     return NextResponse.json({ message: error.message || 'فشل في اقتراح الكتاب. يرجى المحاولة مرة أخرى.' }, { status: 500 });
   }

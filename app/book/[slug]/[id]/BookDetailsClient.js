@@ -8,11 +8,13 @@ import { toast } from 'react-toastify';
 import Image from "next/image";
 import { API_URL } from "@/constants";
 import './BookDetailsPage.css';
-import { FaTrash } from 'react-icons/fa';
+import { FaTrash, FaShare, FaExclamationTriangle, FaWhatsapp, FaFacebook, FaTwitter, FaTelegram, FaCopy } from 'react-icons/fa';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BookCard from "@/components/BookCard";
 import { useAnalytics } from "@/hooks/useAnalytics";
+
+
 
 // A small component to safely render dates only on the client-side
 const ClientOnlyDate = ({ dateString }) => {
@@ -26,6 +28,14 @@ const ClientOnlyDate = ({ dateString }) => {
   }, [dateString]);
 
   return <span className="comment-date">{formattedDate}</span>;
+};
+
+// Helper function to determine profile picture source
+const getProfilePictureSrc = (profilePicture) => {
+  if (profilePicture && profilePicture.trim() !== '' && profilePicture !== 'Untitled.jpg' && profilePicture !== 'user.jpg') {
+    return profilePicture;
+  }
+  return '/imgs/user.jpg';
 };
 
 // Custom Confirmation Toast Component
@@ -49,9 +59,204 @@ const ConfirmationToast = ({ message, toastId, onConfirm, onCancel }) => (
   </div>
 );
 
+const reportReasons = [
+  { value: 'spam', label: 'محتوى إعلاني/مزعج' },
+  { value: 'broken', label: 'رابط التحميل أو القراءة لا يعمل' },
+  { value: 'missing', label: 'صفحات ناقصة أو ملف تالف' },
+  { value: 'wrong_info', label: 'معلومات خاطئة (عنوان/مؤلف/تصنيف)' },
+  { value: 'copyright', label: 'مشكلة حقوق نشر' },
+  { value: 'inappropriate', label: 'محتوى غير لائق' },
+  { value: 'other', label: 'سبب آخر' },
+];
+
+const ShareModal = ({ isOpen, onClose, bookTitle, url }) => {
+  if (!isOpen) return null;
+
+  const shareLinks = [
+    { name: 'واتساب', icon: <FaWhatsapp />, url: `https://wa.me/?text=${encodeURIComponent(`اقرأ كتاب ${bookTitle} على دار القرّاء: ${url}`)}`, color: '#25D366' },
+    { name: 'فيسبوك', icon: <FaFacebook />, url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, color: '#1877F2' },
+    { name: 'تويتر', icon: <FaTwitter />, url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(`اقرأ كتاب ${bookTitle}`)}&url=${encodeURIComponent(url)}`, color: '#1DA1F2' },
+    { name: 'تيليجرام', icon: <FaTelegram />, url: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(`اقرأ كتاب ${bookTitle}`)}`, color: '#0088cc' },
+  ];
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(url);
+    toast.success('تم نسخ الرابط!');
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content share-modal-content" onClick={e => e.stopPropagation()}>
+        <h3>مشاركة الكتاب</h3>
+        <div className="share-options-grid">
+          {shareLinks.map((link) => (
+            <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer" className="share-option-item" style={{ color: link.color }}>
+              <span className="share-icon">{link.icon}</span>
+              <span className="share-name">{link.name}</span>
+            </a>
+          ))}
+          <button onClick={handleCopy} className="share-option-item copy-option">
+            <span className="share-icon"><FaCopy /></span>
+            <span className="share-name">نسخ الرابط</span>
+          </button>
+        </div>
+        <button onClick={onClose} className="button secondary full-width-button" style={{ marginTop: '15px' }}>إغلاق</button>
+      </div>
+    </div>
+  );
+};
+
+const ReportModal = ({ isOpen, onClose, onSubmit }) => {
+  const [step, setStep] = useState(1); // 1: select type, 2: select reason/details
+  const [reportType, setReportType] = useState(''); // 'problem' or 'complaint'
+  const [selectedReason, setSelectedReason] = useState('');
+  const [customDetails, setCustomDetails] = useState('');
+
+  const problemReasons = [
+    { value: 'image_not_showing', label: 'الصورة لا تظهر' },
+    { value: 'pdf_error', label: 'ملف PDF لا يعمل' },
+    { value: 'wrong_author', label: 'اسم الكاتب خاطئ' },
+    { value: 'wrong_title', label: 'عنوان الكتاب خاطئ' },
+    { value: 'copyright', label: 'هذا الكتاب عليه حقوق نشر' },
+    { value: 'missing_pages', label: 'صفحات ناقصة' },
+    { value: 'broken_link', label: 'رابط التحميل لا يعمل' },
+    { value: 'other', label: 'أخرى' },
+  ];
+
+  const complaintReasons = [
+    { value: 'inappropriate', label: 'محتوى غير لائق' },
+    { value: 'spam', label: 'محتوى إعلاني/مزعج' },
+    { value: 'wrong_category', label: 'تصنيف خاطئ' },
+    { value: 'duplicate', label: 'كتاب مكرر' },
+    { value: 'other', label: 'أخرى' },
+  ];
+
+  const handleReasonSelect = (reason) => {
+    setSelectedReason(reason);
+    if (reason !== 'other') {
+      setCustomDetails('');
+    }
+  };
+
+  const handleSubmit = () => {
+    if (!selectedReason) {
+      toast.error('الرجاء اختيار سبب البلاغ');
+      return;
+    }
+    if (selectedReason === 'other' && !customDetails.trim()) {
+      toast.error('الرجاء كتابة تفاصيل المشكلة');
+      return;
+    }
+
+    const reasons = reportType === 'problem' ? problemReasons : complaintReasons;
+    const reasonLabel = reasons.find(r => r.value === selectedReason)?.label || selectedReason;
+
+    onSubmit(selectedReason, customDetails || reasonLabel);
+
+    // Reset state
+    setStep(1);
+    setReportType('');
+    setSelectedReason('');
+    setCustomDetails('');
+  };
+
+  const handleClose = () => {
+    setStep(1);
+    setReportType('');
+    setSelectedReason('');
+    setCustomDetails('');
+    onClose();
+  };
+
+  const handleBack = () => {
+    if (step === 2) {
+      setStep(1);
+      setSelectedReason('');
+      setCustomDetails('');
+    }
+  };
+
+  if (!isOpen) return null;
+
+  const currentReasons = reportType === 'problem' ? problemReasons : complaintReasons;
+
+  return (
+    <div className="report-modal-overlay" onClick={handleClose}>
+      <div className="report-modal-sheet" onClick={e => e.stopPropagation()}>
+        <div className="report-modal-handle"></div>
+
+        <div className="report-modal-header">
+          <h3 className="report-modal-title">
+            {step === 1 ? 'الإبلاغ عن الكتاب' : reportType === 'problem' ? 'ما هي المشكلة؟' : 'ما هي الشكوى؟'}
+          </h3>
+          <button onClick={handleClose} className="report-close-button">✕</button>
+        </div>
+
+        <div className="report-modal-content">
+          {step === 1 ? (
+            <div className="report-type-selection">
+              <button
+                className="report-type-card"
+                onClick={() => { setReportType('problem'); setStep(2); }}
+              >
+                <span className="report-type-title">مشكلة تقنية</span>
+                <span className="report-type-desc">خطأ في الملف، الصورة، أو المعلومات</span>
+              </button>
+
+              <button
+                className="report-type-card"
+                onClick={() => { setReportType('complaint'); setStep(2); }}
+              >
+                <span className="report-type-title">شكوى</span>
+                <span className="report-type-desc">محتوى غير لائق أو مخالف</span>
+              </button>
+            </div>
+          ) : (
+            <div className="report-reasons-selection">
+              <div className="report-reasons-grid">
+                {currentReasons.map((reason) => (
+                  <button
+                    key={reason.value}
+                    className={`report-reason-card ${selectedReason === reason.value ? 'selected' : ''}`}
+                    onClick={() => handleReasonSelect(reason.value)}
+                  >
+                    <span className="report-reason-label">{reason.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {selectedReason === 'other' && (
+                <div className="report-custom-input">
+                  <label>تفاصيل المشكلة:</label>
+                  <textarea
+                    value={customDetails}
+                    onChange={(e) => setCustomDetails(e.target.value)}
+                    placeholder="اشرح المشكلة بالتفصيل..."
+                    rows="4"
+                  />
+                </div>
+              )}
+
+              <button
+                onClick={handleSubmit}
+                className="report-submit-button"
+                disabled={!selectedReason}
+              >
+                إرسال البلاغ
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const BookDetailsClient = ({ initialBook }) => {
   const { toggleFavorite, isFavorite } = useContext(FavoritesContext);
   const { isLoggedIn, user, session, setUser } = useContext(AuthContext);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [book, setBook] = useState(initialBook);
   const [coverSrc, setCoverSrc] = useState(initialBook.cover || '/imgs/no_cover_available.png');
   const [isInReadingList, setIsInReadingList] = useState(false);
@@ -63,6 +268,7 @@ const BookDetailsClient = ({ initialBook }) => {
   const [bookComments, setBookComments] = useState([]);
   const [isCommentBoxExpanded, setIsCommentBoxExpanded] = useState(false);
   const { trackBookView, trackBookRead } = useAnalytics();
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   // Track book view on mount
   useEffect(() => {
@@ -406,7 +612,6 @@ const BookDetailsClient = ({ initialBook }) => {
             : comment
         )
       );
-      toast.success(res.data.liked ? 'تم الإعجاب بالتعليق!' : 'تم إلغاء الإعجاب بالتعليق!');
     } catch (err) {
       console.error("Error toggling like:", err);
       toast.error(err.response?.data?.message || "فشل الإعجاب بالتعليق.");
@@ -448,6 +653,30 @@ const BookDetailsClient = ({ initialBook }) => {
     }
   };
 
+  const handleShareBook = async () => {
+    setIsShareModalOpen(true);
+  };
+
+  const handleReportBook = async (reason, details) => {
+    if (!isLoggedIn) {
+      toast.error('يجب تسجيل الدخول للإبلاغ عن كتاب.');
+      return;
+    }
+    try {
+      await axios.post(`${API_URL}/api/contact`, {
+        subject: `بلاغ عن كتاب: ${book.title}`,
+        message: `الكتاب: ${book.title}\nالمؤلف: ${book.author}\nالسبب: ${reportReasons.find(r => r.value === reason)?.label || reason}\nالتفاصيل: ${details || 'لا يوجد'}\nمعرّف الكتاب: ${book.id}`,
+        email: user?.email || 'guest@dar-alquraa.com',
+        username: user?.username || user?.user_metadata?.username || 'مستخدم',
+      });
+      toast.success('تم إرسال البلاغ بنجاح. شكراً لمساعدتك!');
+      setIsReportModalOpen(false);
+    } catch (err) {
+      console.error('Error reporting book:', err);
+      toast.error('فشل إرسال البلاغ.');
+    }
+  };
+
   const isLiked = hasMounted ? isFavorite(book.id) : false;
 
   return (
@@ -461,18 +690,28 @@ const BookDetailsClient = ({ initialBook }) => {
 
       <div className="book-details-layout">
         <aside className="left-column">
-          <Image
-            src={coverSrc}
-            alt={`غلاف كتاب ${book.title}`}
-            width={300}
-            height={450}
-            className="book-cover-image"
-            priority
-            placeholder="blur"
-            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
-            onError={() => setCoverSrc('/imgs/no_cover_available.png')}
-            unoptimized
-          />
+          <div className="cover-card">
+            <Image
+              src={coverSrc}
+              alt={`غلاف كتاب ${book.title}`}
+              width={300}
+              height={450}
+              className="book-cover-image"
+              priority
+              placeholder="blur"
+              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
+              onError={() => setCoverSrc('/imgs/no_cover_available.png')}
+              unoptimized
+            />
+            <div className="cover-actions floating-actions">
+              <button onClick={handleShareBook} className="icon-button share-button" title="مشاركة الكتاب">
+                <FaShare />
+              </button>
+              <button onClick={() => setIsReportModalOpen(true)} className="icon-button report-button" title="الإبلاغ عن الكتاب">
+                <FaExclamationTriangle />
+              </button>
+            </div>
+          </div>
           <div className="cover-meta-info">
             <div className="meta-stat">
               <span className="meta-stat-value">{book.publishYear || 'N/A'}</span>
@@ -514,7 +753,7 @@ const BookDetailsClient = ({ initialBook }) => {
                   {isInReadingList && (<button onClick={handleReadBook} className="book-action-button primary" disabled={isProcessingAction}>متابعة القراءة</button>)}
                   <a href={`/api/download?fileUrl=${encodeURIComponent(book.pdfFile)}`} className="book-action-button primary">تنزيل الكتاب</a>
                   {isInReadingList && !isRead && (<button onClick={handleMarkAsReadInList} className="book-action-button primary" disabled={isProcessingAction}>وضع علامة &quot;مقروء&quot;</button>)}
-                  {isInReadingList && (<button onClick={handleRemoveFromReadingList} className="book-action-button secondary full-width-button" disabled={isProcessingAction}>إزالة من قائمة القراءة</button>)}
+                  {isInReadingList && (<button onClick={handleRemoveFromReadingList} className="book-action-button secondary" disabled={isProcessingAction}>إزالة من قائمة القراءة</button>)}
                   <button onClick={handleToggleFavorite} className="book-action-button secondary" disabled={isProcessingAction}>{isLiked ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}</button>
                 </>
               )}
@@ -550,18 +789,30 @@ const BookDetailsClient = ({ initialBook }) => {
             {bookComments.length > 0 ? (
               bookComments.map((comment) => (
                 <div key={comment.id} className="comment-item">
-                  <Image src={comment.profiles?.profilepicture && (comment.profiles.profilepicture !== 'Untitled.jpg' && comment.profiles.profilepicture !== 'user.jpg') ? comment.profiles.profilepicture : '/imgs/user.jpg'} alt={`صورة ملف ${comment.profiles?.username || 'مستخدم غير معروف'}`} width={45} height={45} className="comment-user-avatar" placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==" unoptimized onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }} />
+                  <Image
+                    src={getProfilePictureSrc(comment.profiles?.profilepicture)}
+                    alt={`صورة ملف ${comment.profiles?.username || 'مستخدم غير معروف'}`}
+                    width={45}
+                    height={45}
+                    className="comment-user-avatar"
+                    placeholder="blur"
+                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
+                    unoptimized
+                    onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }}
+                  />
                   <div className="comment-body">
                     <div className="comment-header">
                       <span className="comment-username">{comment.profiles?.username || 'مستخدم غير معروف'}</span>
                       <ClientOnlyDate dateString={comment.created_at} />
                     </div>
-                    <p className="comment-text">{comment.text}</p>
-                    <div className="comment-actions">
-                      <span onClick={() => handleToggleLike(comment.id)} className={`comment-like-button ${comment.userLiked ? 'liked' : ''}`}>
-                        <span className="like-icon" dangerouslySetInnerHTML={{ __html: comment.userLiked ? '&#x2764;' : '♡' }} /> {comment.likes}
-                      </span>
-                      {(isLoggedIn && user && (user.id === comment.user_id || user.role === 'admin')) && (<button onClick={() => handleDeleteComment(comment.id)} className="comment-delete-button" title="حذف التعليق"><FaTrash /></button>)}
+                    <div className="comment-text-with-actions">
+                      <p className="comment-text">{comment.text}</p>
+                      <div className="comment-actions">
+                        {(isLoggedIn && user && (user.id === comment.user_id || user.role === 'admin')) && (<button onClick={() => handleDeleteComment(comment.id)} className="comment-delete-button" title="حذف التعليق"><FaTrash /></button>)}
+                        <span onClick={() => handleToggleLike(comment.id)} className={`comment-like-button ${comment.userLiked ? 'liked' : ''}`}>
+                          <span className="like-icon">{comment.userLiked ? '❤' : '♡'}</span> {comment.likes}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -589,6 +840,19 @@ const BookDetailsClient = ({ initialBook }) => {
           </div>
         </div>
       )} */}
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        bookTitle={book.title}
+        url={typeof window !== 'undefined' ? window.location.href : ''}
+      />
+
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        onSubmit={handleReportBook}
+      />
     </article>
   );
 };

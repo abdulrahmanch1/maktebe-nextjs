@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { protect } from '@/lib/middleware';
+import { protect, getUserFromRequest } from '@/lib/middleware';
 // import { validateMongoId } from '@/lib/validation'; // Removed validateMongoId
 import { validateFavorite } from '@/lib/validation';
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 import { revalidatePath } from 'next/cache';
 
 export const POST = protect(async (request, { params }) => {
-  
+
   const supabase = await createClient(); // Instantiate supabase client
   const { id } = await params; // Changed userId to id
   const bookId = request.nextUrl.searchParams.get('bookId');
@@ -19,9 +19,9 @@ export const POST = protect(async (request, { params }) => {
   if (Object.keys(bookIdErrors).length > 0) {
     return NextResponse.json({ message: 'Invalid Book ID', errors: bookIdErrors }, { status: 400 });
   }
-  
 
-  if (id !== request.user.id) {
+  const user = getUserFromRequest(request);
+  if (id !== user.id) {
     return NextResponse.json({ message: 'Not authorized to modify these favorites' }, { status: 403 });
   }
 
@@ -37,7 +37,7 @@ export const POST = protect(async (request, { params }) => {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    
+
     // Ensure favorites is an array, initialize if null
     const currentFavorites = Array.isArray(user.favorites) ? user.favorites : [];
 

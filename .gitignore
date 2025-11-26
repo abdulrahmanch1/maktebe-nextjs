@@ -35,3 +35,6 @@ yarn-error.log*
 
 # TypeScript
 *.tsbuildinfo
+
+# Lint outputs
+lint_output*.txt

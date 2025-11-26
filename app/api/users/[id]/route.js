@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { protect, admin } from '@/lib/middleware';
+import { protect, admin, getUserFromRequest } from '@/lib/middleware';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 // import { validateUserUpdate } from '@/lib/validation'; // This can be re-enabled if needed
 
 // GET handler to fetch a user's public profile
 export const GET = protect(async (request, { params }) => {
-  const { id } = params;
+  const { id } = await params;
   const supabase = await createClient();
 
   const { data: profile, error } = await supabase
@@ -24,15 +24,15 @@ export const GET = protect(async (request, { params }) => {
 
 // PATCH handler to update a user's profile or auth info
 export const PATCH = protect(async (request, { params }) => {
-  const { id } = params;
+  const { id } = await params;
   const body = await request.json();
   const supabase = await createClient();
 
   // The 'protect' middleware ensures we have a user.
   // Now, check for authorization: user can only update themselves.
-  const { data: { user: requestingUser }, error: authUserError } = await supabase.auth.getUser();
+  const requestingUser = getUserFromRequest(request);
 
-  if (authUserError || !requestingUser || requestingUser.id !== id) {
+  if (!requestingUser || requestingUser.id !== id) {
     return NextResponse.json({ message: 'غير مصرح لك' }, { status: 403 });
   }
 
@@ -82,13 +82,13 @@ export const PATCH = protect(async (request, { params }) => {
   if (Object.keys(profileDataToUpdate).length > 0) {
     // Also update the user's metadata in auth.users if username changes
     if (username) {
-        const { error: authMetaError } = await supabase.auth.updateUser({ data: { username } });
-        if (authMetaError) {
-            console.error('Supabase auth metadata update error:', authMetaError);
-            // We can choose to continue or return an error. Let's continue but log it.
-        }
+      const { error: authMetaError } = await supabase.auth.updateUser({ data: { username } });
+      if (authMetaError) {
+        console.error('Supabase auth metadata update error:', authMetaError);
+        // We can choose to continue or return an error. Let's continue but log it.
+      }
     }
-      
+
     const { data: updatedProfile, error: profileError } = await supabase
       .from('profiles')
       .update(profileDataToUpdate)
@@ -100,13 +100,13 @@ export const PATCH = protect(async (request, { params }) => {
       console.error('Supabase profile update error:', profileError);
       return NextResponse.json({ message: 'فشل تحديث الملف الشخصي', error: profileError.message }, { status: 500 });
     }
-    
+
     return NextResponse.json(updatedProfile);
   }
 
   // If only password was updated and was successful, return a success message.
   if (nextPassword) {
-      return NextResponse.json({ message: 'تم تحديث كلمة المرور بنجاح' });
+    return NextResponse.json({ message: 'تم تحديث كلمة المرور بنجاح' });
   }
 
   return NextResponse.json({ message: 'لا توجد بيانات للتحديث' }, { status: 400 });
@@ -114,8 +114,8 @@ export const PATCH = protect(async (request, { params }) => {
 
 // DELETE handler to remove a user completely
 export const DELETE = protect(admin(async (request, { params }) => {
-  const { id } = params;
-  
+  const { id } = await params;
+
   // For deletion, we need the admin client with the service role key
   const supabaseAdmin = createAdminClient();
 

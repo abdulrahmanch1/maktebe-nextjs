@@ -2,12 +2,13 @@
 import React, { useContext, useState } from "react";
 import { ThemeContext } from "@/contexts/ThemeContext";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import axios from "axios";
 import { toast } from 'react-toastify';
 import { API_URL } from "@/constants";
-import './AuthPage.css';
 import { AuthContext } from "@/contexts/AuthContext";
-import { FaGoogle } from 'react-icons/fa';
+import { FaGoogle, FaUser, FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
+import './register.css';
 
 const RegisterPageClient = () => {
   const { theme } = useContext(ThemeContext);
@@ -18,6 +19,7 @@ const RegisterPageClient = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,7 +28,9 @@ const RegisterPageClient = () => {
     const errors = {};
     if (!username) errors.username = 'اسم المستخدم مطلوب.';
     if (!email || !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) errors.email = 'البريد الإلكتروني غير صالح.';
-    if (!password || password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) errors.password = 'كلمة المرور لا تفي بمتطلبات الأمان.';
+    if (!password || password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+      errors.password = 'كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل، حرف كبير، حرف صغير، رقم، ورمز خاص.';
+    }
 
     if (Object.keys(errors).length > 0) {
       Object.values(errors).forEach(error => toast.error(error));
@@ -56,45 +60,119 @@ const RegisterPageClient = () => {
   };
 
   return (
-    <div className="auth-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
-      <h1 className="auth-title" style={{ color: theme.primary }}>إنشاء حساب</h1>
-      <form onSubmit={handleSubmit} className="auth-form" style={{ backgroundColor: theme.secondary, color: theme.primary }}>
-        <label>اسم المستخدم:</label>
-        <input
-          type="text"
-          placeholder="اسم المستخدم"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-          style={{ backgroundColor: theme.background, color: theme.primary, borderColor: theme.accent }}
-        />
-        <label>البريد الإلكتروني:</label>
-        <input
-          type="email"
-          placeholder="البريد الإلكتروني"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ backgroundColor: theme.background, color: theme.primary, borderColor: theme.accent }}
-        />
-        <label>كلمة المرور:</label>
-        <input
-          type="password"
-          placeholder="كلمة المرور"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ backgroundColor: theme.background, color: theme.primary, borderColor: theme.accent }}
-        />
-        <button type="submit" disabled={loading} className="themed-button-accent">{loading ? 'جاري الإنشاء...' : 'إنشاء'}</button>
-        <div className="auth-divider">
-          <span style={{ backgroundColor: theme.secondary }}>أو</span>
+    <div className="register-page">
+      <div className="register-container">
+        {/* Left Side - Branding */}
+        <div className="register-brand-side">
+          <div className="brand-content">
+            <div className="brand-logo">
+              <img src="/icons/icon-192.png" alt="دار القرّاء" />
+            </div>
+            <h1 className="brand-title">دار القرّاء</h1>
+            <p className="brand-description">
+              انضم إلى مجتمع القراء واستمتع بآلاف الكتب والمقالات المميزة
+            </p>
+            <div className="brand-features">
+              <div className="feature-item">
+                <div className="feature-icon">📚</div>
+                <span>آلاف الكتب المجانية</span>
+              </div>
+              <div className="feature-item">
+                <div className="feature-icon">🎯</div>
+                <span>توصيات مخصصة</span>
+              </div>
+              <div className="feature-item">
+                <div className="feature-icon">💬</div>
+                <span>مجتمع نشط</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <button type="button" disabled={loading} className="google-login-button" onClick={handleGoogleLogin}>
-          <FaGoogle style={{ marginLeft: '10px' }} />
-          إنشاء حساب عبر جوجل
-        </button>
-      </form>
+
+        {/* Right Side - Form */}
+        <div className="register-form-side">
+          <div className="form-wrapper">
+            <div className="form-header">
+              <h2>إنشاء حساب جديد</h2>
+              <p>ابدأ رحلتك في عالم القراءة</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="register-form">
+              <div className={`input-group ${focusedField === 'username' ? 'focused' : ''}`}>
+                <div className="input-icon">
+                  <FaUser />
+                </div>
+                <input
+                  type="text"
+                  placeholder="اسم المستخدم"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  onFocus={() => setFocusedField('username')}
+                  onBlur={() => setFocusedField(null)}
+                  required
+                />
+              </div>
+
+              <div className={`input-group ${focusedField === 'email' ? 'focused' : ''}`}>
+                <div className="input-icon">
+                  <FaEnvelope />
+                </div>
+                <input
+                  type="email"
+                  placeholder="البريد الإلكتروني"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onFocus={() => setFocusedField('email')}
+                  onBlur={() => setFocusedField(null)}
+                  required
+                />
+              </div>
+
+              <div className={`input-group ${focusedField === 'password' ? 'focused' : ''}`}>
+                <div className="input-icon">
+                  <FaLock />
+                </div>
+                <input
+                  type="password"
+                  placeholder="كلمة المرور"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => setFocusedField('password')}
+                  onBlur={() => setFocusedField(null)}
+                  required
+                />
+              </div>
+
+              <button type="submit" disabled={loading} className="submit-btn">
+                {loading ? (
+                  <span className="loading-spinner"></span>
+                ) : (
+                  <>
+                    <span>إنشاء حساب</span>
+                    <FaArrowLeft />
+                  </>
+                )}
+              </button>
+
+              <div className="divider">
+                <span>أو</span>
+              </div>
+
+              <button type="button" disabled={loading} className="google-btn" onClick={handleGoogleLogin}>
+                <FaGoogle />
+                <span>التسجيل عبر جوجل</span>
+              </button>
+            </form>
+
+            <div className="form-footer">
+              <p>
+                لديك حساب بالفعل؟{' '}
+                <Link href="/login">سجل دخولك</Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

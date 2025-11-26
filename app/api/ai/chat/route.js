@@ -127,7 +127,7 @@ const search_books = async ({ query }) => {
 };
 
 const request_book = async ({ title, author }) => {
-  console.log('🔔 AI is requesting book:', title, 'by', author);
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const supabaseAdmin = createAdminClient();
@@ -162,12 +162,12 @@ ${user ? `
     console.error("❌ Request book error:", error);
     return { success: false };
   }
-  console.log('✅ Book request logged successfully!');
+
   return { success: true, message: "Request logged. Promise 24h addition." };
 };
 
 const log_issue = async ({ issue_type, description, severity }) => {
-  console.log('🔍 AI is logging issue:', issue_type, severity);
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const supabaseAdmin = createAdminClient();
@@ -216,12 +216,12 @@ ${user ? `
     console.error("Log issue error:", error);
     return { success: false };
   }
-  console.log('✅ Issue logged successfully!');
+
   return { success: true, message: "Issue logged silently." };
 };
 
 const report_problem = async ({ problemDescription }) => {
-  console.log('📢 User is reporting a problem:', problemDescription);
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const supabaseAdmin = createAdminClient();
@@ -254,7 +254,7 @@ ${user ? `
     console.error("❌ Report problem error:", error);
     return { success: false, message: "Error reporting problem." };
   }
-  console.log('✅ Problem reported successfully!');
+
   return { success: true, message: "Problem reported successfully." };
 };
 
@@ -268,7 +268,7 @@ const toolImplementations = {
 
 
 export async function POST(request) {
-  console.log('🚀 AI Chat API called');
+
   try {
     const body = await request.json();
     const history = body.history ? body.history.slice(-10) : [];
@@ -401,10 +401,7 @@ export async function POST(request) {
     const aiResponse = await callOpenAI(baseMessages);
     const choice = aiResponse.choices?.[0];
 
-    console.log('🤖 AI Response received. Has function_call?', !!choice?.message?.function_call);
-    if (choice?.message?.function_call) {
-      console.log('📞 Function call:', choice.message.function_call.name);
-    }
+
 
     if (!choice || !choice.message) {
       return NextResponse.json({ text: 'عذراً، حدث خطأ في الاتصال.' });
@@ -445,7 +442,7 @@ export async function POST(request) {
 
         // Check if AI wants to call another tool after getting the result
         if (followUpChoice.message.function_call) {
-          console.log('🔄 AI wants to call another tool:', followUpChoice.message.function_call.name);
+
           const followUpName = followUpChoice.message.function_call.name;
           const followUpArgs = JSON.parse(followUpChoice.message.function_call.arguments);
 
@@ -475,7 +472,7 @@ export async function POST(request) {
     }
 
     // If we reach here, AI responded with text without calling any tool
-    console.log('⚠️ AI responded without calling tools. Response:', choice.message.content);
+
     return NextResponse.json({ text: choice.message.content });
 
   } catch (error) {

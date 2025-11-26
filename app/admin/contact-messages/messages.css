@@ -1,0 +1,234 @@
+.messages-container {
+    display: flex;
+    height: calc(100vh - 100px);
+    /* Adjust based on header height */
+    background-color: var(--background-color);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin: 20px;
+    border: 1px solid var(--secondary-color);
+}
+
+/* Sidebar (User List) */
+.messages-sidebar {
+    width: 350px;
+    background-color: var(--secondary-color);
+    border-left: 1px solid rgba(0, 0, 0, 0.1);
+    /* RTL border */
+    display: flex;
+    flex-direction: column;
+}
+
+.messages-search {
+    padding: 15px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.messages-search input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background-color: var(--background-color);
+    color: var(--primary-color);
+}
+
+.messages-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.message-user-item {
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.message-user-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.message-user-item.active {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.message-user-item.active .user-last-msg {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.user-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #555;
+    flex-shrink: 0;
+}
+
+.user-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.user-name {
+    font-weight: bold;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.user-last-msg {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+/* Chat Area */
+.chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-color);
+}
+
+.chat-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--secondary-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--secondary-color);
+}
+
+.chat-header-user {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.message-bubble {
+    max-width: 70%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    position: relative;
+    line-height: 1.5;
+}
+
+.message-bubble.received {
+    align-self: flex-start;
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+    border-bottom-right-radius: 2px;
+    /* RTL: received on right? No, usually received on left/right depends on direction. In RTL, 'start' is right. */
+}
+
+/* In RTL, flex-start is Right. So received messages (from user) should be on the Right?
+   Usually:
+   - Me (Sender): Left (in RTL)
+   - Other (Receiver): Right (in RTL)
+   Wait, standard WhatsApp RTL:
+   - Me: Left
+   - Other: Right
+   Let's stick to that.
+*/
+
+.message-bubble.sent {
+    align-self: flex-end;
+    /* Left in RTL */
+    background-color: var(--accent-color);
+    color: white;
+    border-bottom-left-radius: 2px;
+}
+
+.message-time {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    margin-top: 5px;
+    display: block;
+    text-align: left;
+}
+
+.chat-input-area {
+    padding: 20px;
+    border-top: 1px solid var(--secondary-color);
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 25px;
+    border: 1px solid var(--secondary-color);
+    background-color: var(--background-color);
+    color: var(--primary-color);
+    resize: none;
+}
+
+.send-button {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: transform 0.2s;
+}
+
+.send-button:hover {
+    transform: scale(1.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .messages-container {
+        flex-direction: column;
+        height: calc(100vh - 60px);
+        margin: 10px;
+    }
+
+    .messages-sidebar {
+        width: 100%;
+        height: 40%;
+        /* Show list initially */
+        border-left: none;
+        border-bottom: 1px solid var(--secondary-color);
+    }
+
+    .messages-sidebar.hidden {
+        display: none;
+    }
+
+    .chat-area {
+        height: 100%;
+    }
+
+    .chat-area.hidden {
+        display: none;
+    }
+}

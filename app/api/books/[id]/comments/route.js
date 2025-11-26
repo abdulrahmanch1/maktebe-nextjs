@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { protect } from '@/lib/middleware';
+import { protect, getUserFromRequest } from '@/lib/middleware';
 // import { validateMongoId } from '@/lib/validation'; // Remove this import
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
@@ -50,13 +50,14 @@ export const POST = protect(async (request, { params }) => {
   }
 
   try {
+    const user = getUserFromRequest(request);
     // Insert new comment into the comments table
     const { data: newComment, error: insertError } = await supabase
       .from('comments')
       .insert({
         book_id: id,
         text: text,
-        user_id: request.user.id, // Assuming request.user.id is the Supabase user ID
+        user_id: user.id,
       })
       .select('*, profiles(username, profilepicture)') // Select the newly inserted comment and populate user details
       .single();

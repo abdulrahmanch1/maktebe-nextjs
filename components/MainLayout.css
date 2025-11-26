@@ -6,14 +6,38 @@
 
 .main-content {
   padding: 0;
-  margin: 0; /* Remove margin */
-  flex-grow: 1; /* Allow main content to take available vertical space */
-  display: flex; /* Make it a flex container */
-  flex-direction: column; /* Stack children vertically */
+  margin: 0;
+  /* Remove margin */
+  flex-grow: 1;
+  /* Allow main content to take available vertical space */
+  display: flex;
+  /* Make it a flex container */
+  flex-direction: column;
+  /* Stack children vertically */
 }
 
 @media (max-width: 344px) {
   .main-content {
     padding: 0;
+  }
+}
+
+/* Add margin for fixed sidebar on desktop */
+@media (min-width: 1024px) {
+
+  .main-content,
+  .footer {
+    /* Also adjust footer if needed, or wrap everything in a container */
+    margin-right: 280px;
+    /* Width of the sidebar */
+    width: calc(100% - 280px);
+  }
+
+  /* Adjust header to not overlap with sidebar if it's full width */
+  .header {
+    width: 100%;
+    margin-right: 0;
+    z-index: 1001;
+    /* Ensure header stays on top */
   }
 }

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { protect } from '@/lib/middleware';
+import { protect, getUserFromRequest } from '@/lib/middleware';
 import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { slugify } from '@/utils/slugify';
 
 const buildInitialProgress = () => ({
   page: 1,
@@ -40,7 +41,8 @@ export const DELETE = protect(async (request, { params }) => {
     return NextResponse.json({ message: 'User ID and Book ID are required' }, { status: 400 });
   }
 
-  if (id !== request.user.id) {
+  const user = getUserFromRequest(request);
+  if (id !== user.id) {
     return NextResponse.json({ message: 'Not authorized to modify this reading list' }, { status: 403 });
   }
 
@@ -79,14 +81,17 @@ export const DELETE = protect(async (request, { params }) => {
       return NextResponse.json({ message: 'تمت إزالة الكتاب من القائمة، لكن فشل تحديث العداد الإجمالي' }, { status: 500 });
     }
 
-    revalidatePath(`/book/${bookId}`, 'page'); // Revalidate the book details page
-
     // Fetch the updated readcount for the book
     const { data: updatedBook, error: fetchBookError } = await supabase
       .from('books')
-      .select('readcount')
+      .select('title, readcount')
       .eq('id', bookId)
       .single();
+
+    // Revalidate the book details page if we have the title
+    if (updatedBook?.title) {
+      revalidatePath(`/book/${slugify(updatedBook.title)}/${bookId}`, 'page');
+    }
 
     if (fetchBookError) {
       console.error('Error fetching updated readcount for book:', fetchBookError.message);
@@ -176,7 +181,7 @@ export const PATCH = protect(async (request, { params }) => {
       throw new Error(updateError.message);
     }
 
-    revalidatePath(`/book/${bookId}`, 'page'); // Revalidate the book details page
+    revalidatePath(`/book/${slugify(updatedReadingList.find(i => i.book === bookId)?.title || 'book')}/${bookId}`, 'page'); // Revalidate the book details page
 
     return NextResponse.json({ message: 'تم تحديث حالة القراءة بنجاح.' });
   } catch (error) {

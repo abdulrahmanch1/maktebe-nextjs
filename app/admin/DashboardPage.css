@@ -239,6 +239,45 @@
     --link-color-2: #fbbf24;
 }
 
+@media (max-width: 900px) {
+    .dashboard-container {
+        padding: 1.25rem;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .dashboard-date {
+        width: 100%;
+        text-align: center;
+    }
+
+    .quick-links-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .dashboard-container {
+        padding: 1rem 0.75rem;
+    }
+
+    .dashboard-header {
+        align-items: center;
+        text-align: center;
+    }
+
+    .quick-link-card {
+        align-items: flex-start;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
+}
+
 .quick-link-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);

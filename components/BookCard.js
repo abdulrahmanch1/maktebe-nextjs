@@ -7,6 +7,7 @@ import { AuthContext } from "@/contexts/AuthContext";
 import { toast } from 'react-toastify';
 import Image from 'next/image';
 import './BookCard.css';
+import { slugify } from "@/utils/slugify";
 
 
 const BookCard = ({ book, isPriority = false }) => {
@@ -16,15 +17,6 @@ const BookCard = ({ book, isPriority = false }) => {
   const [coverSrc, setCoverSrc] = useState(book.cover || '/imgs/no_cover_available.png');
   const [favoriteCount, setFavoriteCount] = useState(book.favoritecount || 0);
 
-  useEffect(() => {
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCoverSrc(book.cover || '/imgs/no_cover_available.png');
-  }, [book.cover]);
-
-  useEffect(() => {
-    setFavoriteCount(book.favoritecount || 0);
-  }, [book.favoritecount]);
 
   const handleFavoriteClick = async (e) => {
     e.stopPropagation();
@@ -48,7 +40,7 @@ const BookCard = ({ book, isPriority = false }) => {
   };
 
   return (
-    <Link href={`/book/${book.id}`} className="book-card-link" style={{ textDecoration: 'none', color: 'inherit' }}>
+    <Link href={`/book/${slugify(book.title)}/${book.id}`} className="book-card-link" style={{ textDecoration: 'none', color: 'inherit' }}>
       <div className="book-card">
         <div className="book-card-cover">
           <Image

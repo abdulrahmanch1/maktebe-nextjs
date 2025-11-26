@@ -51,6 +51,7 @@ const HomePageClient = ({ initialBooks = [], initialTotalCount = 0 }) => {
   return (
     <div className="homepage-container">
       <h1 className="homepage-title">البحث عن الكتب</h1>
+
       <div className="search-filter-container">
         <label htmlFor="search-input" className="visually-hidden">البحث عن الكتب</label>
         <input

@@ -8,17 +8,14 @@ import '@/components/SkeletonLoader.css';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { API_URL } from '@/constants';
+import BookCardSkeleton from '@/components/BookCardSkeleton';
 
-// Skeleton Loader Component
+// Skeleton Loader Component (moved outside to avoid creating during render)
 const SkeletonGrid = () => (
   <div className="reading-list-books-grid">
     {[...Array(8)].map((_, i) => (
-      <div key={i} className="reading-list-book-wrapper">
-        <div className="skeleton-card">
-          <div className="skeleton-cover"></div>
-          <div className="skeleton-text"></div>
-          <div className="skeleton-text short"></div>
-        </div>
+      <div key={i} className="skeleton-wrapper">
+        <BookCardSkeleton />
       </div>
     ))}
   </div>

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { protect } from '@/lib/middleware';
+import { protect, getUserFromRequest } from '@/lib/middleware';
 import { validateReadingList } from '@/lib/validation'; // Removed validateMongoId
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 import { revalidatePath } from 'next/cache';
+import { slugify } from '@/utils/slugify';
 
 const buildInitialProgress = () => ({
   page: 1,
@@ -20,7 +21,8 @@ export const GET = protect(async (request, { params }) => {
   }
 
   // Authorization check: ensure the logged-in user can only access their own reading list.
-  if (id !== request.user.id) {
+  const user = getUserFromRequest(request);
+  if (id !== user.id) {
     return NextResponse.json({ message: 'Not authorized to view this reading list' }, { status: 403 });
   }
 
@@ -64,7 +66,8 @@ export const POST = protect(async (request, { params }) => {
     return NextResponse.json({ message: 'Invalid Book ID', errors: bookIdErrors }, { status: 400 });
   }
 
-  if (id !== request.user.id) {
+  const user = getUserFromRequest(request);
+  if (id !== user.id) {
     return NextResponse.json({ message: "Not authorized to modify this user's reading list" }, { status: 403 });
   }
 
@@ -113,13 +116,16 @@ export const POST = protect(async (request, { params }) => {
       return NextResponse.json({ message: 'فشل في تحديث عداد القراءة، تم التراجع عن الإضافة' }, { status: 500 });
     }
 
-    revalidatePath(`/book/${bookId}`, 'page');
-
     const { data: updatedBook, error: fetchBookError } = await supabase
       .from('books')
-      .select('readcount')
+      .select('title, readcount')
       .eq('id', bookId)
       .single();
+
+    // Revalidate the book details page if we have a title to build the slug
+    if (updatedBook?.title) {
+      revalidatePath(`/book/${slugify(updatedBook.title)}/${bookId}`, 'page');
+    }
 
     if (fetchBookError) {
       console.error('Error fetching updated readcount for book:', fetchBookError.message);

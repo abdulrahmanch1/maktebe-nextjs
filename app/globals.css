@@ -4,6 +4,11 @@
   text-orientation: mixed;
   --border-color: #ccc;
   --box-shadow-color: rgba(0, 0, 0, 0.1);
+  --accent-rgb: 231, 76, 60;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 /* Default theme (theme2) */

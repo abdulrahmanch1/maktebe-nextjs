@@ -1,0 +1,26 @@
+/* Chat Section Styles */
+.chat-section {
+    margin-top: 20px;
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background-color: var(--card-bg);
+    border-radius: 12px 12px 0 0;
+    border: 1px solid var(--secondary-color);
+    border-bottom: none;
+}
+
+.chat-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--primary-color);
+}
+
+.chat-status {
+    font-size: 0.9rem;
+    font-weight: 600;
+}

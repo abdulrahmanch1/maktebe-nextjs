@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
+import { slugify } from '@/utils/slugify';
 
 export const revalidate = 3600;
 
@@ -15,7 +16,7 @@ export default async function sitemap() {
 
     const bookUrls = books
         ? books.map((book) => ({
-            url: `${baseUrl}/book/${book.id}`,
+            url: `${baseUrl}/book/${slugify(book.title)}/${book.id}`,
             lastModified: new Date(book.updated_at || book.created_at),
             changeFrequency: 'weekly',
             priority: 0.8,

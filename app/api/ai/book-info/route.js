@@ -32,43 +32,30 @@ export const POST = protect(admin(async (request) => {
       هام: يجب أن تكون استجابتك كائن JSON واحدًا وصالحًا فقط. لا تضمن أي نص آخر أو تفسيرات أو تنسيق Markdown مثل "json". يجب أن تكون استجابتك بالكامل هي كائن JSON نفسه.
     `;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call n8n Webhook
+    const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL || 'http://localhost:5678/webhook/book-info';
+
+    const response = await fetch(n8nWebhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${openAiApiKey}`,
       },
       body: JSON.stringify({
-        model: OPENAI_MODEL,
-        temperature: 0.3,
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Book Title: "${title}"` },
-        ],
+        title,
+        author: body.author || '',
       }),
     });
 
-    const data = await response.json();
     if (!response.ok) {
-      console.error('OpenAI API error (book-info):', data.error || response.statusText);
+      console.error('n8n Webhook error:', response.statusText);
       return NextResponse.json({ error: 'Failed to fetch data from AI service.' }, { status: 500 });
     }
 
-    const messageContent = data.choices?.[0]?.message?.content;
-    if (!messageContent) {
-      console.error('OpenAI book-info response missing content:', data);
-      return NextResponse.json({ error: 'AI response did not contain a valid JSON object.' }, { status: 500 });
-    }
+    // n8n returns the JSON directly
+    const bookInfo = await response.json();
+    return NextResponse.json(bookInfo);
 
-    try {
-      const bookInfo = JSON.parse(messageContent);
-      return NextResponse.json(bookInfo);
-    } catch (e) {
-      console.error("Failed to parse extracted JSON:", e);
-      console.error("Raw OpenAI response content:", messageContent);
-      return NextResponse.json({ error: 'Failed to parse extracted AI response as JSON.' }, { status: 500 });
-    }
+
 
   } catch (error) {
     console.error('Error in AI book-info API:', error);

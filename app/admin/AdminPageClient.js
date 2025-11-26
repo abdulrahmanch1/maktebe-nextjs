@@ -67,6 +67,7 @@ const AdminPageClient = () => {
   const [editingBook, setEditingBook] = useState(null);
   const [existingCoverUrl, setExistingCoverUrl] = useState(null);
   const [aiTitle, setAiTitle] = useState("");
+  const [aiAuthor, setAiAuthor] = useState("");
   const [isFetchingAi, setIsFetchingAi] = useState(false);
 
   const coverInputRef = useRef(null);
@@ -125,7 +126,7 @@ const AdminPageClient = () => {
     }
     setIsFetchingAi(true);
     try {
-      const response = await axios.post(`${API_URL}/api/ai/book-info`, { title: aiTitle });
+      const response = await axios.post(`${API_URL}/api/ai/book-info`, { title: aiTitle, author: aiAuthor });
       const data = response.data;
 
       // Populate form fields with AI data
@@ -275,6 +276,13 @@ const AdminPageClient = () => {
                 placeholder="مثال: 'كبرياء وتحامل'"
                 value={aiTitle}
                 onChange={(e) => setAiTitle(e.target.value)}
+              />
+              <input
+                type="text"
+                className="ai-input"
+                placeholder="اسم المؤلف (اختياري)"
+                value={aiAuthor}
+                onChange={(e) => setAiAuthor(e.target.value)}
               />
               <button
                 type="button"

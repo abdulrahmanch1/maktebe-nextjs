@@ -1,0 +1,220 @@
+{
+    "name": "Book Details Agent (AI Agent Node)",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "book-info",
+                "options": {}
+            },
+            "name": "Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                240,
+                300
+            ],
+            "webhookId": "book-info-webhook"
+        },
+        {
+            "parameters": {
+                "url": "https://www.googleapis.com/customsearch/v1",
+                "options": {},
+                "queryParametersUi": {
+                    "parameter": [
+                        {
+                            "name": "q",
+                            "value": "={{$node[\"Webhook\"].json[\"body\"][\"title\"]}} {{$node[\"Webhook\"].json[\"body\"][\"author\"]}} book details reviews summary"
+                        },
+                        {
+                            "name": "key",
+                            "value": "YOUR_GOOGLE_API_KEY"
+                        },
+                        {
+                            "name": "cx",
+                            "value": "YOUR_CUSTOM_SEARCH_ENGINE_ID"
+                        }
+                    ]
+                }
+            },
+            "name": "Google Search",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [
+                460,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "url": "={{$node[\"Google Search\"].json[\"items\"][0][\"link\"]}}",
+                "options": {
+                    "redirect": {
+                        "redirect": {}
+                    }
+                }
+            },
+            "name": "Scrape First Result",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 3,
+            "position": [
+                680,
+                300
+            ],
+            "notesInFlow": true,
+            "notes": "Fetches the HTML of the top search result."
+        },
+        {
+            "parameters": {
+                "dataPropertyName": "data",
+                "extractionValues": {
+                    "values": [
+                        {
+                            "key": "pageContent",
+                            "cssSelector": "body",
+                            "returnValue": "text"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "name": "Extract Text",
+            "type": "n8n-nodes-base.htmlExtract",
+            "typeVersion": 1,
+            "position": [
+                900,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{$node[\"Extract Text\"].json[\"pageContent\"].substring(0, 20000)}}",
+                "options": {
+                    "systemMessage": "=أنت خبير كتب ومحرر محتوى. مهمتك هي تحليل النص المستخرج من صفحة الويب وتوليد تفاصيل الكتاب بتنسيق JSON دقيق.\n\nاسم الكتاب المطلوب: {{$node[\"Webhook\"].json[\"body\"][\"title\"]}}\n\nالحقول المطلوبة:\n- title\n- author\n- category\n- description (باللغة العربية، مسلي، ومحسن للـ SEO)\n- pages (رقم)\n- publishYear (رقم)\n- language\n\nيجب أن تكون المخرجات كائن JSON صالح فقط."
+                }
+            },
+            "name": "AI Agent",
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 1,
+            "position": [
+                1120,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "model": "gpt-4o",
+                "options": {}
+            },
+            "name": "OpenAI Chat Model",
+            "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+            "typeVersion": 1,
+            "position": [
+                1120,
+                520
+            ]
+        },
+        {
+            "parameters": {},
+            "name": "Window Buffer Memory",
+            "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+            "typeVersion": 1,
+            "position": [
+                1240,
+                520
+            ]
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "name": "Respond to App",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                1460,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Google Search",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Google Search": {
+            "main": [
+                [
+                    {
+                        "node": "Scrape First Result",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Scrape First Result": {
+            "main": [
+                [
+                    {
+                        "node": "Extract Text",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Extract Text": {
+            "main": [
+                [
+                    {
+                        "node": "AI Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "AI Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to App",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI Chat Model": {
+            "ai_language_model": [
+                [
+                    {
+                        "node": "AI Agent",
+                        "type": "ai_language_model",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Window Buffer Memory": {
+            "ai_memory": [
+                [
+                    {
+                        "node": "AI Agent",
+                        "type": "ai_memory",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

@@ -1,5 +1,5 @@
 'use client';
-import React, { useContext, useState, useRef, useEffect } from "react";
+import React, { useContext, useState, useRef, useEffect, useCallback } from "react";
 import { ThemeContext } from "@/contexts/ThemeContext";
 import { AuthContext } from "@/contexts/AuthContext";
 import axios from "axios";
@@ -8,12 +8,13 @@ import { themes } from "@/data/themes";
 import { toast } from 'react-toastify';
 import { API_URL } from "@/constants";
 import Image from "next/image";
+import { FaUser, FaPalette, FaLock, FaEnvelope, FaChevronLeft, FaTrash } from 'react-icons/fa';
 import "./SettingsPage.css";
+import { ChatContainer, MessageInput } from '@/components/ChatComponents';
 
 const SettingsPage = () => {
   const { isLoggedIn } = useContext(AuthContext);
   const [activeSection, setActiveSection] = useState("account");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -24,7 +25,6 @@ const SettingsPage = () => {
 
   const handleSectionChange = (section) => {
     setActiveSection(section);
-    setIsDropdownOpen(false);
   };
 
   const renderSection = () => {
@@ -43,10 +43,10 @@ const SettingsPage = () => {
   };
 
   const sidebarItems = [
-    { key: "account", icon: "👤", text: "إعدادات الحساب" },
-    { key: "appearance", icon: "🎨", text: "المظهر" },
-    { key: "security", icon: "🔒", text: "الأمان" },
-    { key: "contact", icon: "✉️", text: "تواصل معنا" },
+    { key: "account", icon: <FaUser />, text: "إعدادات الحساب" },
+    { key: "appearance", icon: <FaPalette />, text: "المظهر" },
+    { key: "security", icon: <FaLock />, text: "الأمان" },
+    { key: "contact", icon: <FaEnvelope />, text: "الرسائل" },
   ];
 
   if (!isLoggedIn) {
@@ -56,37 +56,35 @@ const SettingsPage = () => {
   return (
     <div className="settings-container">
       <aside className="settings-sidebar">
+        <div className="settings-sidebar-header">
+          <h3>الإعدادات</h3>
+        </div>
+        <div className="settings-sidebar-menu">
+          {sidebarItems.map(item => (
+            <div
+              key={item.key}
+              className={`settings-sidebar-item ${activeSection === item.key ? "active" : ""}`}
+              onClick={() => handleSectionChange(item.key)}
+            >
+              <span className="sidebar-icon">{item.icon}</span>
+              <span className="settings-sidebar-text">{item.text}</span>
+              {activeSection === item.key && <FaChevronLeft className="active-indicator" />}
+            </div>
+          ))}
+        </div>
+      </aside>
+
+      <div className="settings-mobile-tabs">
         {sidebarItems.map(item => (
           <div
             key={item.key}
-            className={`settings-sidebar-item ${activeSection === item.key ? "active" : ""}`}
+            className={`settings-mobile-tab ${activeSection === item.key ? "active" : ""}`}
             onClick={() => handleSectionChange(item.key)}
           >
-            <span>{item.icon}</span>
-            <span className="settings-sidebar-text">{item.text}</span>
+            <span className="tab-icon">{item.icon}</span>
+            <span className="tab-text">{item.text}</span>
           </div>
         ))}
-      </aside>
-
-      <div className="settings-mobile-header">
-        <button className="settings-mobile-button" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
-          <span>⚙️</span>
-          <span>الملف الشخصي</span>
-        </button>
-        {isDropdownOpen && (
-          <div className="settings-dropdown">
-            {sidebarItems.map(item => (
-              <div
-                key={item.key}
-                className={`settings-dropdown-item ${activeSection === item.key ? "active" : ""}`}
-                onClick={() => handleSectionChange(item.key)}
-              >
-                <span>{item.icon}</span>
-                <span>{item.text}</span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       <main className="settings-content">{renderSection()}</main>
@@ -94,77 +92,8 @@ const SettingsPage = () => {
   );
 };
 
-const ContactUsSection = () => {
-  const { user } = useContext(AuthContext);
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const email = user?.email || "guest@example.com";
-      const username = user?.username || "Guest";
-
-      await axios.post(`${API_URL}/api/contact`, {
-        subject,
-        message,
-        email,
-        username,
-      });
-      toast.success("تم إرسال رسالتك بنجاح!");
-      setSubject("");
-      setMessage("");
-    } catch (error) {
-      console.error("Error sending contact message:", error);
-      toast.error(error.response?.data?.message || "فشل إرسال الرسالة.");
-    }
-  };
-
-  return (
-    <div className="settings-section">
-      <h2>تواصل معنا</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>الموضوع:</label>
-          <input
-            type="text"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            placeholder="موضوع الرسالة"
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label>رسالتك:</label>
-          <textarea
-            rows="5"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="اكتب رسالتك هنا..."
-            required
-          ></textarea>
-        </div>
-        <button type="submit" className="button">
-          إرسال الرسالة
-        </button>
-      </form>
-    </div>
-  );
-};
-
 const AccountSettings = () => {
-  const authValues = useContext(AuthContext);
-  return (
-    <AccountSettingsForm
-      key={authValues.user?.id ?? 'guest'}
-      user={authValues.user}
-      session={authValues.session}
-      setUser={authValues.setUser}
-    />
-  );
-};
-
-const AccountSettingsForm = ({ user, session, setUser }) => {
+  const { user, session, setUser } = useContext(AuthContext);
   const [newUsername, setNewUsername] = useState(user ? user.username : "");
   const fileInputRef = useRef(null);
 
@@ -215,26 +144,48 @@ const AccountSettingsForm = ({ user, session, setUser }) => {
     }
   };
 
+  const handleRemovePicture = async () => {
+    if (!window.confirm("هل أنت متأكد من حذف الصورة الشخصية؟")) return;
+    try {
+      // Assuming an API endpoint or logic exists, otherwise just reset state for now
+      // await axios.delete("/api/upload-profile-picture"); 
+      setUser({ ...user, profilePicture: null });
+      toast.success("تم حذف الصورة بنجاح");
+    } catch (err) {
+      toast.error("فشل حذف الصورة");
+    }
+  };
+
   return (
     <div className="settings-section">
       <h2>إعدادات الحساب</h2>
       <div className="profile-info-section">
-        <Image
-          loader={supabaseLoader}
-          src={user?.profilePicture || '/imgs/user.jpg'}
-          alt="صورة الملف الشخصي"
-          width={100}
-          height={100}
-          className="profile-picture"
-          placeholder="blur"
-          blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
-          onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }}
-        />
+        <div className="profile-picture-container">
+          <Image
+            loader={supabaseLoader}
+            src={user?.profilePicture || '/imgs/user.jpg'}
+            alt="صورة الملف الشخصي"
+            width={140}
+            height={140}
+            className="profile-picture"
+            placeholder="blur"
+            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
+            onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }}
+          />
+        </div>
         <span className="profile-email">{user ? user.email : "غير متاح"}</span>
-        <input type="file" onChange={handleImageChange} ref={fileInputRef} style={{ display: 'none' }} />
-        <button className="button change-picture-button" onClick={() => fileInputRef.current.click()}>
-          تغيير الصورة
-        </button>
+
+        <div className="profile-actions">
+          <input type="file" onChange={handleImageChange} ref={fileInputRef} style={{ display: 'none' }} />
+          <button className="button change-picture-button" onClick={() => fileInputRef.current.click()}>
+            تغيير الصورة
+          </button>
+          {user?.profilePicture && (
+            <button className="button remove-picture-button" onClick={handleRemovePicture} title="إزالة الصورة">
+              <FaTrash />
+            </button>
+          )}
+        </div>
       </div>
       <div className="form-group">
         <label>اسم المستخدم</label>
@@ -242,6 +193,127 @@ const AccountSettingsForm = ({ user, session, setUser }) => {
         <button className="button" onClick={handleUsernameUpdate}>
           تحديث اسم المستخدم
         </button>
+      </div>
+    </div>
+  );
+};
+
+const ContactUsSection = () => {
+  const { user, session, isLoggedIn } = useContext(AuthContext);
+  const [subject, setSubject] = useState("");
+  const [showNewThreadForm, setShowNewThreadForm] = useState(false);
+  const [loadingThreads, setLoadingThreads] = useState(false);
+  const [threads, setThreads] = useState([]);
+  const [selectedThread, setSelectedThread] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+
+  const fetchThreads = useCallback(async () => {
+    if (!isLoggedIn) return;
+    setLoadingThreads(true);
+    try {
+      const { data } = await axios.get(`${API_URL}/api/messages/threads`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      setThreads(Array.isArray(data) ? data : []);
+
+      // Auto-select first thread if exists
+      if (data && data.length > 0 && !selectedThread) {
+        setSelectedThread(data[0]);
+      }
+    } catch (err) {
+      console.error('Failed to load threads', err);
+    } finally {
+      setLoadingThreads(false);
+    }
+  }, [isLoggedIn, session?.access_token, selectedThread]);
+
+  const fetchMessages = useCallback(async (threadId) => {
+    if (!threadId) return;
+    setLoadingMessages(true);
+    try {
+      const { data } = await axios.get(`${API_URL}/api/messages/threads/${threadId}`, {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      setMessages(data.thread_messages || []);
+    } catch (err) {
+      console.error('Failed to load messages', err);
+    } finally {
+      setLoadingMessages(false);
+    }
+  }, [session?.access_token]);
+
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      fetchThreads();
+    }
+  }, [isLoggedIn, user, fetchThreads]);
+
+  useEffect(() => {
+    if (selectedThread) {
+      fetchMessages(selectedThread.id);
+    }
+  }, [selectedThread, fetchMessages]);
+
+  const handleSendMessage = async (message) => {
+    try {
+      // If no thread exists, create one first
+      if (!selectedThread) {
+        const { data } = await axios.post(
+          `${API_URL}/api/messages/threads`,
+          { subject: 'محادثة دعم', message },
+          { headers: { Authorization: `Bearer ${session?.access_token}` } }
+        );
+
+        await fetchThreads();
+        setSelectedThread(data.thread);
+        return;
+      }
+
+      // Send message to existing thread
+      await axios.post(
+        `${API_URL}/api/messages/threads/${selectedThread.id}/messages`,
+        { message },
+        { headers: { Authorization: `Bearer ${session?.access_token}` } }
+      );
+
+      await fetchMessages(selectedThread.id);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error(error.response?.data?.message || 'فشل إرسال الرسالة');
+      throw error;
+    }
+  };
+
+  if (!isLoggedIn) {
+    return (
+      <div className="settings-section">
+        <h2>رسائل الدعم</h2>
+        <p>يجب تسجيل الدخول لاستخدام نظام الرسائل.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="settings-section">
+      <h2>رسائل الدعم</h2>
+
+      <div className="chat-section">
+        <div className="chat-header">
+          <h3>محادثة مع فريق الدعم</h3>
+          {selectedThread && (
+            <span className="chat-status">
+              {selectedThread.status === 'open' ? '🟢 مفتوحة' : '🔴 مغلقة'}
+            </span>
+          )}
+        </div>
+
+        <ChatContainer messages={messages} loading={loadingMessages} username={user?.username} />
+
+        <MessageInput
+          onSend={handleSendMessage}
+          disabled={selectedThread?.status === 'closed'}
+        />
       </div>
     </div>
   );

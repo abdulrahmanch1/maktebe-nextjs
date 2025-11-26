@@ -6,8 +6,7 @@
 }
 
 .favorites-header {
-  text-align: left;
-  /* Modern left/right alignment (Right for RTL) */
+  text-align: center;
   margin-bottom: 2.5rem;
   animation: fadeIn 0.6s ease-out;
   max-width: 1400px;

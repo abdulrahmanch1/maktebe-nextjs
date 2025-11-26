@@ -29,39 +29,40 @@ const Header = () => {
   return (
     <header className="header">
       <div className="header-content">
-        <button className="menu-icon" onClick={toggleSidebar} aria-label="فتح القائمة">
-          <FaBars />
-        </button>
-        <nav className="header-nav">
-          <Link href="/" className="header-link">الرئيسية</Link>
-          <Link href="/suggest-book" className="header-link">اقترح كتاباً</Link>
-          <Link href="/settings" className="header-link">الإعدادات</Link>
-          <Link href="/favorites" className="header-link">المفضلة</Link>
-          <Link href="/reading-list" className="header-link">قائمة القراءة</Link>
-          {isLoggedIn && user?.role === 'admin' && (
-            <Link href="/admin" className="header-link">لوحة التحكم</Link>
-          )}
-        </nav>
+        <div className="header-start">
+          <button className="menu-icon" onClick={toggleSidebar} aria-label="فتح القائمة">
+            <FaBars />
+          </button>
+          <Link href="/" className="header-logo">
+            <Image
+              src="/icons/icon-192.png"
+              alt="شعار دار القرّاء"
+              width={32}
+              height={32}
+              className="header-logo-image"
+            />
+            <span className="header-logo-text">دار القرّاء</span>
+          </Link>
+        </div>
 
         <div className="header-user-section">
           {isLoggedIn ? (
-            <>
-              <Link href="/settings" className="header-link">{user ? user.username : "اسم المستخدم"}</Link>
+            <Link href="/settings" className="header-user-link">
+              <span className="header-user-name">{user?.username || 'مستخدم'}</span>
               <Image
                 src={user && user.profilePicture ? user.profilePicture : '/imgs/user.jpg'}
                 alt="صورة المستخدم"
-                width={40}
-                height={40}
+                width={36}
+                height={36}
                 className="header-user-avatar"
                 placeholder="blur"
                 blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
               />
-              <button onClick={logout} className="header-button logout-button-header">تسجيل الخروج</button>
-            </>
+            </Link>
           ) : (
             <>
-              <Link href="/login" className="header-link">تسجيل الدخول</Link>
-              <Link href="/register" className="header-button header-link">إنشاء حساب</Link>
+              <Link href="/register" className="header-button signup-btn">إنشاء حساب</Link>
+              <Link href="/login" className="header-button login-btn">تسجيل الدخول</Link>
             </>
           )}
         </div>

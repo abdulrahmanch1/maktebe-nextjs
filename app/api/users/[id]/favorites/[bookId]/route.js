@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { protect } from '@/lib/middleware';
+import { protect, getUserFromRequest } from '@/lib/middleware';
 // import { validateMongoId } from '@/lib/validation'; // Removed validateMongoId
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 import { revalidatePath } from 'next/cache';
+import { slugify } from '@/utils/slugify';
 
 export const POST = protect(async (request, { params }) => {
   const supabase = await createClient();
@@ -12,7 +13,8 @@ export const POST = protect(async (request, { params }) => {
     return NextResponse.json({ message: 'User ID and Book ID are required' }, { status: 400 });
   }
 
-  if (id !== request.user.id) {
+  const user = getUserFromRequest(request);
+  if (id !== user.id) {
     return NextResponse.json({ message: 'Not authorized to modify these favorites' }, { status: 403 });
   }
 
@@ -87,7 +89,8 @@ export const DELETE = protect(async (request, { params }) => {
     return NextResponse.json({ message: 'User ID and Book ID are required' }, { status: 400 });
   }
 
-  if (id !== request.user.id) {
+  const user = getUserFromRequest(request);
+  if (id !== user.id) {
     return NextResponse.json({ message: 'Not authorized to modify these favorites' }, { status: 403 });
   }
 
@@ -139,7 +142,7 @@ export const DELETE = protect(async (request, { params }) => {
       console.error('Failed to fetch favoritecount after decrement:', fetchBookError);
     }
 
-    revalidatePath(`/book/${bookId}`, 'page'); // Revalidate the book details page
+    revalidatePath(`/book/${slugify(updatedBook?.title || 'book')}/${bookId}`, 'page'); // Revalidate the book details page
 
     return NextResponse.json({
       message: 'Book removed from favorites',

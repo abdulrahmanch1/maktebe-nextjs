@@ -3,8 +3,9 @@ import React, { useContext, useState } from "react";
 import { ThemeContext } from "@/contexts/ThemeContext";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import './AuthPage.css';
-import { FaGoogle } from 'react-icons/fa';
+import Link from "next/link";
+import { FaGoogle, FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
+import './login.css';
 
 const LoginPageClient = () => {
   const { theme } = useContext(ThemeContext);
@@ -14,6 +15,7 @@ const LoginPageClient = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,38 +33,108 @@ const LoginPageClient = () => {
   };
 
   return (
-    <div className="auth-container" style={{ backgroundColor: theme.background, color: theme.primary }}>
-      <h1 className="auth-title" style={{ color: theme.primary }}>تسجيل الدخول</h1>
-      <form onSubmit={handleSubmit} className="auth-form" style={{ backgroundColor: theme.secondary, color: theme.primary }}>
-        <label>البريد الإلكتروني:</label>
-        <input
-          type="email"
-          placeholder="البريد الإلكتروني"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ backgroundColor: theme.background, color: theme.primary, borderColor: theme.accent }}
-        />
-        <label>كلمة المرور:</label>
-        <input
-          type="password"
-          placeholder="كلمة المرور"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ backgroundColor: theme.background, color: theme.primary, borderColor: theme.accent }}
-        />
-        <button type="submit" disabled={loading} className="themed-button-accent">
-          {loading ? 'جاري الدخول...' : 'دخول'}
-        </button>
-        <div className="auth-divider">
-          <span style={{ backgroundColor: theme.secondary }}>أو</span>
+    <div className="login-page">
+      <div className="login-container">
+        {/* Left Side - Branding */}
+        <div className="login-brand-side">
+          <div className="brand-content">
+            <div className="brand-logo">
+              <img src="/icons/icon-192.png" alt="دار القرّاء" />
+            </div>
+            <h1 className="brand-title">مرحباً بعودتك</h1>
+            <p className="brand-description">
+              سجل دخولك للوصول إلى مكتبتك الشخصية ومتابعة قراءاتك
+            </p>
+            <div className="brand-features">
+              <div className="feature-item">
+                <div className="feature-icon">📖</div>
+                <span>استكمل قراءاتك</span>
+              </div>
+              <div className="feature-item">
+                <div className="feature-icon">⭐</div>
+                <span>مفضلاتك بانتظارك</span>
+              </div>
+              <div className="feature-item">
+                <div className="feature-icon">🎯</div>
+                <span>توصيات جديدة</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <button type="button" disabled={loading} className="google-login-button" onClick={handleGoogleLogin}>
-          <FaGoogle style={{ marginLeft: '10px' }} />
-          تسجيل الدخول عبر جوجل
-        </button>
-      </form>
+
+        {/* Right Side - Form */}
+        <div className="login-form-side">
+          <div className="form-wrapper">
+            <div className="form-header">
+              <h2>تسجيل الدخول</h2>
+              <p>أدخل بياناتك للمتابعة</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="login-form">
+              <div className={`input-group ${focusedField === 'email' ? 'focused' : ''}`}>
+                <div className="input-icon">
+                  <FaEnvelope />
+                </div>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="البريد الإلكتروني"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onFocus={() => setFocusedField('email')}
+                  onBlur={() => setFocusedField(null)}
+                  autoComplete="email"
+                  required
+                />
+              </div>
+
+              <div className={`input-group ${focusedField === 'password' ? 'focused' : ''}`}>
+                <div className="input-icon">
+                  <FaLock />
+                </div>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="كلمة المرور"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => setFocusedField('password')}
+                  onBlur={() => setFocusedField(null)}
+                  autoComplete="current-password"
+                  required
+                />
+              </div>
+
+              <button type="submit" disabled={loading} className="submit-btn">
+                {loading ? (
+                  <span className="loading-spinner"></span>
+                ) : (
+                  <>
+                    <span>تسجيل الدخول</span>
+                    <FaArrowLeft />
+                  </>
+                )}
+              </button>
+
+              <div className="divider">
+                <span>أو</span>
+              </div>
+
+              <button type="button" disabled={loading} className="google-btn" onClick={handleGoogleLogin}>
+                <FaGoogle />
+                <span>الدخول عبر جوجل</span>
+              </button>
+            </form>
+
+            <div className="form-footer">
+              <p>
+                ليس لديك حساب؟{' '}
+                <Link href="/register">أنشئ حساباً الآن</Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

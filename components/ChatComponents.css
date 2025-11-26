@@ -1,0 +1,206 @@
+/* Chat Components Styles */
+
+.chat-container {
+    background-color: var(--background-color);
+    border: 1px solid var(--secondary-color);
+    border-radius: 16px;
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.chat-loading,
+.chat-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--primary-color);
+    opacity: 0.6;
+    font-size: 1.1rem;
+}
+
+/* Message Bubble */
+.message-bubble-container {
+    display: flex;
+    width: 100%;
+}
+
+.message-bubble-container.user-message {
+    justify-content: flex-end;
+}
+
+.message-bubble-container.admin-message {
+    justify-content: flex-start;
+}
+
+.message-bubble {
+    min-width: 120px;
+    max-width: 70%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.user-message .message-bubble {
+    background: linear-gradient(135deg, var(--accent-color), rgba(var(--accent-rgb), 0.8));
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.admin-message .message-bubble {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+    border-bottom-left-radius: 4px;
+}
+
+.message-sender-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    opacity: 0.8;
+}
+
+.user-message .message-sender-label {
+    text-align: right;
+    border-bottom: 2px solid #00bcd4;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+}
+
+.admin-message .message-sender-label {
+    text-align: left;
+}
+
+.message-text {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 4px;
+    white-space: pre-wrap;
+}
+
+.message-time {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    text-align: right;
+    margin-top: 4px;
+}
+
+.user-message .message-time {
+    text-align: left;
+}
+
+/* Message Input */
+.message-input-container {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    border-top: 1px solid var(--secondary-color);
+    background-color: var(--card-bg);
+    align-items: flex-end;
+}
+
+.message-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid var(--secondary-color);
+    border-radius: 24px;
+    background-color: var(--background-color);
+    color: var(--primary-color);
+    font-size: 0.95rem;
+    font-family: inherit;
+    resize: none;
+    min-height: 48px;
+    max-height: 120px;
+    overflow-y: auto;
+    transition: border-color 0.2s;
+}
+
+.message-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.message-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.message-send-button {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--accent-color), rgba(var(--accent-rgb), 0.8));
+    color: white;
+    border: none;
+    border-radius: 24px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    min-width: 80px;
+}
+
+.message-send-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.message-send-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .chat-container {
+        height: 400px;
+    }
+
+    .message-bubble {
+        min-width: 100px;
+        max-width: 85%;
+        padding: 10px 14px;
+    }
+
+    .message-text {
+        font-size: 0.9rem;
+    }
+
+    .message-input-container {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .message-input {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+    }
+
+    .message-send-button {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        min-width: 70px;
+    }
+}
+
+@media (max-width: 480px) {
+    .chat-container {
+        height: 350px;
+    }
+
+    .message-bubble {
+        min-width: 80px;
+        max-width: 90%;
+    }
+}

@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
-import { protect } from '@/lib/middleware';
+import { protect, getUserFromRequest } from '@/lib/middleware';
 import { createClient } from '@/utils/supabase/server';
 
 export const GET = protect(async (request) => {
     const supabase = await createClient();
 
     // Check if user is admin
-    if (request.user.role !== 'admin') {
+    const user = getUserFromRequest(request);
+    if (user.role !== 'admin') {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
     }
 

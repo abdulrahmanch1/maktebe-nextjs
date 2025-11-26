@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { protect } from '@/lib/middleware';
+import { protect, getUserFromRequest } from '@/lib/middleware';
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 
 async function getComment(commentId) {
@@ -29,8 +29,9 @@ export const DELETE = protect(async (request, { params }) => {
     return NextResponse.json(error, { status: error.message === 'Comment not found' ? 404 : 400 });
   }
 
+  const user = getUserFromRequest(request);
   // Check if the user is the comment author or an admin
-  if (request.user.id !== comment.user_id && request.user.role !== 'admin') {
+  if (user.id !== comment.user_id && user.role !== 'admin') {
     return NextResponse.json({ message: 'Not authorized to delete this comment' }, { status: 403 });
   }
 
@@ -60,7 +61,8 @@ export const PATCH = protect(async (request, { params }) => {
   }
 
   try {
-    const userId = request.user.id;
+    const user = getUserFromRequest(request);
+    const userId = user.id;
 
     // Log for debugging
     console.log('Comment likes data:', comment.likes);
