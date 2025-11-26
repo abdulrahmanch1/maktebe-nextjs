@@ -173,25 +173,7 @@
   }
 }
 
-@media (max-width: 444px) {
-  .books-display-container .book-card {
-    width: 130px;
-  }
-}
-
-@media (max-width: 325px) {
-  .books-display-container .book-card {
-    width: 120px;
-  }
-}
-
-@media (max-width: 600px) {
-  .books-display-container .book-card {
-    width: 150px;
-  }
-}
-
-@media (max-width: 444px) {
+@media (max-width: 380px) {
   .books-display-container .book-card {
     width: 130px;
   }

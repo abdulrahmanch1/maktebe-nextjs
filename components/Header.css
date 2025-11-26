@@ -153,6 +153,13 @@
   }
 }
 
+/* Hide login button on very small screens, but keep signup button */
+@media (max-width: 388px) {
+  .login-btn {
+    display: none;
+  }
+}
+
 /* Hide menu icon on desktop since sidebar is always visible */
 @media (min-width: 1024px) {
   .menu-icon {

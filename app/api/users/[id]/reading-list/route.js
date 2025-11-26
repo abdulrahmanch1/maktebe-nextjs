@@ -3,7 +3,7 @@ import { protect, getUserFromRequest } from '@/lib/middleware';
 import { validateReadingList } from '@/lib/validation'; // Removed validateMongoId
 import { createClient } from '@/utils/supabase/server'; // Correct import for server-side
 import { revalidatePath } from 'next/cache';
-import { slugify } from '@/utils/slugify';
+
 
 const buildInitialProgress = () => ({
   page: 1,
@@ -124,7 +124,7 @@ export const POST = protect(async (request, { params }) => {
 
     // Revalidate the book details page if we have a title to build the slug
     if (updatedBook?.title) {
-      revalidatePath(`/book/${slugify(updatedBook.title)}/${bookId}`, 'page');
+      revalidatePath(`/book/${bookId}`, 'page');
     }
 
     if (fetchBookError) {

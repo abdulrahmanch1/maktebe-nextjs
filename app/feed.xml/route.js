@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
-import { slugify } from '@/utils/slugify';
+
 
 export const dynamic = 'force-dynamic';
 
@@ -26,8 +26,8 @@ export async function GET() {
     ${books?.map(book => `
     <item>
       <title><![CDATA[${book.title} - ${book.author}]]></title>
-      <link>${baseUrl}/book/${slugify(book.title)}/${book.id}</link>
-      <guid isPermaLink="true">${baseUrl}/book/${slugify(book.title)}/${book.id}</guid>
+      <link>${baseUrl}/book/${book.id}</link>
+      <guid isPermaLink="true">${baseUrl}/book/${book.id}</guid>
       <pubDate>${new Date(book.created_at).toUTCString()}</pubDate>
       <description><![CDATA[${book.description?.substring(0, 200) || `كتاب ${book.title} للمؤلف ${book.author}`}]]></description>
       <category>${book.category}</category>

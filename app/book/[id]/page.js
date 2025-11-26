@@ -1,7 +1,16 @@
 import BookDetailsClient from "./BookDetailsClient";
 import { createClient } from "@/utils/supabase/server";
-import { slugify } from '@/utils/slugify';
 import { notFound } from 'next/navigation';
+
+// Always fetch fresh data to avoid serving stale or missing books
+export const dynamic = 'force-dynamic';
+
+const normalizeBookId = (rawId) => {
+  if (Array.isArray(rawId)) {
+    return rawId[rawId.length - 1];
+  }
+  return rawId;
+};
 
 // Pre-generate top 100 books for faster indexing
 export async function generateStaticParams() {
@@ -26,11 +35,12 @@ export async function generateStaticParams() {
 
 async function getBookData(id) {
   // Validate ID - prevent source map files and other invalid IDs
-  if (!id || id.includes('.map') || id.includes('.js') || id.length < 10) {
-    console.error('Invalid book ID:', id);
+  if (!id || id.includes('.map') || id.includes('.js')) {
+    console.error('Invalid book ID format:', id);
     return { book: null, comments: [], relatedBooks: [] };
   }
 
+  // Use the server client so RLS/session rules stay consistent with the rest of the app
   const supabase = await createClient();
 
   // Fetch book, comments, and related books concurrently for better performance
@@ -40,8 +50,16 @@ async function getBookData(id) {
     .eq('id', id)
     .single();
 
-  if (bookError || !book) {
+  if (bookError) {
+    // "PGRST116" => no rows found
+    if (bookError.code === 'PGRST116') {
+      return { book: null, comments: [], relatedBooks: [] };
+    }
     console.error('Error fetching book:', bookError);
+    throw new Error(bookError.message || 'Failed to fetch book');
+  }
+
+  if (!book) {
     return { book: null, comments: [], relatedBooks: [] };
   }
 
@@ -80,7 +98,11 @@ async function getBookData(id) {
 
 export async function generateMetadata(props) {
   const params = await props.params;
-  const { book, comments } = await getBookData(params.id);
+  const bookId = normalizeBookId(params.id);
+  if (!bookId) {
+    notFound();
+  }
+  const { book, comments } = await getBookData(bookId);
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.dar-alqurra.com';
 
   if (!book) {
@@ -121,12 +143,12 @@ export async function generateMetadata(props) {
     description: pageDescription,
     keywords: pageKeywords,
     alternates: {
-      canonical: `/book/${slugify(book.title)}/${params.id}`,
+      canonical: `/book/${params.id}`,
     },
     openGraph: {
       title: `${book.title} - ${book.author} | تحميل وقراءة مجاناً`,
       description: pageDescription,
-      url: `${siteUrl}/book/${slugify(book.title)}/${params.id}`,
+      url: `${siteUrl}/book/${params.id}`,
       images: [
         {
           url: book.cover || '/imgs/no_cover_available.png',
@@ -159,7 +181,7 @@ export async function generateMetadata(props) {
     numberOfPages: book.pages,
     description: book.description,
     image: book.cover,
-    url: `${siteUrl}/book/${slugify(book.title)}/${params.id}`,
+    url: `${siteUrl}/book/${params.id}`,
     datePublished: book.created_at, // Or publish_date if available
     publisher: {
       '@type': 'Organization',
@@ -193,7 +215,7 @@ export async function generateMetadata(props) {
         '@type': 'ListItem',
         position: 3,
         name: book.title,
-        item: `${siteUrl}/book/${slugify(book.title)}/${params.id}`
+        item: `${siteUrl}/book/${params.id}`
       }
     ]
   };
@@ -219,7 +241,11 @@ export async function generateMetadata(props) {
 
 const BookDetailsPage = async (props) => {
   const params = await props.params;
-  const { book, comments, relatedBooks } = await getBookData(params.id);
+  const bookId = normalizeBookId(params.id);
+  if (!bookId) {
+    notFound();
+  }
+  const { book, comments, relatedBooks } = await getBookData(bookId);
 
   if (!book) {
     notFound();

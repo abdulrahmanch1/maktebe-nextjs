@@ -486,18 +486,126 @@
 }
 
 @media (max-width: 480px) {
-  .settings-mobile-tab {
-    padding: 8px 16px;
-    font-size: 0.9rem;
+  .settings-section h2 {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 440px) {
+  .settings-content {
+    padding: 20px 12px;
+    /* Reduce padding significantly */
+  }
+
+  .profile-info-section {
+    padding: 20px 15px;
+    /* Reduce padding */
+    border-radius: 20px;
   }
 
   .profile-picture {
-    width: 110px;
-    height: 110px;
+    width: 100px;
+    height: 100px;
+  }
+
+  .change-picture-button {
+    min-width: auto;
+    /* Remove fixed min-width */
+    width: 100%;
+    /* Full width on mobile */
+    padding: 12px 20px;
+    font-size: 1rem;
+  }
+
+  .profile-actions {
+    flex-direction: column;
+    /* Stack buttons */
+    gap: 10px;
+  }
+
+  .remove-picture-button {
+    width: 100%;
+    /* Full width */
+    border-radius: 12px;
+  }
+
+  .form-group {
+    padding: 15px;
+    /* Reduce padding */
+    border-radius: 16px;
+  }
+
+  .button {
+    width: 100%;
+    /* Full width buttons */
+    padding: 12px;
+  }
+
+  .button {
+    width: 100%;
+    /* Full width buttons */
+    padding: 12px;
+  }
+}
+
+/* Specific adjustments for screens under 642px as requested */
+@media (max-width: 642px) {
+  .settings-content {
+    padding: 0 !important;
+    /* Remove padding/margin as requested */
+    margin: 0 !important;
+  }
+
+  /* Fix Theme Options Grid on Mobile (under 642px) */
+  .theme-options {
+    grid-template-columns: 1fr;
+    /* Stack vertically */
+    gap: 15px;
+    width: 100%;
+    /* Full width */
+    margin: 0 auto;
+    padding: 0 10px;
+    /* Add slight padding to container so buttons don't touch edges */
+  }
+
+  /* Ensure other sections have some breathing room if needed, or keep 0 as requested */
+  .profile-info-section,
+  .form-group,
+  .chat-section {
+    border-radius: 0;
+    /* Optional: remove radius if full width */
+    margin-bottom: 15px;
+  }
+}
+
+@media (max-width: 350px) {
+  .settings-content {
+    padding: 15px 8px;
+    /* Minimal padding */
+  }
+
+  .profile-info-section {
+    padding: 15px 10px;
+  }
+
+  .profile-picture {
+    width: 80px;
+    height: 80px;
+    border-width: 3px;
+  }
+
+  .change-picture-button,
+  .remove-picture-button {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  .form-group {
+    padding: 12px;
   }
 
   .settings-section h2 {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
   }
 }
 

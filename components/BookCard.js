@@ -7,7 +7,7 @@ import { AuthContext } from "@/contexts/AuthContext";
 import { toast } from 'react-toastify';
 import Image from 'next/image';
 import './BookCard.css';
-import { slugify } from "@/utils/slugify";
+
 
 
 const BookCard = ({ book, isPriority = false }) => {
@@ -40,7 +40,7 @@ const BookCard = ({ book, isPriority = false }) => {
   };
 
   return (
-    <Link href={`/book/${slugify(book.title)}/${book.id}`} className="book-card-link" style={{ textDecoration: 'none', color: 'inherit' }}>
+    <Link href={`/book/${book.id}`} className="book-card-link" style={{ textDecoration: 'none', color: 'inherit' }}>
       <div className="book-card">
         <div className="book-card-cover">
           <Image

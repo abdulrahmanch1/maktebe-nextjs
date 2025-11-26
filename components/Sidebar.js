@@ -72,10 +72,19 @@ const Sidebar = ({ isOpen, toggle, isLoggedIn, logout }) => {
           </>
         )}
       </nav>
-      {isLoggedIn && (
+      {isLoggedIn ? (
         <button onClick={() => { logout(); toggle(); }} className="sidebar-logout-button themed-button-accent">
           تسجيل الخروج
         </button>
+      ) : (
+        <div className="sidebar-auth-buttons">
+          <Link href="/login" onClick={toggle} className="sidebar-auth-btn login">
+            تسجيل الدخول
+          </Link>
+          <Link href="/register" onClick={toggle} className="sidebar-auth-btn register">
+            إنشاء حساب
+          </Link>
+        </div>
       )}
     </div>
   );

@@ -5,36 +5,41 @@ import { themes } from "@/data/themes";
 export const ThemeContext = createContext({ toggleTheme: (themeName) => {}, theme: themes.theme2 });
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => {
-    // During SSR, return a default theme to prevent mismatch
-    if (typeof window === 'undefined') {
-      return themes.theme2;
-    }
-
-    // 1. Check for a theme saved in localStorage
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-      return JSON.parse(savedTheme);
-    }
-
-    // 2. If no saved theme, check system preference
-    const userPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (userPrefersDark) {
-      return themes.theme4; // "فولاذي داكن" (Steel Dark)
-    }
-
-    // 3. Fallback to the default light theme
-    return themes.theme2; // "أزرق سماوي" (Sky Blue)
-  });
+  const [theme, setTheme] = useState(themes.theme2);
+  const [isThemeReady, setIsThemeReady] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem("theme", JSON.stringify(theme));
+    if (typeof window === 'undefined') return;
+
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      try {
+        setTheme(JSON.parse(savedTheme));
+        setIsThemeReady(true);
+        return;
+      } catch (error) {
+        console.warn("Failed to parse saved theme, falling back to defaults", error);
+      }
     }
-  }, [theme]);
+
+    const userPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (userPrefersDark) {
+      setTheme(themes.theme4); // "فولاذي داكن" (Steel Dark)
+    }
+
+    setIsThemeReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isThemeReady || typeof window === 'undefined') return;
+    localStorage.setItem("theme", JSON.stringify(theme));
+  }, [theme, isThemeReady]);
 
   const toggleTheme = (themeName) => {
-    setTheme(themes[themeName]);
+    if (themes[themeName]) {
+      setTheme(themes[themeName]);
+      setIsThemeReady(true);
+    }
   };
 
   const themeValues = useMemo(() => ({ theme, toggleTheme }), [theme]);
