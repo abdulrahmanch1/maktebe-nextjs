@@ -729,8 +729,8 @@ const BookDetailsClient = ({ initialBook }) => {
         </aside>
 
         <section className="right-column">
-          <h1 className="book-title">{book.title}</h1>
-          <h2 className="book-author">بواسطة {book.author}</h2>
+          <h1 className="details-title">{book.title}</h1>
+          <h2 className="details-author">بواسطة {book.author}</h2>
           <ul className="book-meta-list">
             <li className="book-meta-item"><strong>التصنيف:</strong> {book.category}</li>
             <li className="book-meta-item"><strong>عدد الصفحات:</strong> {book.pages}</li>

@@ -7,6 +7,7 @@ import { AuthContext } from '@/contexts/AuthContext';
 import './Sidebar.css';
 
 import { FaHome, FaBookOpen, FaCog, FaHeart, FaList, FaTachometerAlt, FaChartBar, FaBook } from 'react-icons/fa';
+import Image from 'next/image';
 
 const Sidebar = ({ isOpen, toggle, isLoggedIn, logout }) => {
   const { theme } = useContext(ThemeContext);
@@ -25,7 +26,14 @@ const Sidebar = ({ isOpen, toggle, isLoggedIn, logout }) => {
       </div>
 
       <div className="sidebar-logo-container">
-        <img src="/icons/icon-192.png" alt="Logo" className="sidebar-logo" />
+        <Image
+          src="/icons/icon-192.png"
+          alt="Dar Al-Qurra Logo"
+          width={40}
+          height={40}
+          className="sidebar-logo-img"
+          priority
+        />
         <h2 className="sidebar-title themed-primary-text">دار القرّاء</h2>
       </div>
 

@@ -4,6 +4,7 @@ import { ThemeContext } from "@/contexts/ThemeContext";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { FaGoogle, FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
 import './login.css';
 
@@ -39,7 +40,16 @@ const LoginPageClient = () => {
         <div className="login-brand-side">
           <div className="brand-content">
             <div className="brand-logo">
-              <img src="/icons/icon-192.png" alt="دار القرّاء" />
+              <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                <Image
+                  src="/icons/icon-192.png"
+                  alt="دار القرّاء"
+                  width={192}
+                  height={192}
+                  style={{ objectFit: 'contain' }}
+                  priority
+                />
+              </div>
             </div>
             <h1 className="brand-title">مرحباً بعودتك</h1>
             <p className="brand-description">

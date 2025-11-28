@@ -56,7 +56,6 @@ const BookCard = ({ book, isPriority = false }) => {
             placeholder="blur"
             blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
             onError={() => setCoverSrc('/imgs/no_cover_available.png')}
-            unoptimized={!!coverSrc && !coverSrc.startsWith('/')}
           />
           <div className="book-card-overlay">
             <button

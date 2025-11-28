@@ -7,6 +7,7 @@ import axios from "axios";
 import { toast } from 'react-toastify';
 import { API_URL } from "@/constants";
 import { AuthContext } from "@/contexts/AuthContext";
+import Image from "next/image";
 import { FaGoogle, FaUser, FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
 import './register.css';
 
@@ -66,7 +67,16 @@ const RegisterPageClient = () => {
         <div className="register-brand-side">
           <div className="brand-content">
             <div className="brand-logo">
-              <img src="/icons/icon-192.png" alt="دار القرّاء" />
+              <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                <Image
+                  src="/icons/icon-192.png"
+                  alt="دار القرّاء"
+                  width={192}
+                  height={192}
+                  style={{ objectFit: 'contain' }}
+                  priority
+                />
+              </div>
             </div>
             <h1 className="brand-title">دار القرّاء</h1>
             <p className="brand-description">
