@@ -21,7 +21,7 @@ const HomePage = async () => {
   // Fetch approved books directly from the database on the server
   const { data: books, error, count } = await supabase
     .from('books')
-    .select('*', { count: 'exact' })
+    .select('id, title, author, cover, category, favoritecount', { count: 'exact' })
     .eq('status', 'approved')
     .range(0, Math.max(BOOKS_PAGE_SIZE - 1, 0));
 

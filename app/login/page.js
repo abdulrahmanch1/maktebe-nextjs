@@ -7,7 +7,7 @@ export const metadata = {
     canonical: '/login',
   },
   robots: {
-    index: false,
+    index: true,
     follow: true,
   },
 };

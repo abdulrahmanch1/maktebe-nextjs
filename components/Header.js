@@ -6,9 +6,11 @@ import { ThemeContext } from "@/contexts/ThemeContext";
 import { AuthContext } from "@/contexts/AuthContext";
 import Image from 'next/image';
 import { FaBars } from 'react-icons/fa';
-import Sidebar from '@/components/Sidebar';
+import dynamic from 'next/dynamic';
 import Overlay from '@/components/Overlay';
 import './Header.css';
+
+const Sidebar = dynamic(() => import('@/components/Sidebar'), { ssr: false });
 
 const Header = () => {
   const { theme } = useContext(ThemeContext);

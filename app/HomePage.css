@@ -57,6 +57,9 @@
   flex-wrap: wrap;
   justify-content: center;
   min-height: auto;
+  /* Performance optimization for large lists */
+  contain-intrinsic-size: 1000px;
+  /* Approximate height to prevent scroll jumping */
 }
 
 @media (max-width: 351px) {

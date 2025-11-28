@@ -2,14 +2,16 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
-import AnalyticsLoader from '@/components/AnalyticsLoader';
-
 const DynamicChatAssistant = dynamic(() => import('@/components/DynamicChatAssistant'), {
     ssr: false,
     loading: () => null,
 });
 
 const PWAServiceWorker = dynamic(() => import('@/components/PWAServiceWorker'), {
+    ssr: false,
+});
+
+const AnalyticsLoader = dynamic(() => import('@/components/AnalyticsLoader'), {
     ssr: false,
 });
 

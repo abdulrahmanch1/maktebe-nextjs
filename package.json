@@ -12,7 +12,8 @@
     "android:copy": "npx cap copy android",
     "android:open": "npx cap open android",
     "android:bundle": "cd android && ./gradlew bundleRelease",
-    "android:apk": "cd android && ./gradlew assembleDebug"
+    "android:apk": "cd android && ./gradlew assembleDebug",
+    "test:seo": "npx unlighthouse --site http://localhost:3000 --cache false"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
@@ -39,6 +40,7 @@
     "@testing-library/react": "^16.3.0",
     "@types/jest": "^30.0.0",
     "@types/react": "19.2.6",
+    "@unlighthouse/cli": "^0.17.4",
     "dotenv": "^17.2.1",
     "eslint": "^9.33.0",
     "eslint-config-next": "^16.0.3",

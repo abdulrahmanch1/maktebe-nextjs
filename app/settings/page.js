@@ -7,7 +7,7 @@ export const metadata = {
     canonical: '/settings',
   },
   robots: {
-    index: false,
+    index: true,
     follow: true,
   },
 };

@@ -117,6 +117,28 @@ export default async function RootLayout({ children }) {
                   target: `${siteUrl}/?search={search_term_string}`,
                   'query-input': 'required name=search_term_string'
                 }
+              },
+              {
+                '@context': 'https://schema.org',
+                '@type': 'FAQPage',
+                mainEntity: [
+                  {
+                    '@type': 'Question',
+                    name: 'هل تحميل الكتب مجاني في دار القراء؟',
+                    acceptedAnswer: {
+                      '@type': 'Answer',
+                      text: 'نعم، جميع الكتب والروايات في مكتبة دار القراء متاحة للتحميل والقراءة مجاناً بصيغة PDF.'
+                    }
+                  },
+                  {
+                    '@type': 'Question',
+                    name: 'كيف يمكنني تحميل كتاب؟',
+                    acceptedAnswer: {
+                      '@type': 'Answer',
+                      text: 'ببساطة ابحث عن الكتاب الذي تريده، واضغط على زر "تحميل الكتاب" في صفحة التفاصيل.'
+                    }
+                  }
+                ]
               }
             ])
           }}

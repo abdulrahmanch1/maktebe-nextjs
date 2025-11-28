@@ -7,7 +7,7 @@ export const metadata = {
     canonical: '/register',
   },
   robots: {
-    index: false,
+    index: true,
     follow: true,
   },
 };

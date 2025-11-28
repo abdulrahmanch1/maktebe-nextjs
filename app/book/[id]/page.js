@@ -179,6 +179,8 @@ export async function generateMetadata(props) {
     bookFormat: 'http://schema.org/EBook',
     inLanguage: book.language || 'ar',
     numberOfPages: book.pages,
+    genre: book.category, // Mapped for AI understanding
+    keywords: pageKeywords.join(', '), // Explicit keywords for AI
     description: book.description,
     image: book.cover,
     url: `${siteUrl}/book/${params.id}`,
