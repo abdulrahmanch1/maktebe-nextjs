@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 import { API_URL } from "@/constants";
 import { AuthContext } from "@/contexts/AuthContext";
 import Image from "next/image";
-import { FaGoogle, FaUser, FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
+import { FaGoogle, FaUser, FaEnvelope, FaLock, FaArrowLeft, FaEye, FaEyeSlash } from 'react-icons/fa';
 import './register.css';
 
 const RegisterPageClient = () => {
@@ -21,6 +21,7 @@ const RegisterPageClient = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -119,6 +120,7 @@ const RegisterPageClient = () => {
                   onChange={(e) => setUsername(e.target.value)}
                   onFocus={() => setFocusedField('username')}
                   onBlur={() => setFocusedField(null)}
+                  maxLength={15}
                   required
                 />
               </div>
@@ -143,7 +145,7 @@ const RegisterPageClient = () => {
                   <FaLock />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="كلمة المرور"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -151,6 +153,14 @@ const RegisterPageClient = () => {
                   onBlur={() => setFocusedField(null)}
                   required
                 />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex="-1"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
               </div>
 
               <button type="submit" disabled={loading} className="submit-btn">

@@ -192,7 +192,7 @@
 
 .input-group input {
     width: 100%;
-    padding: 16px 50px 16px 20px;
+    padding: 16px 60px 16px 20px;
     border: 2px solid var(--secondary-color);
     border-radius: 12px;
     font-size: 1rem;
@@ -422,4 +422,26 @@
         padding: 14px 20px;
         font-size: 0.95rem;
     }
+}
+
+.password-toggle-btn {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: color 0.3s ease;
+}
+
+.password-toggle-btn:hover {
+    color: var(--accent-color);
 }

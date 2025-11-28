@@ -5,7 +5,7 @@ import { AuthContext } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { FaGoogle, FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
+import { FaGoogle, FaEnvelope, FaLock, FaArrowLeft, FaEye, FaEyeSlash } from 'react-icons/fa';
 import './login.css';
 
 const LoginPageClient = () => {
@@ -17,6 +17,7 @@ const LoginPageClient = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -103,7 +104,7 @@ const LoginPageClient = () => {
                   <FaLock />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="كلمة المرور"
                   value={password}
@@ -113,6 +114,14 @@ const LoginPageClient = () => {
                   autoComplete="current-password"
                   required
                 />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex="-1"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
               </div>
 
               <button type="submit" disabled={loading} className="submit-btn">

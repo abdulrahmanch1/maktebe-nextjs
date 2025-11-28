@@ -134,6 +134,10 @@ const AccountSettings = () => {
       toast.error("اسم المستخدم لا يمكن أن يكون فارغًا.");
       return;
     }
+    if (newUsername.length > 15) {
+      toast.error("اسم المستخدم يجب ألا يتجاوز 15 حرفاً.");
+      return;
+    }
     try {
       const res = await axios.patch(`${API_URL}/api/users/${user.id}`, { username: newUsername }, { headers: { Authorization: `Bearer ${session.access_token}` } });
       setUser({ ...user, username: res.data.username });
@@ -189,7 +193,7 @@ const AccountSettings = () => {
       </div>
       <div className="form-group">
         <label>اسم المستخدم</label>
-        <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
+        <input type="text" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} maxLength={15} />
         <button className="button" onClick={handleUsernameUpdate}>
           تحديث اسم المستخدم
         </button>
