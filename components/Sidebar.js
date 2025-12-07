@@ -6,7 +6,7 @@ import { ThemeContext } from '@/contexts/ThemeContext';
 import { AuthContext } from '@/contexts/AuthContext';
 import './Sidebar.css';
 
-import { FaHome, FaBookOpen, FaCog, FaHeart, FaList, FaTachometerAlt, FaChartBar, FaBook } from 'react-icons/fa';
+import { FaHome, FaBookOpen, FaCog, FaHeart, FaList, FaTachometerAlt, FaChartBar, FaBook, FaUserTie, FaEnvelope, FaPlus, FaLayerGroup } from 'react-icons/fa';
 import Image from 'next/image';
 
 const Sidebar = ({ isOpen, toggle, isLoggedIn, logout }) => {
@@ -42,6 +42,14 @@ const Sidebar = ({ isOpen, toggle, isLoggedIn, logout }) => {
           <FaHome className="sidebar-icon" />
           <span>الرئيسية</span>
         </Link>
+        <Link href="/books" onClick={toggle} className={getLinkClassName('/books')}>
+          <FaBook className="sidebar-icon" />
+          <span>الكتب</span>
+        </Link>
+        <Link href="/authors" onClick={toggle} className={getLinkClassName('/authors')}>
+          <FaUserTie className="sidebar-icon" />
+          <span>المؤلفون والعلماء</span>
+        </Link>
         {isLoggedIn && (
           <Link href="/suggest-book" onClick={toggle} className={getLinkClassName('/suggest-book')}>
             <FaBookOpen className="sidebar-icon" />
@@ -73,9 +81,25 @@ const Sidebar = ({ isOpen, toggle, isLoggedIn, logout }) => {
               <FaChartBar className="sidebar-icon" />
               <span>الإحصائيات</span>
             </Link>
+            <Link href="/admin/books" onClick={toggle} className={getLinkClassName('/admin/books')}>
+              <FaLayerGroup className="sidebar-icon" />
+              <span>إدارة الكتب</span>
+            </Link>
+            <Link href="/admin/add-book" onClick={toggle} className={getLinkClassName('/admin/add-book')}>
+              <FaPlus className="sidebar-icon" />
+              <span>إضافة كتاب</span>
+            </Link>
+            <Link href="/admin/authors" onClick={toggle} className={getLinkClassName('/admin/authors')}>
+              <FaUserTie className="sidebar-icon" />
+              <span>إدارة المؤلفين</span>
+            </Link>
             <Link href="/admin/suggested-books" onClick={toggle} className={getLinkClassName('/admin/suggested-books')}>
               <FaBook className="sidebar-icon" />
               <span>الكتب المقترحة</span>
+            </Link>
+            <Link href="/admin/contact-messages" onClick={toggle} className={getLinkClassName('/admin/contact-messages')}>
+              <FaEnvelope className="sidebar-icon" />
+              <span>رسائل التواصل</span>
             </Link>
           </>
         )}

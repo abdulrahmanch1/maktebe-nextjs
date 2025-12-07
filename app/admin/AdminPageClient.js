@@ -22,21 +22,21 @@ function generateRandomCounts(ratingTier) {
 
   switch (ratingTier) {
     case 'medium':
-      favoriteMin = 15; favoriteMax = 30;
-      readMin = 10; readMax = 20;
+      favoriteMin = 500; favoriteMax = 1000;
+      readMin = 1000; readMax = 2000;
+      break;
+    case 'very_good':
+      favoriteMin = 1500; favoriteMax = 3000;
+      readMin = 3000; readMax = 6000;
       break;
     case 'excellent':
-      favoriteMin = 30; favoriteMax = 45;
-      readMin = 15; readMax = 25; // Excellent for reads
-      break;
-    case 'very_good': // Assuming this is a separate tier for reads
-      favoriteMin = 50; favoriteMax = 70;
-      readMin = 40; readMax = 55;
+      favoriteMin = 5000; favoriteMax = 10000;
+      readMin = 10000; readMax = 20000;
       break;
     case 'normal':
     default:
-      favoriteMin = 5; favoriteMax = 15;
-      readMin = 5; readMax = 10;
+      favoriteMin = 150; favoriteMax = 300;
+      readMin = 300; readMax = 600;
       break;
   }
 

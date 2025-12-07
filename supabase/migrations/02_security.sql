@@ -251,6 +251,7 @@ DROP POLICY IF EXISTS "Users can view own threads" ON message_threads;
 DROP POLICY IF EXISTS "Users can create own threads" ON message_threads;
 DROP POLICY IF EXISTS "Admins can view all threads" ON message_threads;
 DROP POLICY IF EXISTS "Admins can update threads" ON message_threads;
+DROP POLICY IF EXISTS "Admins can insert threads" ON message_threads;
 
 CREATE POLICY "Users can view own threads"
   ON message_threads FOR SELECT
@@ -266,6 +267,13 @@ CREATE POLICY "Admins can view all threads"
   ON message_threads FOR SELECT
   TO authenticated
   USING (EXISTS (
+    SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
+  ));
+
+CREATE POLICY "Admins can insert threads"
+  ON message_threads FOR INSERT
+  TO authenticated
+  WITH CHECK (EXISTS (
     SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
   ));
 
@@ -354,6 +362,106 @@ CREATE POLICY "Admins can delete analytics events"
   USING (EXISTS (
     SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
   ));
+
+-- ============================================
+-- 12. AUTHORS TABLE POLICIES
+-- ============================================
+
+ALTER TABLE authors ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Authors are viewable by everyone" ON authors;
+DROP POLICY IF EXISTS "Admins can insert authors" ON authors;
+DROP POLICY IF EXISTS "Admins can update authors" ON authors;
+DROP POLICY IF EXISTS "Admins can delete authors" ON authors;
+
+CREATE POLICY "Authors are viewable by everyone"
+  ON authors FOR SELECT
+  TO authenticated, anon
+  USING (true);
+
+CREATE POLICY "Admins can insert authors"
+  ON authors FOR INSERT
+  TO authenticated
+  WITH CHECK (EXISTS (
+    SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
+  ));
+
+CREATE POLICY "Admins can update authors"
+  ON authors FOR UPDATE
+  TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
+  ));
+
+CREATE POLICY "Admins can delete authors"
+  ON authors FOR DELETE
+  TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
+  ));
+
+-- ============================================
+-- 10. BROADCASTS POLICIES
+-- ============================================
+
+ALTER TABLE broadcasts ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Broadcasts are viewable by everyone" ON broadcasts;
+DROP POLICY IF EXISTS "Admins can create broadcasts" ON broadcasts;
+DROP POLICY IF EXISTS "Admins can delete broadcasts" ON broadcasts;
+
+CREATE POLICY "Broadcasts are viewable by everyone"
+  ON broadcasts FOR SELECT
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "Admins can create broadcasts"
+  ON broadcasts FOR INSERT
+  TO authenticated
+  WITH CHECK (EXISTS (
+    SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
+  ));
+
+CREATE POLICY "Admins can delete broadcasts"
+  ON broadcasts FOR DELETE
+  TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
+  ));
+
+-- ============================================
+-- 11. STORAGE POLICIES
+-- ============================================
+
+DROP POLICY IF EXISTS "Author images are public" ON storage.objects;
+DROP POLICY IF EXISTS "Admins can upload author images" ON storage.objects;
+DROP POLICY IF EXISTS "Admins can update author images" ON storage.objects;
+DROP POLICY IF EXISTS "Admins can delete author images" ON storage.objects;
+
+CREATE POLICY "Author images are public"
+ON storage.objects FOR SELECT
+USING ( bucket_id = 'author-images' );
+
+CREATE POLICY "Admins can upload author images"
+ON storage.objects FOR INSERT
+WITH CHECK (
+  bucket_id = 'author-images' AND
+  EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
+);
+
+CREATE POLICY "Admins can update author images"
+ON storage.objects FOR UPDATE
+USING (
+  bucket_id = 'author-images' AND
+  EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
+);
+
+CREATE POLICY "Admins can delete author images"
+ON storage.objects FOR DELETE
+USING (
+  bucket_id = 'author-images' AND
+  EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
+);
 
 -- ============================================
 -- SECURITY POLICIES COMPLETED ✅

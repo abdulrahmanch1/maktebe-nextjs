@@ -1,0 +1,386 @@
+{
+    "name": "Telegram Author (Parallel Search) to Supabase",
+    "nodes": [
+        {
+            "parameters": {
+                "updates": [
+                    "message"
+                ],
+                "additionalFields": {}
+            },
+            "id": "telegram-trigger",
+            "name": "Telegram Trigger",
+            "type": "n8n-nodes-base.telegramTrigger",
+            "typeVersion": 1.1,
+            "position": [
+                220,
+                300
+            ],
+            "webhookId": "telegram-webhook",
+            "credentials": {
+                "telegramApi": {
+                    "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+                    "name": "Telegram account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "q": "={{ $json.message.text }}",
+                "searchType": "image",
+                "num": 1
+            },
+            "id": "google-image-search",
+            "name": "Google Image Search",
+            "type": "n8n-nodes-base.googleCustomSearch",
+            "typeVersion": 1,
+            "position": [
+                460,
+                180
+            ],
+            "credentials": {
+                "googleCustomSearchApi": {
+                    "id": "YOUR_GOOGLE_SEARCH_CREDENTIAL_ID",
+                    "name": "Google Custom Search account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "url": "={{ $json.link }}",
+                "responseFormat": "file",
+                "options": {}
+            },
+            "id": "download-image",
+            "name": "Download Image",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                660,
+                180
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "upload",
+                "bucketName": "author-images",
+                "fileName": "={{ $node[\"Telegram Trigger\"].json.message.text.replace(/\\s+/g, '_') }}_{{ $now.format('YYYYMMDDHHmmss') }}.jpg",
+                "options": {
+                    "public": true
+                }
+            },
+            "id": "supabase-upload",
+            "name": "Upload to Supabase",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [
+                860,
+                180
+            ],
+            "credentials": {
+                "supabaseApi": {
+                    "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+                    "name": "Supabase account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{ $node[\"Telegram Trigger\"].json.message.text }}",
+                "options": {
+                    "systemMessage": "أنت مؤرخ إسلامي خبير، وكاتب سير، ومتخصص في تحسين محركات البحث (SEO). مهمتك هي البحث وتجميع سيرة ذاتية شاملة ومنظمة للغاية للكاتب/العالم الذي يزودك المستخدم باسمه.\n\n**الهدف:**\nإنشاء سيرة ذاتية تكون **محسنة بنسبة 100% لمحركات بحث الذكاء الاصطناعي (SearchGPT, Perplexity)** و **Google**.\n\n**المتطلبات الأساسية:**\n1.  **اللغة:** العربية (فصحى عالية الجودة).\n2.  **الدقة:** استخدم الأدوات المتاحة (Google Search, Wikipedia) للتحقق من كل معلومة. استشهد بالكتب الرئيسية إن أمكن في النص.\n3.  **الهيكلية:** يجب أن يكون المخرج كائن JSON. حقل 'bio' يجب أن يكون منسقاً بصيغة **Markdown** مع عناوين واضحة.\n\n**استراتيجية SEO & RAG:**\n-   **الثراء الدلالي:** استخدم مصطلحات دقيقة (مثلاً: بدلاً من 'درس القانون'، قل 'برع في الفقه الشافعي'). هذا يساعد مخازن المتجهات (Vector Stores) على استرجاع السياق الصحيح.\n-   **ربط الكيانات:** اذكر أسماء الشيوخ، التلاميذ، والأماكن بوضوح. هذه تعتبر 'كيانات' لرسوم المعرفة (Knowledge Graphs).\n-   **الكلمات المفتاحية:** ادمج كلمات مفتاحية عالية القيمة بشكل طبيعي (مثلاً: 'سيرة [الاسم]'، 'كتب [الاسم]'، 'فتاوى [الاسم]').\n\n**مخطط مخرجات JSON:**\nيجب أن تعيد كائن JSON صالح يطابق هذا الهيكل تماماً:\n\n```json\n{\n  \"name\": \"الاسم الكامل (مع الألقاب مثل الإمام/الشيخ)\",\n  \"role\": \"واحد من: scholar, narrator, sheikh, author, other\",\n  \"bio\": \"(نص Markdown) ابدأ بفقرة ملخص قوية (من هو، متى، لماذا هو مشهور). ثم استخدم عناوين ## لـ: النشأة، التعليم والشيوخ، أبرز المؤلفات، الإرث. استخدم <b>bold</b> للمصطلحات المهمة.\",\n  \"social_life\": \"صف أخلاقه، مكانته الاجتماعية، وطرائف عنه.\",\n  \"achievements\": \"قائمة بأهم الكتب والمساهمات. استخدم نقاط في Markdown.\",\n  \"birth_date\": \"هجري / ميلادي (مثال: 1320 هـ / 1902 م)\",\n  \"death_date\": \"هجري / ميلادي\",\n  \"birth_place\": \"المدينة، الدولة (الأسماء الحديثة والتاريخية)\",\n  \"residence_place\": \"أهم المدن التي عاش فيها\",\n  \"keywords\": [\"مصفوفة\", \"من\", \"15\", \"كلمة\", \"مفتاحية\", \"SEO\", \"تتضمن كلمات طويلة الذيل\"]\n}\n```\n\n**هام جداً:**\n-   لا تختلق تواريخ. إذا كانت غير معروفة، قل 'غير معروف'.\n-   يجب أن تكون الـ 'bio' طويلة بما يكفي (~1000-1500 كلمة) لتغطية جميع الجوانب بعمق."
+                }
+            },
+            "id": "ai-agent",
+            "name": "AI Author Researcher",
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 1.6,
+            "position": [
+                660,
+                450
+            ]
+        },
+        {
+            "parameters": {
+                "model": "gpt-4o",
+                "options": {
+                    "temperature": 0.7
+                }
+            },
+            "id": "openai-model",
+            "name": "OpenAI Chat Model",
+            "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+            "typeVersion": 1,
+            "position": [
+                660,
+                650
+            ],
+            "credentials": {
+                "openAiApi": {
+                    "id": "YOUR_OPENAI_CREDENTIAL_ID",
+                    "name": "OpenAI account"
+                }
+            }
+        },
+        {
+            "parameters": {},
+            "id": "google-search-tool",
+            "name": "Google Custom Search Tool",
+            "type": "@n8n/n8n-nodes-langchain.toolGoogleCustomSearch",
+            "typeVersion": 1,
+            "position": [
+                800,
+                650
+            ],
+            "credentials": {
+                "googleCustomSearchApi": {
+                    "id": "YOUR_GOOGLE_SEARCH_CREDENTIAL_ID",
+                    "name": "Google Custom Search account"
+                }
+            }
+        },
+        {
+            "parameters": {},
+            "id": "wikipedia",
+            "name": "Wikipedia",
+            "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
+            "typeVersion": 1,
+            "position": [
+                940,
+                650
+            ]
+        },
+        {
+            "parameters": {
+                "jsonSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\": { \"type\": \"string\", \"description\": \"Full name of the author\" },\n    \"role\": { \"type\": \"string\", \"enum\": [\"scholar\", \"narrator\", \"sheikh\", \"author\", \"other\"], \"description\": \"Primary role\" },\n    \"bio\": { \"type\": \"string\", \"description\": \"Detailed biography (~1500 words)\" },\n    \"social_life\": { \"type\": \"string\", \"description\": \"Social standing and character\" },\n    \"achievements\": { \"type\": \"string\", \"description\": \"Major works and contributions\" },\n    \"birth_date\": { \"type\": \"string\", \"description\": \"Birth date (Hijri/Gregorian)\" },\n    \"death_date\": { \"type\": \"string\", \"description\": \"Death date (Hijri/Gregorian)\" },\n    \"birth_place\": { \"type\": \"string\", \"description\": \"Place of birth\" },\n    \"residence_place\": { \"type\": \"string\", \"description\": \"Place of residence/death\" },\n    \"keywords\": { \"type\": \"array\", \"items\": { \"type\": \"string\" }, \"description\": \"SEO keywords\" }\n  },\n  \"required\": [\"name\", \"role\", \"bio\", \"birth_date\", \"death_date\"]\n}"
+            },
+            "id": "output-parser",
+            "name": "Structured Output Parser",
+            "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+            "typeVersion": 1,
+            "position": [
+                520,
+                650
+            ]
+        },
+        {
+            "parameters": {
+                "mode": "combine",
+                "combinationMode": "mergeByPosition",
+                "options": {}
+            },
+            "id": "merge-data",
+            "name": "Merge Image & Info",
+            "type": "n8n-nodes-base.merge",
+            "typeVersion": 3,
+            "position": [
+                1100,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "table": {
+                    "__rl": true,
+                    "value": "authors",
+                    "mode": "list",
+                    "cachedResultName": "authors"
+                },
+                "columns": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "name": "={{ $json.name }}",
+                        "bio": "={{ $json.bio }}",
+                        "social_life": "={{ $json.social_life }}",
+                        "image_url": "={{ $json.publicUrl }}",
+                        "role": "={{ $json.role }}",
+                        "keywords": "={{ $json.keywords }}",
+                        "achievements": "={{ $json.achievements }}",
+                        "birth_date": "={{ $json.birth_date }}",
+                        "death_date": "={{ $json.death_date }}",
+                        "birth_place": "={{ $json.birth_place }}",
+                        "residence_place": "={{ $json.residence_place }}"
+                    },
+                    "matchingColumns": [],
+                    "schema": [
+                        {
+                            "id": "name",
+                            "displayName": "name",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "readOnly": false,
+                            "removed": false
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "supabase-insert",
+            "name": "Supabase Insert",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [
+                1300,
+                300
+            ],
+            "credentials": {
+                "supabaseApi": {
+                    "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+                    "name": "Supabase account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "chatId": "={{ $node[\"Telegram Trigger\"].json[\"message\"][\"chat\"][\"id\"] }}",
+                "text": "=✅ تم إضافة الكاتب بنجاح!\n\n**الاسم:** {{ $json.name }}\n**الدور:** {{ $json.role }}\n**تاريخ الولادة:** {{ $json.birth_date }}\n**تاريخ الوفاة:** {{ $json.death_date }}\n\n🖼 **الصورة:** تم جلب صورة من جوجل ورفعها.\n",
+                "additionalFields": {}
+            },
+            "id": "telegram-reply",
+            "name": "Telegram Reply",
+            "type": "n8n-nodes-base.telegram",
+            "typeVersion": 1.1,
+            "position": [
+                1520,
+                300
+            ],
+            "credentials": {
+                "telegramApi": {
+                    "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+                    "name": "Telegram account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Telegram Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Google Image Search",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "AI Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Google Image Search": {
+            "main": [
+                [
+                    {
+                        "node": "Download Image",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Download Image": {
+            "main": [
+                [
+                    {
+                        "node": "Upload to Supabase",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Upload to Supabase": {
+            "main": [
+                [
+                    {
+                        "node": "Merge Image & Info",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI Chat Model": {
+            "ai_language_model": [
+                [
+                    {
+                        "node": "AI Agent",
+                        "type": "ai_language_model",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Google Custom Search Tool": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "AI Agent",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Wikipedia": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "AI Agent",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Structured Output Parser": {
+            "ai_output_parser": [
+                [
+                    {
+                        "node": "AI Agent",
+                        "type": "ai_output_parser",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "AI Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Merge Image & Info",
+                        "type": "main",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "Merge Image & Info": {
+            "main": [
+                [
+                    {
+                        "node": "Supabase Insert",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Supabase Insert": {
+            "main": [
+                [
+                    {
+                        "node": "Telegram Reply",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

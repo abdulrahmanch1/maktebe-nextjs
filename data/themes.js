@@ -1,10 +1,10 @@
 export const themes = {
   theme1: {
     name: "وردي ناعم",
-    primary: "#8D6B94", // Muted Plum
-    secondary: "#F7C5CC", // Soft Pink
-    accent: "#F3D5A5", // Pale Gold
-    background: "#FFF8F6", // Very Light Rose
+    primary: "#D946A6", // Soft Fuchsia - فوشيا ناعم بناتي
+    secondary: "#FDB9D8", // Baby Pink - وردي بيبي ناعم
+    accent: "#FCD34D", // Soft Gold - ذهبي ناعم
+    background: "#FFF5FB", // Delicate Pink White - خلفية وردية رقيقة جداً
     isDark: false,
   },
   theme2: {
@@ -30,5 +30,21 @@ export const themes = {
     accent: "#D97D54", // Terracotta
     background: "#0D131A", // Almost Black
     isDark: true,
+  },
+  theme5: {
+    name: "قهوة وكتاب",
+    primary: "#4A3B2C",
+    secondary: "#E3D5CA",
+    accent: "#C19A6B",
+    background: "#FAF3E0",
+    isDark: false,
+  },
+  theme6: {
+    name: "أزرق ملكي",
+    primary: "#1E3A8A", // Royal Blue - أزرق ملكي غامق
+    secondary: "#DBEAFE", // Light Sky Blue - أزرق سماوي فاتح
+    accent: "#F59E0B", // Royal Gold - ذهبي ملكي
+    background: "#F0F9FF", // Ice Blue - أزرق ثلجي فاتح
+    isDark: false,
   },
 };

@@ -1,104 +1,49 @@
 {
-    "name": "Book Details Agent (AI Agent Node)",
+    "name": "Advanced Book Details Agent (With Search)",
     "nodes": [
         {
             "parameters": {
                 "httpMethod": "POST",
-                "path": "book-info",
+                "path": "book-details",
                 "options": {}
             },
+            "id": "webhook-node",
             "name": "Webhook",
             "type": "n8n-nodes-base.webhook",
             "typeVersion": 1,
             "position": [
-                240,
+                220,
                 300
             ],
-            "webhookId": "book-info-webhook"
+            "webhookId": "book-details"
         },
         {
             "parameters": {
-                "url": "https://www.googleapis.com/customsearch/v1",
-                "options": {},
-                "queryParametersUi": {
-                    "parameter": [
-                        {
-                            "name": "q",
-                            "value": "={{$node[\"Webhook\"].json[\"body\"][\"title\"]}} {{$node[\"Webhook\"].json[\"body\"][\"author\"]}} book details reviews summary"
-                        },
-                        {
-                            "name": "key",
-                            "value": "YOUR_GOOGLE_API_KEY"
-                        },
-                        {
-                            "name": "cx",
-                            "value": "YOUR_CUSTOM_SEARCH_ENGINE_ID"
-                        }
-                    ]
-                }
-            },
-            "name": "Google Search",
-            "type": "n8n-nodes-base.httpRequest",
-            "typeVersion": 3,
-            "position": [
-                460,
-                300
-            ]
-        },
-        {
-            "parameters": {
-                "url": "={{$node[\"Google Search\"].json[\"items\"][0][\"link\"]}}",
-                "options": {
-                    "redirect": {
-                        "redirect": {}
-                    }
-                }
-            },
-            "name": "Scrape First Result",
-            "type": "n8n-nodes-base.httpRequest",
-            "typeVersion": 3,
-            "position": [
-                680,
-                300
-            ],
-            "notesInFlow": true,
-            "notes": "Fetches the HTML of the top search result."
-        },
-        {
-            "parameters": {
-                "dataPropertyName": "data",
-                "extractionValues": {
-                    "values": [
-                        {
-                            "key": "pageContent",
-                            "cssSelector": "body",
-                            "returnValue": "text"
-                        }
-                    ]
-                },
                 "options": {}
             },
-            "name": "Extract Text",
-            "type": "n8n-nodes-base.htmlExtract",
+            "id": "respond-node",
+            "name": "Respond to App",
+            "type": "n8n-nodes-base.respondToWebhook",
             "typeVersion": 1,
             "position": [
-                900,
+                1400,
                 300
             ]
         },
         {
             "parameters": {
                 "promptType": "define",
-                "text": "={{$node[\"Extract Text\"].json[\"pageContent\"].substring(0, 20000)}}",
+                "text": "={{ $json.body.title }} {{ $json.body.author }}",
                 "options": {
-                    "systemMessage": "=أنت خبير كتب ومحرر محتوى. مهمتك هي تحليل النص المستخرج من صفحة الويب وتوليد تفاصيل الكتاب بتنسيق JSON دقيق.\n\nاسم الكتاب المطلوب: {{$node[\"Webhook\"].json[\"body\"][\"title\"]}}\n\nالحقول المطلوبة:\n- title\n- author\n- category\n- description (باللغة العربية، مسلي، ومحسن للـ SEO)\n- pages (رقم)\n- publishYear (رقم)\n- language\n\nيجب أن تكون المخرجات كائن JSON صالح فقط."
+                    "systemMessage": "You are an expert librarian and book curator. Your task is to find accurate and detailed information about the book specified by the user.\n\nCRITICAL: You MUST use the 'Google Custom Search' tool to verify facts, especially for less famous books. Do not rely solely on your memory.\n\nFind the following information:\n- Title (Arabic if possible, or translated)\n- Author\n- Category/Genre\n- Description (A compelling summary in Arabic, optimized for SEO, ~400 words)\n- Page Count (approximate is fine)\n- Publish Year\n- Language\n- Keywords (10-15 SEO tags)\n\nReturn the result as a valid JSON object matching the requested structure."
                 }
             },
+            "id": "ai-agent-node",
             "name": "AI Agent",
             "type": "@n8n/n8n-nodes-langchain.agent",
-            "typeVersion": 1,
+            "typeVersion": 1.6,
             "position": [
-                1120,
+                820,
                 300
             ]
         },
@@ -107,34 +52,49 @@
                 "model": "gpt-4o",
                 "options": {}
             },
+            "id": "openai-model-node",
             "name": "OpenAI Chat Model",
             "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
             "typeVersion": 1,
             "position": [
-                1120,
+                820,
                 520
-            ]
+            ],
+            "credentials": {
+                "openAiApi": {
+                    "id": "YOUR_OPENAI_CREDENTIAL_ID",
+                    "name": "OpenAI account"
+                }
+            }
         },
         {
             "parameters": {},
-            "name": "Window Buffer Memory",
-            "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+            "id": "google-search-tool",
+            "name": "Google Custom Search",
+            "type": "@n8n/n8n-nodes-langchain.toolGoogleCustomSearch",
             "typeVersion": 1,
             "position": [
-                1240,
+                960,
                 520
-            ]
+            ],
+            "credentials": {
+                "googleCustomSearchApi": {
+                    "id": "YOUR_GOOGLE_SEARCH_CREDENTIAL_ID",
+                    "name": "Google Custom Search account"
+                }
+            }
         },
         {
             "parameters": {
-                "options": {}
+                "jsonSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"title\": { \"type\": \"string\", \"description\": \"Book title in Arabic\" },\n    \"author\": { \"type\": \"string\", \"description\": \"Author name\" },\n    \"category\": { \"type\": \"string\", \"description\": \"Book genre or category\" },\n    \"description\": { \"type\": \"string\", \"description\": \"Engaging summary in Arabic\" },\n    \"pages\": { \"type\": \"number\", \"description\": \"Number of pages\" },\n    \"publishYear\": { \"type\": \"number\", \"description\": \"Year of publication\" },\n    \"language\": { \"type\": \"string\", \"description\": \"Language of the book\" },\n    \"keywords\": { \"type\": \"array\", \"items\": { \"type\": \"string\" }, \"description\": \"SEO keywords\" }\n  },\n  \"required\": [\"title\", \"author\", \"description\"]\n}"
             },
-            "name": "Respond to App",
-            "type": "n8n-nodes-base.respondToWebhook",
+            "id": "output-parser-node",
+            "name": "Structured Output Parser",
+            "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
             "typeVersion": 1,
             "position": [
-                1460,
-                300
+                680,
+                520
             ]
         }
     ],
@@ -143,51 +103,7 @@
             "main": [
                 [
                     {
-                        "node": "Google Search",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
-            ]
-        },
-        "Google Search": {
-            "main": [
-                [
-                    {
-                        "node": "Scrape First Result",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
-            ]
-        },
-        "Scrape First Result": {
-            "main": [
-                [
-                    {
-                        "node": "Extract Text",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
-            ]
-        },
-        "Extract Text": {
-            "main": [
-                [
-                    {
                         "node": "AI Agent",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
-            ]
-        },
-        "AI Agent": {
-            "main": [
-                [
-                    {
-                        "node": "Respond to App",
                         "type": "main",
                         "index": 0
                     }
@@ -205,12 +121,34 @@
                 ]
             ]
         },
-        "Window Buffer Memory": {
-            "ai_memory": [
+        "Google Custom Search": {
+            "ai_tool": [
                 [
                     {
                         "node": "AI Agent",
-                        "type": "ai_memory",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Structured Output Parser": {
+            "ai_output_parser": [
+                [
+                    {
+                        "node": "AI Agent",
+                        "type": "ai_output_parser",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "AI Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to App",
+                        "type": "main",
                         "index": 0
                     }
                 ]

@@ -6,6 +6,7 @@ import { FavoritesContext } from "@/contexts/FavoritesContext";
 import { AuthContext } from "@/contexts/AuthContext";
 import { toast } from 'react-toastify';
 import Image from 'next/image';
+import { getStorageUrl } from "@/utils/imageUtils";
 import './BookCard.css';
 
 
@@ -14,7 +15,7 @@ const BookCard = ({ book, isPriority = false }) => {
   const { isFavorite, toggleFavorite } = useContext(FavoritesContext);
   const { isLoggedIn } = useContext(AuthContext);
   const isLiked = book?.id ? isFavorite(book.id) : false;
-  const [coverSrc, setCoverSrc] = useState(book.cover || '/imgs/no_cover_available.png');
+  const [coverSrc, setCoverSrc] = useState(getStorageUrl(book.cover, 'book-covers') || '/imgs/no_cover_available.png');
   const [favoriteCount, setFavoriteCount] = useState(book.favoritecount || 0);
 
 

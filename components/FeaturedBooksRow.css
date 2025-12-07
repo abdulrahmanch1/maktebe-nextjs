@@ -1,0 +1,99 @@
+.featured-books-row {
+  margin: 1.5rem 0;
+  padding: 0.5rem 0;
+  background: transparent;
+  width: 100%;
+  overflow: hidden;
+}
+
+.featured-header {
+  padding: 0 1rem;
+  margin-bottom: 1.5rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.featured-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  width: 100%;
+  white-space: nowrap;
+}
+
+/* The line effect */
+.featured-title::before,
+.featured-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: var(--primary-color);
+  opacity: 0.2;
+}
+
+.featured-icon {
+  font-size: 1.2em;
+}
+
+.featured-icon.fire {
+  color: #ff5722;
+}
+
+.featured-icon.star {
+  color: #ffc107;
+}
+
+.featured-scroll-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  padding: 0.5rem 1rem 1.5rem 1rem;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) transparent;
+}
+
+.featured-scroll-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.featured-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.featured-scroll-container::-webkit-scrollbar-thumb {
+  background-color: var(--primary-color);
+  border-radius: 10px;
+  opacity: 0.5;
+}
+
+.featured-card-wrapper {
+  flex: 0 0 auto;
+  width: 200px;
+}
+
+.featured-card-wrapper .book-card {
+  height: 100%;
+}
+
+@media (max-width: 768px) {
+  .featured-books-row {
+    margin: 1rem -1rem;
+    padding: 0.5rem 0;
+    width: calc(100% + 2rem);
+  }
+
+  .featured-title {
+    font-size: 1.2rem;
+  }
+
+  .featured-card-wrapper {
+    width: 160px;
+  }
+}

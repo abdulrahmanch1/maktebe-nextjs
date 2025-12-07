@@ -129,6 +129,13 @@ const DashboardPage = () => {
             color: "success"
         },
         {
+            title: "إدارة المؤلفين",
+            description: "إضافة وتعديل المؤلفين",
+            icon: "✍️",
+            href: "/admin/authors",
+            color: "info"
+        },
+        {
             title: "الكتب المقترحة",
             description: "إدارة اقتراحات الكتب",
             icon: "💡",

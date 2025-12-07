@@ -5,6 +5,7 @@ import BookCard from "@/components/BookCard";
 import Link from "next/link";
 import './ReadingListPage.css';
 import '@/components/SkeletonLoader.css';
+import '@/app/styles/AuthRequired.css';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { API_URL } from '@/constants';
@@ -110,13 +111,53 @@ const ReadingListClient = () => {
   if (!isLoggedIn) {
     return (
       <div className="reading-list-container">
-        <div className="reading-list-login-prompt">
-          <span className="reading-list-empty-state-icon" role="img" aria-label="Lock">🔒</span>
-          <h2>الوصول مقيد</h2>
-          <p>يجب تسجيل الدخول لإدارة قائمة القراءة الخاصة بك.</p>
-          <div className="reading-list-action-buttons">
-            <Link href="/login" className="reading-list-action-button">تسجيل الدخول</Link>
-            <Link href="/register" className="reading-list-action-button">إنشاء حساب</Link>
+        <div className="auth-required-card">
+          <div className="auth-required-content">
+            <div className="auth-icon-wrapper">
+              <div className="auth-icon-circle">
+                <svg className="auth-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+              </div>
+              <div className="auth-icon-glow"></div>
+            </div>
+
+            <h2 className="auth-title">قائمة القراءة الخاصة بك</h2>
+            <p className="auth-description">
+              سجّل الدخول لتتمكن من حفظ الكتب التي تريد قراءتها وتتبع تقدمك في القراءة
+            </p>
+
+            <div className="auth-features">
+              <div className="auth-feature">
+                <span className="feature-icon">📚</span>
+                <span className="feature-text">احفظ كتبك المفضلة</span>
+              </div>
+              <div className="auth-feature">
+                <span className="feature-icon">📊</span>
+                <span className="feature-text">تتبع تقدمك في القراءة</span>
+              </div>
+              <div className="auth-feature">
+                <span className="feature-icon">🔖</span>
+                <span className="feature-text">أنشئ قوائم مخصصة</span>
+              </div>
+            </div>
+
+            <div className="auth-buttons">
+              <Link href="/login" className="auth-btn auth-btn-primary">
+                <span>تسجيل الدخول</span>
+                <svg className="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </Link>
+              <Link href="/register" className="auth-btn auth-btn-secondary">
+                <span>إنشاء حساب جديد</span>
+              </Link>
+            </div>
+
+            <Link href="/books" className="auth-browse-link">
+              أو تصفح الكتب بدون تسجيل →
+            </Link>
           </div>
         </div>
       </div>

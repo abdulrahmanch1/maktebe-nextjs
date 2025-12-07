@@ -260,5 +260,75 @@ CREATE TRIGGER update_message_threads_updated_at
   EXECUTE FUNCTION update_message_thread_timestamp();
 
 -- ============================================
+-- 12. AUTHORS TABLE
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS authors (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL UNIQUE,
+  bio TEXT,
+  social_life TEXT,
+  image_url TEXT,
+  role TEXT CHECK (role IN ('scholar', 'narrator', 'sheikh', 'author', 'other')),
+  keywords TEXT[],
+  achievements TEXT,
+  birth_date TEXT,
+  death_date TEXT,
+  birth_place TEXT,
+  residence_place TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Ensure columns exist if table was created previously
+DO $$
+BEGIN
+    ALTER TABLE authors ADD COLUMN IF NOT EXISTS bio TEXT;
+    ALTER TABLE authors ADD COLUMN IF NOT EXISTS social_life TEXT;
+    ALTER TABLE authors ADD COLUMN IF NOT EXISTS image_url TEXT;
+    ALTER TABLE authors ADD COLUMN IF NOT EXISTS role TEXT CHECK (role IN ('scholar', 'narrator', 'sheikh', 'author', 'other'));
+    ALTER TABLE authors ADD COLUMN IF NOT EXISTS keywords TEXT[];
+    ALTER TABLE authors ADD COLUMN IF NOT EXISTS achievements TEXT;
+    ALTER TABLE authors ADD COLUMN IF NOT EXISTS birth_date TEXT;
+    ALTER TABLE authors ADD COLUMN IF NOT EXISTS death_date TEXT;
+    ALTER TABLE authors ADD COLUMN IF NOT EXISTS birth_place TEXT;
+    ALTER TABLE authors ADD COLUMN IF NOT EXISTS residence_place TEXT;
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_authors_name ON authors(name);
+CREATE INDEX IF NOT EXISTS idx_authors_role ON authors(role);
+
+-- Trigger for authors updated_at
+DROP TRIGGER IF EXISTS update_authors_updated_at ON authors;
+CREATE TRIGGER update_authors_updated_at
+  BEFORE UPDATE ON authors FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================
+-- 13. BROADCASTS TABLE
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS broadcasts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  admin_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_broadcasts_created_at ON broadcasts(created_at DESC);
+
+-- ============================================
+-- 14. STORAGE BUCKETS
+-- ============================================
+
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('author-images', 'author-images', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================
 -- SCHEMA SETUP COMPLETED ✅
 -- ============================================
+

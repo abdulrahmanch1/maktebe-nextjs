@@ -3,18 +3,18 @@
    ============================================ */
 
 :root {
-  --admin-primary: #2563eb;
-  --admin-primary-dark: #1e40af;
+  --admin-primary: var(--primary-color);
+  --admin-primary-dark: var(--accent-color);
   --admin-success: #10b981;
   --admin-danger: #ef4444;
   --admin-warning: #f59e0b;
   --admin-info: #06b6d4;
-  --admin-gray-50: #f9fafb;
-  --admin-gray-100: #f3f4f6;
-  --admin-gray-200: #e5e7eb;
-  --admin-gray-300: #d1d5db;
-  --admin-gray-700: #374151;
-  --admin-gray-900: #111827;
+  --admin-gray-50: var(--background-color);
+  --admin-gray-100: var(--secondary-color);
+  --admin-gray-200: rgba(0, 0, 0, 0.1);
+  --admin-gray-300: rgba(0, 0, 0, 0.2);
+  --admin-gray-700: var(--text-secondary, #374151);
+  --admin-gray-900: var(--primary-color);
   --admin-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --admin-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --admin-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
@@ -27,15 +27,16 @@
 
 .admin-page-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--admin-gray-50) 0%, #ffffff 100%);
+  background: var(--background-color);
   padding: clamp(1rem, 3vw, 2.5rem);
+  color: var(--primary-color);
 }
 
 .admin-page-title {
   text-align: center;
   font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 800;
-  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-info) 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -53,7 +54,7 @@
   transform: translateX(-50%);
   width: 80px;
   height: 4px;
-  background: linear-gradient(90deg, var(--admin-primary), var(--admin-info));
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
   border-radius: 2px;
 }
 
@@ -64,11 +65,11 @@
 .admin-form-container {
   max-width: 800px;
   margin: 0 auto clamp(2rem, 4vw, 3rem);
-  background: white;
+  background: var(--secondary-color);
   border-radius: 20px;
   padding: clamp(1.5rem, 4vw, 3rem);
   box-shadow: var(--admin-shadow-xl);
-  border: 1px solid var(--admin-gray-200);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
   overflow: hidden;
 }
@@ -80,13 +81,13 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--admin-primary), var(--admin-info), var(--admin-success));
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
 }
 
 .admin-form-title {
   font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 700;
-  color: var(--admin-gray-900);
+  color: var(--primary-color);
   margin-bottom: 2rem;
   text-align: center;
 }
@@ -103,13 +104,13 @@
   display: block;
   font-weight: 600;
   font-size: 0.95rem;
-  color: var(--admin-gray-700);
+  color: var(--primary-color);
   margin-bottom: 0.5rem;
   transition: color 0.3s ease;
 }
 
 .admin-form-group:focus-within label {
-  color: var(--admin-primary);
+  color: var(--accent-color);
 }
 
 .admin-form-group input,
@@ -118,10 +119,10 @@
   width: 100%;
   padding: 0.875rem 1rem;
   font-size: 1rem;
-  border: 2px solid var(--admin-gray-200);
+  border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  background: var(--admin-gray-50);
-  color: var(--admin-gray-900);
+  background: var(--background-color);
+  color: var(--primary-color);
   transition: all 0.3s ease;
   box-sizing: border-box;
 }
@@ -129,17 +130,17 @@
 .admin-form-group input:hover,
 .admin-form-group textarea:hover,
 .admin-form-group select:hover {
-  border-color: var(--admin-gray-300);
-  background: white;
+  border-color: var(--accent-color);
+  background: var(--background-color);
 }
 
 .admin-form-group input:focus,
 .admin-form-group textarea:focus,
 .admin-form-group select:focus {
   outline: none;
-  border-color: var(--admin-primary);
-  background: white;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  border-color: var(--accent-color);
+  background: var(--background-color);
+  box-shadow: 0 0 0 4px rgba(var(--accent-rgb, 0, 0, 0), 0.1);
 }
 
 .admin-form-group textarea {
@@ -150,13 +151,14 @@
 }
 
 .admin-form-input {
-  background-color: var(--admin-gray-50);
-  color: var(--admin-gray-900);
-  border-color: var(--admin-gray-200);
+  background-color: var(--background-color);
+  color: var(--primary-color);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .admin-form-input::placeholder {
-  color: var(--admin-gray-300);
+  color: var(--text-secondary);
+  opacity: 0.7;
 }
 
 /* ============================================
@@ -174,6 +176,8 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  background: var(--primary-color);
+  color: var(--background-color);
 }
 
 .admin-form-button::before {
@@ -197,6 +201,7 @@
 .admin-form-button:hover {
   transform: translateY(-2px);
   box-shadow: var(--admin-shadow-lg);
+  background: var(--accent-color);
 }
 
 .admin-form-button:active {
@@ -205,12 +210,13 @@
 
 .admin-form-button.cancel {
   margin-top: 1rem;
-  background: var(--admin-gray-200);
-  color: var(--admin-gray-700);
+  background: transparent;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
 }
 
 .admin-form-button.cancel:hover {
-  background: var(--admin-gray-300);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* ============================================
@@ -225,18 +231,18 @@
 .admin-books-list-title {
   font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 700;
-  color: var(--admin-gray-900);
+  color: var(--primary-color);
   margin-bottom: 2rem;
   text-align: center;
 }
 
 .admin-book-item {
-  background: white;
+  background: var(--secondary-color);
   border-radius: 16px;
   padding: clamp(1.25rem, 3vw, 1.75rem);
   margin-bottom: 1.25rem;
   box-shadow: var(--admin-shadow);
-  border: 1px solid var(--admin-gray-200);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
@@ -252,7 +258,7 @@
   top: 0;
   bottom: 0;
   width: 4px;
-  background: linear-gradient(180deg, var(--admin-primary), var(--admin-info));
+  background: linear-gradient(180deg, var(--primary-color), var(--accent-color));
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -260,7 +266,7 @@
 .admin-book-item:hover {
   transform: translateY(-4px);
   box-shadow: var(--admin-shadow-xl);
-  border-color: var(--admin-primary);
+  border-color: var(--accent-color);
 }
 
 .admin-book-item:hover::before {
@@ -271,11 +277,11 @@
   margin: 0;
   font-size: 1rem;
   line-height: 1.7;
-  color: var(--admin-gray-700);
+  color: var(--text-secondary);
 }
 
 .admin-book-item strong {
-  color: var(--admin-gray-900);
+  color: var(--primary-color);
   font-weight: 600;
 }
 
@@ -309,6 +315,9 @@
   overflow: hidden;
   flex: 1;
   min-width: 140px;
+  background: var(--background-color);
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
 }
 
 .admin-book-item button::before,
@@ -336,6 +345,8 @@
 .admin-nav-link:hover {
   transform: translateY(-2px);
   box-shadow: var(--admin-shadow-lg);
+  background: var(--primary-color);
+  color: var(--background-color);
 }
 
 .admin-book-item button:active,
@@ -344,20 +355,26 @@
 }
 
 .admin-book-item button.delete {
-  background: linear-gradient(135deg, var(--admin-danger) 0%, #dc2626 100%);
-  color: white;
+  background: transparent;
+  color: var(--admin-danger);
+  border-color: var(--admin-danger);
 }
 
 .admin-book-item button.delete:hover {
+  background: var(--admin-danger);
+  color: white;
   box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
 }
 
 .reply-button {
-  background: linear-gradient(135deg, var(--admin-info) 0%, #0891b2 100%);
-  color: white !important;
+  background: transparent;
+  color: var(--admin-info) !important;
+  border-color: var(--admin-info);
 }
 
 .reply-button:hover {
+  background: var(--admin-info);
+  color: white !important;
   box-shadow: 0 8px 16px rgba(6, 182, 212, 0.3);
 }
 
@@ -510,7 +527,7 @@
 .admin-empty {
   text-align: center;
   padding: 4rem 2rem;
-  color: var(--admin-gray-700);
+  color: var(--text-secondary);
 }
 
 .admin-loading::before,
@@ -520,8 +537,8 @@
   width: 60px;
   height: 60px;
   margin: 0 auto 1.5rem;
-  border: 4px solid var(--admin-gray-200);
-  border-top-color: var(--admin-primary);
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

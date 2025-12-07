@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BookCard from "@/components/BookCard";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { getStorageUrl } from "@/utils/imageUtils";
 
 
 
@@ -36,6 +37,18 @@ const getProfilePictureSrc = (profilePicture) => {
     return profilePicture;
   }
   return '/imgs/user.jpg';
+};
+
+// Helper function to format numbers (e.g., 1000 -> 1أ)
+const formatNumber = (num) => {
+  if (!num) return '0';
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'م';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'أ';
+  }
+  return num.toString();
 };
 
 // Custom Confirmation Toast Component
@@ -258,7 +271,7 @@ const BookDetailsClient = ({ initialBook }) => {
   const { isLoggedIn, user, session, setUser } = useContext(AuthContext);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [book, setBook] = useState(initialBook);
-  const [coverSrc, setCoverSrc] = useState(initialBook.cover || '/imgs/no_cover_available.png');
+  const [coverSrc, setCoverSrc] = useState(getStorageUrl(initialBook.cover, 'book-covers') || '/imgs/no_cover_available.png');
   const [isInReadingList, setIsInReadingList] = useState(false);
   const [isRead, setIsRead] = useState(false);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
@@ -328,7 +341,7 @@ const BookDetailsClient = ({ initialBook }) => {
   }, [initialBook.comments, user]);
 
   useEffect(() => {
-    setCoverSrc(book?.cover || '/imgs/no_cover_available.png');
+    setCoverSrc(getStorageUrl(book?.cover, 'book-covers') || '/imgs/no_cover_available.png');
   }, [book?.cover]);
 
   useEffect(() => {
@@ -694,8 +707,8 @@ const BookDetailsClient = ({ initialBook }) => {
             <Image
               src={coverSrc}
               alt={`غلاف كتاب ${book.title}`}
-              width={300}
-              height={450}
+              width={400}
+              height={600}
               className="book-cover-image"
               priority
               placeholder="blur"
@@ -718,11 +731,11 @@ const BookDetailsClient = ({ initialBook }) => {
               <span className="meta-stat-label">سنة التأليف</span>
             </div>
             <div className="meta-stat">
-              <span className="meta-stat-value">{book.readcount || 0}</span>
+              <span className="meta-stat-value">{formatNumber(book.readcount)}</span>
               <span className="meta-stat-label">قرأوه</span>
             </div>
             <div className="meta-stat">
-              <span className="meta-stat-value">{book.favoritecount || 0}</span>
+              <span className="meta-stat-value">{formatNumber(book.favoritecount)}</span>
               <span className="meta-stat-label">المفضلة</span>
             </div>
           </div>

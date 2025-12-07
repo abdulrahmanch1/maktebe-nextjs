@@ -6,6 +6,7 @@ import { AuthContext } from "@/contexts/AuthContext";
 import Link from "next/link";
 import './FavoritesPage.css';
 import '@/components/SkeletonLoader.css';
+import '@/app/styles/AuthRequired.css';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { API_URL } from '@/constants';
@@ -68,13 +69,52 @@ const FavoritesClient = () => {
   if (!isLoggedIn) {
     return (
       <div className="favorites-container">
-        <div className="favorites-login-prompt">
-          <span className="favorites-empty-state-icon" role="img" aria-label="Lock">🔒</span>
-          <h2>الوصول مقيد</h2>
-          <p>يجب تسجيل الدخول لعرض كتبك المفضلة.</p>
-          <div className="favorites-action-buttons">
-            <Link href="/login" className="favorites-action-button">تسجيل الدخول</Link>
-            <Link href="/register" className="favorites-action-button">إنشاء حساب</Link>
+        <div className="auth-required-card">
+          <div className="auth-required-content">
+            <div className="auth-icon-wrapper">
+              <div className="auth-icon-circle">
+                <svg className="auth-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+              </div>
+              <div className="auth-icon-glow"></div>
+            </div>
+
+            <h2 className="auth-title">كتبك المفضلة</h2>
+            <p className="auth-description">
+              سجّل الدخول لتتمكن من حفظ كتبك المفضلة والوصول إليها في أي وقت
+            </p>
+
+            <div className="auth-features">
+              <div className="auth-feature">
+                <span className="feature-icon">❤️</span>
+                <span className="feature-text">احفظ كتبك المفضلة</span>
+              </div>
+              <div className="auth-feature">
+                <span className="feature-icon">🔄</span>
+                <span className="feature-text">مزامنة عبر الأجهزة</span>
+              </div>
+              <div className="auth-feature">
+                <span className="feature-icon">⚡</span>
+                <span className="feature-text">وصول سريع</span>
+              </div>
+            </div>
+
+            <div className="auth-buttons">
+              <Link href="/login" className="auth-btn auth-btn-primary">
+                <span>تسجيل الدخول</span>
+                <svg className="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </Link>
+              <Link href="/register" className="auth-btn auth-btn-secondary">
+                <span>إنشاء حساب جديد</span>
+              </Link>
+            </div>
+
+            <Link href="/books" className="auth-browse-link">
+              أو تصفح الكتب بدون تسجيل →
+            </Link>
           </div>
         </div>
       </div>
