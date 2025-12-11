@@ -1,6 +1,6 @@
 import { Providers } from '@/contexts/Providers';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import { OfflineProvider } from '@/contexts/OfflineContext';
+
 import ThemeBodyStyle from '@/components/ThemeBodyStyle';
 import DynamicComponents from '@/components/DynamicComponents';
 import './globals.css';
@@ -154,10 +154,12 @@ export default async function RootLayout({ children }) {
       </head>
       <body>
         <Providers>
-          <ThemeBodyStyle>
-            <ConditionalLayout>{children}</ConditionalLayout>
-          </ThemeBodyStyle>
-          <DynamicComponents />
+          <OfflineProvider>
+            <ThemeBodyStyle>
+              <ConditionalLayout>{children}</ConditionalLayout>
+            </ThemeBodyStyle>
+            <DynamicComponents />
+          </OfflineProvider>
         </Providers>
       </body>
     </html>

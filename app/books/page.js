@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server';
-import HomePageClient from './HomePageClient';
-import './HomePage.css';
+import HomePageClient from '../HomePageClient';
+import '../HomePage.css';
 import { BOOKS_PAGE_SIZE } from '@/constants';
 
 export const metadata = {

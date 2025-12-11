@@ -12,6 +12,7 @@ import { FaTrash, FaShare, FaExclamationTriangle, FaWhatsapp, FaFacebook, FaTwit
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BookCard from "@/components/BookCard";
+import DownloadButton from "@/components/DownloadButton";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { getStorageUrl } from "@/utils/imageUtils";
 
@@ -764,7 +765,8 @@ const BookDetailsClient = ({ initialBook }) => {
                 <>
                   {!isInReadingList && (<button onClick={handleAddToReadingList} className="book-action-button primary" disabled={isProcessingAction}>ابدأ القراءة</button>)}
                   {isInReadingList && (<button onClick={handleReadBook} className="book-action-button primary" disabled={isProcessingAction}>متابعة القراءة</button>)}
-                  <a href={`/api/download?fileUrl=${encodeURIComponent(book.pdfFile)}`} className="book-action-button primary">تنزيل الكتاب</a>
+                  <DownloadButton book={book} pdfUrl={book.pdfFile} coverUrl={book.cover} />
+                  <a href={`/api/download?fileUrl=${encodeURIComponent(book.pdfFile)}`} className="book-action-button primary">تنزيل الملف (PDF)</a>
                   {isInReadingList && !isRead && (<button onClick={handleMarkAsReadInList} className="book-action-button primary" disabled={isProcessingAction}>وضع علامة &quot;مقروء&quot;</button>)}
                   {isInReadingList && (<button onClick={handleRemoveFromReadingList} className="book-action-button secondary" disabled={isProcessingAction}>إزالة من قائمة القراءة</button>)}
                   <button onClick={handleToggleFavorite} className="book-action-button secondary" disabled={isProcessingAction}>{isLiked ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}</button>
