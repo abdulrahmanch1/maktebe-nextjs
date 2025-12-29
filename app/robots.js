@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next'
 
-export default function robots(): MetadataRoute.Robots {
+export default function robots() {
     const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.dar-alqurra.com';
 
     return {
