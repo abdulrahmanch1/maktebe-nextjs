@@ -411,6 +411,62 @@ const BookDetailsClient = ({ initialBook }) => {
     }
   };
 
+
+
+  const handleSaveNote = async (noteText) => {
+    if (!user) return;
+    try {
+      const supabase = createClient();
+      if (!userNote) {
+        // Create new note
+        const { error } = await supabase
+          .from('user_book_notes')
+          .insert({
+            user_id: user.id,
+            book_id: book.id,
+            note: noteText,
+            color: '#fbf8cc' // Default color
+          });
+        if (error) throw error;
+        toast.success("تم حفظ الملاحظة بنجاح!");
+      } else {
+        // Update existing note
+        const { error } = await supabase
+          .from('user_book_notes')
+          .update({ note: noteText })
+          .eq('user_id', user.id)
+          .eq('book_id', book.id);
+        if (error) throw error;
+        toast.success("تم تحديث الملاحظة بنجاح!");
+      }
+      setUserNote(noteText);
+      setIsNoteModalOpen(false);
+    } catch (error) {
+      console.error("Error saving note:", error);
+      toast.error("حدث خطأ أثناء حفظ الملاحظة.");
+    }
+  };
+
+  const handleDeleteNote = async () => {
+    if (!user) return;
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('user_book_notes')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('book_id', book.id);
+
+      if (error) throw error;
+      setUserNote(null);
+      setIsNoteModalOpen(false);
+      toast.success("تم حذف الملاحظة بنجاح.");
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      toast.error("حدث خطأ أثناء حذف الملاحظة.");
+    }
+  };
+
   const handlePostComment = async () => {
     if (!isLoggedIn || !user || !session) {
       toast.error("يجب تسجيل الدخول لنشر تعليق.");
@@ -570,6 +626,8 @@ const BookDetailsClient = ({ initialBook }) => {
               height={600}
               className="book-cover-image"
               priority
+              placeholder="blur"
+              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
               onError={() => setCoverSrc('/imgs/no_cover_available.png')}
               unoptimized
             />
@@ -581,8 +639,7 @@ const BookDetailsClient = ({ initialBook }) => {
                 <FaExclamationTriangle />
               </button>
             </div>
-          </div>
-          <div className="cover-meta-info">
+
             {/* Note Interaction Overlay */}
             {user && (
               <div
@@ -600,29 +657,10 @@ const BookDetailsClient = ({ initialBook }) => {
                 {!userNote ? (
                   <button
                     onClick={() => setIsNoteModalOpen(true)}
-                    className="add-note-floating-btn"
+                    className="icon-button add-note-btn"
                     title="إضافة ملاحظة"
-                    style={{
-                      position: 'absolute',
-                      top: '10px', // Adjusted to not overlap with share buttons (which are usually left/right)
-                      right: '50%',
-                      transform: 'translateX(50%)',
-                      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                      color: 'var(--primary-color)',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: '40px',
-                      height: '40px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                      pointerEvents: 'auto',
-                      zIndex: 20
-                    }}
                   >
-                    <FaPlus size={18} />
+                    <FaPlus size={14} />
                   </button>
                 ) : (
                   <div
@@ -665,6 +703,10 @@ const BookDetailsClient = ({ initialBook }) => {
                 )}
               </div>
             )}
+          </div>
+          <div className="cover-meta-info">
+            {/* Note Interaction Overlay */}
+
 
             <div className="meta-stat">
               <span className="meta-stat-value">{book.publishYear || 'N/A'}</span>
@@ -735,7 +777,7 @@ const BookDetailsClient = ({ initialBook }) => {
           <h2 className="comments-title">التعليقات والمراجعات</h2>
           {isLoggedIn ? (
             <div className="comment-input-area">
-              <Image src={user?.profile_picture || '/imgs/user.jpg'} alt="صورتك الشخصية" width={45} height={45} className="comment-user-avatar" unoptimized />
+              <Image src={user?.profile_picture || '/imgs/user.jpg'} alt="صورتك الشخصية" width={45} height={45} className="comment-user-avatar" placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==" unoptimized />
               <div className="comment-input-box">
                 <textarea placeholder="أضف تعليقًا..." value={commentText} onFocus={() => setIsCommentBoxExpanded(true)} onChange={(e) => setCommentText(e.target.value)} className={`comment-textarea ${isCommentBoxExpanded ? 'expanded' : ''}`}></textarea>
                 {isCommentBoxExpanded && (
@@ -758,6 +800,8 @@ const BookDetailsClient = ({ initialBook }) => {
                     width={45}
                     height={45}
                     className="comment-user-avatar"
+                    placeholder="blur"
+                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
                     unoptimized
                     onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }}
                   />
@@ -813,6 +857,15 @@ const BookDetailsClient = ({ initialBook }) => {
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
         onSubmit={handleReportBook}
+      />
+
+      <BookNoteModal
+        isOpen={isNoteModalOpen}
+        onClose={() => setIsNoteModalOpen(false)}
+        bookId={book.id}
+        initialNote={userNote}
+        onSave={handleSaveNote}
+        onDelete={handleDeleteNote}
       />
     </article>
   );
