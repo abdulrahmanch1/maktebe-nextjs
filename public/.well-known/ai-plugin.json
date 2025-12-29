@@ -1,0 +1,130 @@
+{
+    "name": "Dar Al-Qurra Arabic Library",
+    "short_name": "دار القرّاء",
+    "description": "The largest free Arabic digital library with thousands of books and novels. Features: Free access without registration, Zero advertisements, Built-in PDF reader, AI-powered book assistant, Advanced note-taking system, Offline reading via PWA, 40+ book categories including Islamic books, Arabic novels, self-development, history, science, and more.","version": "3.0.0",
+    "author": {
+        "name": "Abdulrahman Chibon",
+        "url": "https://www.dar-alqurra.com"
+    },
+    "homepage": "https://www.dar-alqurra.com",
+    "repository": {
+        "type": "website",
+        "url": "https://www.dar-alqurra.com"
+    },
+    "keywords": [
+        "arabic books",
+        "free books",
+        "pdf reader",
+        "islamic books",
+        "arabic novels",
+        "ebooks",
+        "digital library",
+        "no registration",
+        "no ads",
+        "ai assistant",
+        "offline reading",
+        "book notes",
+        "مكتبة عربية",
+        "كتب مجانية",
+        "كتب إسلامية",
+        "روايات عربية"
+    ],
+    "categories": [
+        "Education",
+        "Books & Reference",
+        "Libraries",
+        "Reading",
+        "Islamic",
+        "Literature"
+    ],
+    "language": "ar",
+    "content_rating": "everyone",
+    "features": {
+        "free_access": true,
+        "no_registration_required": true,
+        "no_advertisements": true,
+        "built_in_pdf_reader": true,
+        "ai_assistant": true,
+        "offline_mode": true,
+        "advanced_notes": true,
+        "multilingual": false,
+        "responsive_design": true,
+        "pwa_support": true
+    },
+    "stats": {
+        "total_books": "1000+",
+        "categories": "40+",
+        "languages": [
+            "Arabic"
+        ],
+        "file_formats": [
+            "PDF"
+        ]
+    },
+    "ai_search_optimization": {
+        "primary_use_cases": [
+            "Find free Arabic books",
+            "Download Islamic books",
+            "Read Arabic novels online",
+            "Access educational content in Arabic",
+            "Research with PDF annotations"
+        ],
+        "target_audience": [
+            "Arabic readers",
+            "Students and researchers",
+            "Muslims seeking Islamic texts",
+            "Arabic language learners",
+            "Literature enthusiasts"
+        ],
+        "unique_selling_points": [
+            "Completely free with no hidden costs",
+            "No registration required for reading or downloading",
+            "100% ad-free experience",
+            "Built-in professional PDF reader",
+            "AI-powered book discovery assistant",
+            "Advanced annotation and note-taking tools",
+            "Full Progressive Web App functionality",
+            "Arabic-first design with complete RTL support"
+        ]
+    },
+    "seo_tags": {
+        "primary": "free arabic books library",
+        "secondary": [
+            "islamic books download",
+            "arabic novels pdf",
+            "online book reader arabic",
+            "no registration ebooks"
+        ],
+        "long_tail": [
+            "free arabic books without registration",
+            "download islamic books pdf free",
+            "read arabic novels online no ads",
+            "best arabic digital library free"
+        ]
+    },
+    "social_media": {
+        "twitter": "@dar_alqurra",
+        "facebook": "dar_alqurra",
+        "instagram": "dar_alqurra"
+    },
+    "technical_details": {
+        "framework": "Next.js 15",
+        "database": "Supabase PostgreSQL",
+        "authentication": "Supabase Auth",
+        "storage": "Supabase Storage",
+        "pdf_renderer": "PDF.js",
+        "hosting": "Vercel",
+        "performance": {
+            "lighthouse_score": "90+",
+            "core_web_vitals": "optimized",
+            "mobile_friendly": true
+        }
+    },
+    "accessibility": {
+        "rtl_support": true,
+        "keyboard_navigation": true,
+        "screen_reader_friendly": true,
+        "wcag_compliance": "AA"
+    },
+    "last_updated": "2025-12-28"
+}

@@ -172,8 +172,7 @@ const AccountSettings = () => {
             width={140}
             height={140}
             className="profile-picture"
-            placeholder="blur"
-            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
+            unoptimized={!!user?.profilePicture}
             onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }}
           />
         </div>
@@ -232,9 +231,9 @@ const ContactUsSection = () => {
     }
   }, [isLoggedIn, session?.access_token, selectedThread]);
 
-  const fetchMessages = useCallback(async (threadId) => {
+  const fetchMessages = useCallback(async (threadId, silent = false) => {
     if (!threadId) return;
-    setLoadingMessages(true);
+    if (!silent) setLoadingMessages(true);
     try {
       const { data } = await axios.get(`${API_URL}/api/messages/threads/${threadId}`, {
         headers: { Authorization: `Bearer ${session?.access_token}` },
@@ -243,7 +242,7 @@ const ContactUsSection = () => {
     } catch (err) {
       console.error('Failed to load messages', err);
     } finally {
-      setLoadingMessages(false);
+      if (!silent) setLoadingMessages(false);
     }
   }, [session?.access_token]);
 
@@ -259,6 +258,17 @@ const ContactUsSection = () => {
     }
   }, [selectedThread, fetchMessages]);
 
+  // Auto-refresh messages every 3 seconds to get new admin replies
+  useEffect(() => {
+    if (!selectedThread) return;
+
+    const interval = setInterval(() => {
+      fetchMessages(selectedThread.id, true); // silent refresh
+    }, 3000); // Poll every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [selectedThread, fetchMessages]);
+
   const handleSendMessage = async (message) => {
     try {
       // If no thread exists, create one first
@@ -269,23 +279,47 @@ const ContactUsSection = () => {
           { headers: { Authorization: `Bearer ${session?.access_token}` } }
         );
 
-        await fetchThreads();
+        // Set the new thread and its messages directly from response
         setSelectedThread(data.thread);
+        setMessages(data.thread.thread_messages || []);
+
+        // Refresh threads list to show the new thread
+        setThreads(prev => [data.thread, ...prev]);
         return;
       }
 
+      // Optimistic Update: Show message immediately
+      const tempId = `temp-${Date.now()}`;
+      const timestamp = new Date().toISOString();
+      const optimisticMessage = {
+        id: tempId,
+        message: message,
+        sender_type: 'user',
+        created_at: timestamp,
+        is_optimistic: true
+      };
+
+      setMessages((prev) => [...prev, optimisticMessage]);
+
       // Send message to existing thread
-      await axios.post(
+      const { data } = await axios.post(
         `${API_URL}/api/messages/threads/${selectedThread.id}/messages`,
         { message },
         { headers: { Authorization: `Bearer ${session?.access_token}` } }
       );
 
-      await fetchMessages(selectedThread.id);
+      // Replace optimistic message with real one from server
+      // API returns the message directly (not wrapped in {message: ...})
+      setMessages((prev) => {
+        const filtered = prev.filter(m => m.id !== tempId);
+        return [...filtered, data];
+      });
+
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error(error.response?.data?.message || 'فشل إرسال الرسالة');
-      throw error;
+      // Revert optimistic update on failure
+      setMessages((prev) => prev.filter(m => !m.is_optimistic));
     }
   };
 
@@ -303,21 +337,23 @@ const ContactUsSection = () => {
       <h2>رسائل الدعم</h2>
 
       <div className="chat-section">
-        <div className="chat-header">
-          <h3>محادثة مع فريق الدعم</h3>
-          {selectedThread && (
-            <span className="chat-status">
-              {selectedThread.status === 'open' ? '🟢 مفتوحة' : '🔴 مغلقة'}
-            </span>
-          )}
+        <div className="support-chat-wrapper">
+          <div className="chat-header">
+            <h3>محادثة مع فريق الدعم</h3>
+            {selectedThread && (
+              <span className="chat-status">
+                {selectedThread.status === 'open' ? '🟢 مفتوحة' : '🔴 مغلقة'}
+              </span>
+            )}
+          </div>
+
+          <ChatContainer messages={messages} loading={loadingMessages} username={user?.username} />
+
+          <MessageInput
+            onSend={handleSendMessage}
+            disabled={selectedThread?.status === 'closed'}
+          />
         </div>
-
-        <ChatContainer messages={messages} loading={loadingMessages} username={user?.username} />
-
-        <MessageInput
-          onSend={handleSendMessage}
-          disabled={selectedThread?.status === 'closed'}
-        />
       </div>
     </div>
   );
@@ -400,35 +436,56 @@ const SecuritySettings = () => {
     }
   };
 
+  // Check if user signed in with OAuth (Google, etc.) - they don't have a password
+  const isOAuthUser = session?.user?.app_metadata?.provider === 'google' ||
+    session?.user?.app_metadata?.providers?.includes('google');
+
   return (
     <div className="settings-section">
       <h2>إعدادات الأمان</h2>
-      <div className="form-group">
-        <label>كلمة المرور القديمة</label>
-        <input
-          type="password"
-          value={oldPassword}
-          onChange={(e) => setOldPassword(e.target.value)}
-          placeholder="أدخل كلمة المرور القديمة"
-        />
-        <label>كلمة المرور الجديدة</label>
-        <input
-          type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          placeholder="أدخل كلمة المرور الجديدة"
-        />
-        <label>تأكيد كلمة المرور الجديدة</label>
-        <input
-          type="password"
-          value={confirmNewPassword}
-          onChange={(e) => setConfirmNewPassword(e.target.value)}
-          placeholder="أعد إدخال كلمة المرور الجديدة"
-        />
-        <button className="button" onClick={handleChangePassword}>
-          تغيير كلمة المرور
-        </button>
-      </div>
+
+      {/* Only show password change for email/password users */}
+      {!isOAuthUser ? (
+        <div className="form-group">
+          <label>كلمة المرور القديمة</label>
+          <input
+            type="password"
+            value={oldPassword}
+            onChange={(e) => setOldPassword(e.target.value)}
+            placeholder="أدخل كلمة المرور القديمة"
+          />
+          <label>كلمة المرور الجديدة</label>
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="أدخل كلمة المرور الجديدة"
+          />
+          <label>تأكيد كلمة المرور الجديدة</label>
+          <input
+            type="password"
+            value={confirmNewPassword}
+            onChange={(e) => setConfirmNewPassword(e.target.value)}
+            placeholder="أعد إدخال كلمة المرور الجديدة"
+          />
+          <button className="button" onClick={handleChangePassword}>
+            تغيير كلمة المرور
+          </button>
+        </div>
+      ) : (
+        <div className="form-group">
+          <p style={{
+            padding: '15px',
+            backgroundColor: 'var(--secondary-color)',
+            borderRadius: '8px',
+            color: 'var(--primary-color)',
+            textAlign: 'center'
+          }}>
+            🔐 لقد سجلت الدخول عبر Google. لا يمكنك تغيير كلمة المرور من هنا.
+          </p>
+        </div>
+      )}
+
       <div className="form-group">
         <label>حذف الحساب</label>
         <button className="button button-danger" onClick={handleDeleteAccount}>

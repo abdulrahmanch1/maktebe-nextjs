@@ -43,57 +43,83 @@ async function getBookData(id) {
   // Use the server client so RLS/session rules stay consistent with the rest of the app
   const supabase = await createClient();
 
-  // Fetch book, comments, and related books concurrently for better performance
-  const { data: book, error: bookError } = await supabase
-    .from('books')
-    .select('*, profiles!books_user_id_fkey(username, email)')
-    .eq('id', id)
-    .single();
+  const fetchWithRetry = async (fn, retries = 3, delay = 1000) => {
+    try {
+      return await fn();
+    } catch (error) {
+      if (retries > 0) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return fetchWithRetry(fn, retries - 1, delay * 2);
+      }
+      throw error;
+    }
+  };
 
-  if (bookError) {
-    // "PGRST116" => no rows found
-    if (bookError.code === 'PGRST116') {
+  try {
+    // Fetch book, comments, and related books concurrently for better performance
+    const { data: book, error: bookError } = await fetchWithRetry(() =>
+      supabase
+        .from('books')
+        .select('*, profiles!books_user_id_fkey(username, email)')
+        .eq('id', id)
+        .single()
+    );
+
+    if (bookError) {
+      // "PGRST116" => no rows found
+      if (bookError.code === 'PGRST116') {
+        return { book: null, comments: [], relatedBooks: [] };
+      }
+      console.error('Error fetching book:', bookError);
+      throw new Error(bookError.message || 'Failed to fetch book');
+    }
+
+    if (!book) {
       return { book: null, comments: [], relatedBooks: [] };
     }
-    console.error('Error fetching book:', bookError);
-    throw new Error(bookError.message || 'Failed to fetch book');
+
+    // Fetch comments and related books in parallel after getting the main book's category
+    const [commentsResult, relatedBooksResult] = await Promise.all([
+      fetchWithRetry(() => supabase
+        .from('comments')
+        .select('*, profiles(username, email, profilepicture)')
+        .eq('book_id', id)
+        .order('created_at', { ascending: false })),
+      fetchWithRetry(() => supabase
+        .from('books')
+        .select('id, title, author, cover, category') // Select only necessary fields for cards
+        .eq('category', book.category)
+        .eq('status', 'approved')
+        .neq('id', book.id)
+        .limit(5))
+    ]);
+
+    const { data: comments, error: commentsError } = commentsResult;
+    const { data: relatedBooks, error: relatedBooksError } = relatedBooksResult;
+
+    if (commentsError) {
+      console.error('Error fetching comments:', commentsError);
+    }
+    if (relatedBooksError) {
+      console.error('Error fetching related books:', relatedBooksError);
+    }
+
+    return {
+      book,
+      comments: comments || [],
+      relatedBooks: relatedBooks || [],
+    };
+  } catch (error) {
+    console.error('Unexpected error in getBookData:', error);
+    // Return empty data instead of crashing page on transient network issues if possible, 
+    // or let it throw if it's critical. 
+    // Given the user error logs, throwing here causes the 500 page. 
+    // Let's return null book to show 404/Empty state gracefully?
+    // user's log shows `throw new Error(...)` is what breaks it.
+    // Retrying should fix most cases. If it still fails, let's allow the throw 
+    // so Next.js error boundary catches it or shows 404.
+    throw error;
   }
-
-  if (!book) {
-    return { book: null, comments: [], relatedBooks: [] };
-  }
-
-  // Fetch comments and related books in parallel after getting the main book's category
-  const [commentsResult, relatedBooksResult] = await Promise.all([
-    supabase
-      .from('comments')
-      .select('*, profiles(username, email, profilepicture)')
-      .eq('book_id', id)
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('books')
-      .select('id, title, author, cover, category') // Select only necessary fields for cards
-      .eq('category', book.category)
-      .eq('status', 'approved')
-      .neq('id', book.id)
-      .limit(5)
-  ]);
-
-  const { data: comments, error: commentsError } = commentsResult;
-  const { data: relatedBooks, error: relatedBooksError } = relatedBooksResult;
-
-  if (commentsError) {
-    console.error('Error fetching comments:', commentsError);
-  }
-  if (relatedBooksError) {
-    console.error('Error fetching related books:', relatedBooksError);
-  }
-
-  return {
-    book,
-    comments: comments || [],
-    relatedBooks: relatedBooks || [],
-  };
 }
 
 export async function generateMetadata(props) {
@@ -231,7 +257,21 @@ export async function generateMetadata(props) {
       bestRating: "5",
       worstRating: "1"
     };
+  } else {
+    // FALLBACK: Google often prefers having *some* rating structure even if empty or default, 
+    // but explicit 0 ratings can be bad. 
+    // Better strategy: Use a default "Organization" or "Author" trust signal if no ratings.
+    // For now, let's leave it optional to avoid fake data penalties.
   }
+
+  // Enhanced "ReadAction" for Google Actions (if applicable in future)
+  // jsonLd.potentialAction = {
+  //   '@type': 'ReadAction',
+  //   target: {
+  //     '@type': 'EntryPoint',
+  //     urlTemplate: `${siteUrl}/read/${params.id}`
+  //   }
+  // };
 
   return {
     ...metadata,

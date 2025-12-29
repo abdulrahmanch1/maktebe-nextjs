@@ -1,0 +1,46 @@
+# Humans: https://humanstxt.org/
+# The humans responsible for building this website
+
+/* TEAM */
+Developer: Abdulrahman Chibon
+Site: https://www.dar-alqurra.com
+Location: Middle East
+
+/* THANKS */
+All Arabic readers and book lovers
+The open-source community
+Supabase team
+Next.js team
+
+/* SITE */
+Last update: 2025/12/28
+Language: العربية / Arabic
+Standards: HTML5, CSS3, JavaScript ES6+
+Components: React, Next.js
+IDE: Visual Studio Code
+Fonts: System fonts, Arabic web fonts
+Framework: Next.js 15
+Backend: Supabase
+Hosting: Vercel
+
+/* VALUES */
+- Free access to knowledge
+- No advertisements
+- No registration barriers
+- Privacy-focused
+- Arabic-first design
+- Accessibility for all
+- Quality over quantity
+
+/* DESCRIPTION */
+Dar Al-Qurra is a free Arabic digital library
+providing thousands of books without registration
+or advertisements. Features include a built-in
+PDF reader, AI assistant, advanced notes, and
+offline reading support.
+
+Mission: Democratize access to Arabic literature
+and knowledge for everyone, everywhere.
+
+Vision: Become the most comprehensive and
+user-friendly Arabic digital library globally.

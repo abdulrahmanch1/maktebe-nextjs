@@ -3,6 +3,7 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import BookCard from "@/components/BookCard";
 import BookCardSkeleton from "@/components/BookCardSkeleton";
+import HeroSection from "@/components/HeroSection";
 import AuthorsSection from "@/components/AuthorsSection";
 import './HomePage.css';
 import { BOOK_CATEGORIES } from "@/constants";
@@ -22,7 +23,7 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
-const HomePageClient = ({ initialBooks = [], initialTotalCount = 0 }) => {
+const HomePageClient = ({ initialBooks = [], initialAuthors = [], initialTotalCount = 0 }) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -34,9 +35,14 @@ const HomePageClient = ({ initialBooks = [], initialTotalCount = 0 }) => {
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const debouncedSearchTerm = useDebounce(searchTerm, 400);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
-  const [randomAuthors, setRandomAuthors] = useState([]);
+
+  // Use SSR authors instead of fetching client-side
+  const [randomAuthors] = useState(initialAuthors);
 
   const { ref, inView } = useInView();
+
+  // Pass initialData to query if we are on the default view (no search/filter)
+  const isDefaultView = !debouncedSearchTerm && (selectedCategory === "الكل" || !selectedCategory);
 
   const {
     data,
@@ -46,7 +52,11 @@ const HomePageClient = ({ initialBooks = [], initialTotalCount = 0 }) => {
     isLoading,
     isError,
     error
-  } = useBooksQuery(debouncedSearchTerm, selectedCategory === "الكل" ? "" : selectedCategory);
+  } = useBooksQuery(
+    debouncedSearchTerm,
+    selectedCategory === "الكل" ? "" : selectedCategory,
+    isDefaultView ? initialBooks : null
+  );
 
   useEffect(() => {
     if (inView && hasNextPage) {
@@ -89,30 +99,7 @@ const HomePageClient = ({ initialBooks = [], initialTotalCount = 0 }) => {
     }
   }, [debouncedSearchTerm, selectedCategory, pathname, router, searchParams]);
 
-  // Fetch random authors using RPC
-  useEffect(() => {
-    const fetchAuthors = async () => {
-      const supabase = createClient();
-      try {
-        // Fetch 60 random authors to distribute across the page
-        const { data, error } = await supabase.rpc('get_random_authors', { limit_count: 60 });
 
-        if (error) {
-          console.error("Error fetching random authors via RPC:", error);
-          // Fallback to normal fetch if RPC fails (or doesn't exist yet)
-          const { data: allAuthors } = await supabase.from('authors').select('*').limit(50);
-          if (allAuthors) {
-            setRandomAuthors(allAuthors.sort(() => 0.5 - Math.random()));
-          }
-        } else if (data) {
-          setRandomAuthors(data);
-        }
-      } catch (error) {
-        console.error("Error fetching authors:", error);
-      }
-    };
-    fetchAuthors();
-  }, []);
 
   const books = useMemo(() => {
     return data?.pages.flatMap(page => page) || [];
@@ -165,36 +152,41 @@ const HomePageClient = ({ initialBooks = [], initialTotalCount = 0 }) => {
 
   return (
     <div className="homepage-container">
-      <h1 className="homepage-title">البحث عن الكتب</h1>
+      <HeroSection />
 
-      <div className="search-filter-container">
-        <label htmlFor="search-input" className="visually-hidden">البحث عن الكتب</label>
-        <input
-          type="text"
-          id="search-input"
-          placeholder="ابحث بالاسم أو المؤلف..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
-        />
-        <label htmlFor="category-select" className="visually-hidden">فلترة حسب التصنيف</label>
-        <select
-          id="category-select"
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="category-select"
-        >
-          {categories.map(category => (
-            <option key={category} value={category}>{category}</option>
-          ))}
-        </select>
+      <div className="search-filter-wrapper-floating">
+        <div className="search-filter-container glass-panel">
+          <label htmlFor="search-input" className="visually-hidden">البحث عن الكتب</label>
+          <input
+            type="text"
+            id="search-input"
+            placeholder="ابحث بالاسم أو المؤلف..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+          <label htmlFor="category-select" className="visually-hidden">فلترة حسب التصنيف</label>
+          <select
+            id="category-select"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="category-select"
+          >
+            {categories.map(category => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {isError && (
-        <div className="error-text" style={{ textAlign: "center", marginBottom: "1rem" }}>
-          حدث خطأ أثناء تحميل الكتب. حاول مرة أخرى.
-        </div>
-      )}
+
+      {
+        isError && (
+          <div className="error-text" style={{ textAlign: "center", marginBottom: "1rem" }}>
+            حدث خطأ أثناء تحميل الكتب. حاول مرة أخرى.
+          </div>
+        )
+      }
 
       <div className="books-display-container">
         {renderContent()}
@@ -206,7 +198,7 @@ const HomePageClient = ({ initialBooks = [], initialTotalCount = 0 }) => {
         )}
         <div ref={ref} style={{ height: 1, width: '100%' }} />
       </div>
-    </div>
+    </div >
   );
 };
 

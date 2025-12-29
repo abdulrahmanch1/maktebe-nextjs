@@ -4,6 +4,7 @@ const OFFLINE_URL = '/offline';
 const PRECACHE_URLS = [
   '/',
   OFFLINE_URL,
+  '/offline-reader',
   '/manifest.json',
   '/favicon.png',
   '/icons/icon-192.png',

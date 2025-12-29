@@ -7,21 +7,8 @@ export default async function sitemap() {
     const supabase = await createClient();
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.dar-alqurra.com';
 
-    // Fetch all approved books with accurate dates
-    const { data: books } = await supabase
-        .from('books')
-        .select('id, title, cover, updated_at, created_at')
-        .eq('status', 'approved')
-        .order('updated_at', { ascending: false });
-
-    const bookUrls = books
-        ? books.map((book) => ({
-            url: `${baseUrl}/book/${book.id}`,
-            lastModified: new Date(book.updated_at || book.created_at),
-            changeFrequency: 'weekly',
-            priority: 0.8,
-        }))
-        : [];
+    // Note: Books and Authors have their own dedicated sitemaps
+    // This is just the main pages sitemap
 
     return [
         {
@@ -29,6 +16,24 @@ export default async function sitemap() {
             lastModified: new Date(),
             changeFrequency: 'daily',
             priority: 1,
+        },
+        {
+            url: `${baseUrl}/about-ai`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.9,
+        },
+        {
+            url: `${baseUrl}/books`,
+            lastModified: new Date(),
+            changeFrequency: 'daily',
+            priority: 0.9,
+        },
+        {
+            url: `${baseUrl}/authors`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.8,
         },
         {
             url: `${baseUrl}/favorites`,
@@ -48,6 +53,17 @@ export default async function sitemap() {
             changeFrequency: 'daily',
             priority: 0.3,
         },
-        ...bookUrls,
+        {
+            url: `${baseUrl}/books-sitemap.xml`,
+            lastModified: new Date(),
+            changeFrequency: 'hourly',
+            priority: 0.9,
+        },
+        {
+            url: `${baseUrl}/authors-sitemap.xml`,
+            lastModified: new Date(),
+            changeFrequency: 'daily',
+            priority: 0.8,
+        },
     ];
 }

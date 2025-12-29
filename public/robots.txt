@@ -1,0 +1,75 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /verify-email/
+
+# AI Search Engines - Full Access
+User-agent: GPTBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: ChatGPT-User
+Allow: /
+Crawl-delay: 1
+
+User-agent: Google-Extended
+Allow: /
+Crawl-delay: 1
+
+User-agent: anthropic-ai
+Allow: /
+Crawl-delay: 1
+
+User-agent: Claude-Web
+Allow: /
+Crawl-delay: 1
+
+User-agent: PerplexityBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: YouBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Applebot-Extended
+Allow: /
+Crawl-delay: 1
+
+# Social Media Crawlers
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+# Search Engine Bots
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+# Sitemap
+Sitemap: https://www.dar-alqurra.com/sitemap.xml
+
+# Important pages for AI crawlers
+# https://www.dar-alqurra.com/about-ai
+# https://www.dar-alqurra.com/books
+# https://www.dar-alqurra.com/authors

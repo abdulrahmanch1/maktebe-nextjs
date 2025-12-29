@@ -7,6 +7,9 @@ import { AuthContext } from "@/contexts/AuthContext";
 import { toast } from 'react-toastify';
 import Image from 'next/image';
 import { getStorageUrl } from "@/utils/imageUtils";
+import { NotesContext } from "@/contexts/NotesContext";
+import { FaStickyNote } from 'react-icons/fa';
+import { getNoteColor } from "@/utils/colors";
 import './BookCard.css';
 
 
@@ -14,9 +17,18 @@ import './BookCard.css';
 const BookCard = ({ book, isPriority = false }) => {
   const { isFavorite, toggleFavorite } = useContext(FavoritesContext);
   const { isLoggedIn } = useContext(AuthContext);
+  const { getNote } = useContext(NotesContext);
+  const note = isLoggedIn ? getNote(book.id) : null;
   const isLiked = book?.id ? isFavorite(book.id) : false;
   const [coverSrc, setCoverSrc] = useState(getStorageUrl(book.cover, 'book-covers') || '/imgs/no_cover_available.png');
   const [favoriteCount, setFavoriteCount] = useState(book.favoritecount || 0);
+  const [noteColor, setNoteColor] = useState('#fff');
+
+  useEffect(() => {
+    if (note) {
+      setNoteColor(getNoteColor(note));
+    }
+  }, [note]);
 
 
   const handleFavoriteClick = async (e) => {
@@ -54,8 +66,6 @@ const BookCard = ({ book, isPriority = false }) => {
             loading={isPriority ? 'eager' : 'lazy'}
             priority={isPriority}
             fetchPriority={isPriority ? 'high' : 'auto'}
-            placeholder="blur"
-            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
             onError={() => setCoverSrc('/imgs/no_cover_available.png')}
           />
           <div className="book-card-overlay">
@@ -68,6 +78,15 @@ const BookCard = ({ book, isPriority = false }) => {
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
               </svg>
             </button>
+            {note && (
+              <div
+                className="note-indicator-overlay full-width"
+                title={note}
+                style={{ backgroundColor: noteColor }}
+              >
+                <span className="note-snippet">{note.length > 30 ? note.substring(0, 30) + '...' : note}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -91,7 +110,7 @@ const BookCard = ({ book, isPriority = false }) => {
           )}
         </div>
       </div>
-    </Link>
+    </Link >
   );
 };
 

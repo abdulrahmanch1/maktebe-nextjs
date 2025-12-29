@@ -6,7 +6,7 @@ import { ThemeContext } from '@/contexts/ThemeContext';
 import { AuthContext } from '@/contexts/AuthContext';
 import './Sidebar.css';
 
-import { FaHome, FaBookOpen, FaCog, FaHeart, FaList, FaTachometerAlt, FaChartBar, FaBook, FaUserTie, FaEnvelope, FaPlus, FaLayerGroup } from 'react-icons/fa';
+import { FaHome, FaBookOpen, FaCog, FaHeart, FaList, FaTachometerAlt, FaChartBar, FaBook, FaUserTie, FaEnvelope, FaPlus, FaLayerGroup, FaDownload } from 'react-icons/fa';
 import Image from 'next/image';
 
 const Sidebar = ({ isOpen, toggle, isLoggedIn, logout }) => {
@@ -63,6 +63,10 @@ const Sidebar = ({ isOpen, toggle, isLoggedIn, logout }) => {
         <Link href="/reading-list" onClick={toggle} className={getLinkClassName('/reading-list')}>
           <FaList className="sidebar-icon" />
           <span>قائمة القراءة</span>
+        </Link>
+        <Link href="/offline" onClick={toggle} className={getLinkClassName('/offline')}>
+          <FaDownload className="sidebar-icon" />
+          <span>كتبي المحملة</span>
         </Link>
         <Link href="/settings" onClick={toggle} className={getLinkClassName('/settings')}>
           <FaCog className="sidebar-icon" />

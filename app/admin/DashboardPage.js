@@ -115,6 +115,13 @@ const DashboardPage = () => {
             color: "primary"
         },
         {
+            title: "كتاب الأسبوع",
+            description: "اختر الكتاب المميز للأسبوع",
+            icon: "⭐",
+            href: "/admin/featured-book",
+            color: "warning"
+        },
+        {
             title: "إدارة الكتب",
             description: "عرض وتعديل جميع الكتب",
             icon: "📖",

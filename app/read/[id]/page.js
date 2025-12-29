@@ -5,27 +5,35 @@ import PdfViewerClient from "./PdfViewerClient";
 export const dynamic = 'force-dynamic';
 
 async function getBookPdfUrl(id) {
-  const supabase = await createClient();
-  const { data: book, error } = await supabase
-    .from('books')
-    .select('pdfFile, title') // We only need the PDF URL and title
-    .eq('id', id)
-    .single();
+  try {
+    const supabase = await createClient();
+    const { data: book, error } = await supabase
+      .from('books')
+      .select('pdfFile, title')
+      .eq('id', id)
+      .single();
 
-  if (error || !book) {
-    notFound();
+    if (error || !book) {
+      console.error('Error fetching book (server):', error);
+      return null;
+    }
+    return book;
+  } catch (err) {
+    console.warn('Failed to fetch book server-side (likely offline):', err);
+    return null;
   }
-  return book;
 }
 
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
   const book = await getBookPdfUrl(resolvedParams.id);
+  const title = book?.title || 'قراءة الكتاب';
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.dar-alqurra.com';
   const canonicalUrl = `/book/${resolvedParams.id}`;
+
   return {
-    title: `قراءة: ${book.title}`,
-    description: `قراءة مباشرة لكتاب ${book.title} بصيغة PDF.`,
+    title: `قراءة: ${title}`,
+    description: `قراءة مباشرة لكتاب ${title} بصيغة PDF.`,
     alternates: {
       canonical: canonicalUrl,
     },
@@ -34,8 +42,8 @@ export async function generateMetadata({ params }) {
       follow: true,
     },
     openGraph: {
-      title: `قراءة: ${book.title}`,
-      description: `قراءة مباشرة لكتاب ${book.title} بصيغة PDF.`,
+      title: `قراءة: ${title}`,
+      description: `قراءة مباشرة لكتاب ${title} بصيغة PDF.`,
       url: `${siteUrl}${canonicalUrl}`,
     },
   };
@@ -45,7 +53,7 @@ const PdfReadPage = async ({ params }) => {
   const resolvedParams = await params;
   const book = await getBookPdfUrl(resolvedParams.id);
 
-  return <PdfViewerClient pdfUrl={book.pdfFile} bookTitle={book.title} bookId={resolvedParams.id} />;
+  return <PdfViewerClient pdfUrl={book?.pdfFile} bookTitle={book?.title} bookId={resolvedParams.id} />;
 };
 
 export default PdfReadPage;

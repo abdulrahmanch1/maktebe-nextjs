@@ -1,20 +1,31 @@
 import React from 'react';
 import './ChatComponents.css';
+import { FaPaperPlane } from 'react-icons/fa';
 
-export const MessageBubble = ({ message, senderType, createdAt, currentUserId, username }) => {
+export const MessageBubble = ({ message, senderType, createdAt, username }) => {
     const isCurrentUser = senderType === 'user';
-    const label = isCurrentUser ? username : 'مسؤول';
+
+    // Format time, handle invalid dates
+    let timeString = 'الآن';
+    try {
+        const date = new Date(createdAt);
+        if (!isNaN(date.getTime())) {
+            timeString = date.toLocaleTimeString('ar-SA', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+    } catch (error) {
+        console.error('Error formatting date:', error);
+    }
 
     return (
         <div className={`message-bubble-container ${isCurrentUser ? 'user-message' : 'admin-message'}`}>
             <div className="message-bubble">
-                <div className="message-sender-label">{label}</div>
                 <div className="message-text">{message}</div>
                 <div className="message-time">
-                    {new Date(createdAt).toLocaleTimeString('ar-EG', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    })}
+                    {timeString}
                 </div>
             </div>
         </div>
@@ -32,18 +43,22 @@ export const ChatContainer = ({ messages, loading, username }) => {
         scrollToBottom();
     }, [messages]);
 
-    if (loading) {
+    // Only show full loading screen if we have NO messages at all and are loading
+    if (loading && (!messages || messages.length === 0)) {
         return (
             <div className="chat-container">
-                <div className="chat-loading">جاري تحميل الرسائل...</div>
+                <div className="chat-loading">جاري مزامنة المحادثة...</div>
             </div>
         );
     }
 
-    if (!messages || messages.length === 0) {
+    if (!loading && (!messages || messages.length === 0)) {
         return (
             <div className="chat-container">
-                <div className="chat-empty">لا توجد رسائل بعد. ابدأ المحادثة!</div>
+                <div className="chat-empty">
+                    <span style={{ fontSize: '3rem' }}>💬</span>
+                    <p>مرحباً! كيف يمكننا مساعدتك اليوم؟</p>
+                </div>
             </div>
         );
     }
@@ -60,6 +75,8 @@ export const ChatContainer = ({ messages, loading, username }) => {
                         username={username}
                     />
                 ))}
+                {/* Small indicator if syncing in background but we have messages */}
+                {loading && <div style={{ textAlign: 'center', fontSize: '0.7rem', opacity: 0.5 }}>جارٍ التحديث...</div>}
                 <div ref={messagesEndRef} />
             </div>
         </div>
@@ -100,15 +117,16 @@ export const MessageInput = ({ onSend, disabled }) => {
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="اكتب رسالتك..."
-                disabled={disabled || sending}
+                disabled={disabled}
                 rows="1"
             />
             <button
                 type="submit"
                 className="message-send-button"
                 disabled={!message.trim() || disabled || sending}
+                title="إرسال"
             >
-                {sending ? '...' : 'إرسال'}
+                {sending ? <div className="spinner-sm" /> : <FaPaperPlane />}
             </button>
         </form>
     );

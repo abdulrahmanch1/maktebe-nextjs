@@ -3,6 +3,7 @@
 import React, { useContext, useEffect, useState, useCallback, useMemo } from "react";
 import { FavoritesContext } from "@/contexts/FavoritesContext";
 import { AuthContext } from "@/contexts/AuthContext";
+import { createClient } from "@/utils/supabase/client";
 import axios from "axios";
 import { toast } from 'react-toastify';
 import Image from "next/image";
@@ -15,7 +16,14 @@ import BookCard from "@/components/BookCard";
 import DownloadButton from "@/components/DownloadButton";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { getStorageUrl } from "@/utils/imageUtils";
+import dynamic from 'next/dynamic';
 
+const BookNoteModal = dynamic(() => import('@/components/BookNoteModal'), { ssr: false });
+const ShareModal = dynamic(() => import('@/components/ShareModal'), { ssr: false });
+const ReportModal = dynamic(() => import('@/components/ReportModal'), { ssr: false });
+import { FaPlus, FaStickyNote } from 'react-icons/fa';
+import { getNoteColor } from "@/utils/colors";
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 
 // A small component to safely render dates only on the client-side
@@ -83,189 +91,7 @@ const reportReasons = [
   { value: 'other', label: 'سبب آخر' },
 ];
 
-const ShareModal = ({ isOpen, onClose, bookTitle, url }) => {
-  if (!isOpen) return null;
 
-  const shareLinks = [
-    { name: 'واتساب', icon: <FaWhatsapp />, url: `https://wa.me/?text=${encodeURIComponent(`اقرأ كتاب ${bookTitle} على دار القرّاء: ${url}`)}`, color: '#25D366' },
-    { name: 'فيسبوك', icon: <FaFacebook />, url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, color: '#1877F2' },
-    { name: 'تويتر', icon: <FaTwitter />, url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(`اقرأ كتاب ${bookTitle}`)}&url=${encodeURIComponent(url)}`, color: '#1DA1F2' },
-    { name: 'تيليجرام', icon: <FaTelegram />, url: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(`اقرأ كتاب ${bookTitle}`)}`, color: '#0088cc' },
-  ];
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(url);
-    toast.success('تم نسخ الرابط!');
-    onClose();
-  };
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content share-modal-content" onClick={e => e.stopPropagation()}>
-        <h3>مشاركة الكتاب</h3>
-        <div className="share-options-grid">
-          {shareLinks.map((link) => (
-            <a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer" className="share-option-item" style={{ color: link.color }}>
-              <span className="share-icon">{link.icon}</span>
-              <span className="share-name">{link.name}</span>
-            </a>
-          ))}
-          <button onClick={handleCopy} className="share-option-item copy-option">
-            <span className="share-icon"><FaCopy /></span>
-            <span className="share-name">نسخ الرابط</span>
-          </button>
-        </div>
-        <button onClick={onClose} className="button secondary full-width-button" style={{ marginTop: '15px' }}>إغلاق</button>
-      </div>
-    </div>
-  );
-};
-
-const ReportModal = ({ isOpen, onClose, onSubmit }) => {
-  const [step, setStep] = useState(1); // 1: select type, 2: select reason/details
-  const [reportType, setReportType] = useState(''); // 'problem' or 'complaint'
-  const [selectedReason, setSelectedReason] = useState('');
-  const [customDetails, setCustomDetails] = useState('');
-
-  const problemReasons = [
-    { value: 'image_not_showing', label: 'الصورة لا تظهر' },
-    { value: 'pdf_error', label: 'ملف PDF لا يعمل' },
-    { value: 'wrong_author', label: 'اسم الكاتب خاطئ' },
-    { value: 'wrong_title', label: 'عنوان الكتاب خاطئ' },
-    { value: 'copyright', label: 'هذا الكتاب عليه حقوق نشر' },
-    { value: 'missing_pages', label: 'صفحات ناقصة' },
-    { value: 'broken_link', label: 'رابط التحميل لا يعمل' },
-    { value: 'other', label: 'أخرى' },
-  ];
-
-  const complaintReasons = [
-    { value: 'inappropriate', label: 'محتوى غير لائق' },
-    { value: 'spam', label: 'محتوى إعلاني/مزعج' },
-    { value: 'wrong_category', label: 'تصنيف خاطئ' },
-    { value: 'duplicate', label: 'كتاب مكرر' },
-    { value: 'other', label: 'أخرى' },
-  ];
-
-  const handleReasonSelect = (reason) => {
-    setSelectedReason(reason);
-    if (reason !== 'other') {
-      setCustomDetails('');
-    }
-  };
-
-  const handleSubmit = () => {
-    if (!selectedReason) {
-      toast.error('الرجاء اختيار سبب البلاغ');
-      return;
-    }
-    if (selectedReason === 'other' && !customDetails.trim()) {
-      toast.error('الرجاء كتابة تفاصيل المشكلة');
-      return;
-    }
-
-    const reasons = reportType === 'problem' ? problemReasons : complaintReasons;
-    const reasonLabel = reasons.find(r => r.value === selectedReason)?.label || selectedReason;
-
-    onSubmit(selectedReason, customDetails || reasonLabel);
-
-    // Reset state
-    setStep(1);
-    setReportType('');
-    setSelectedReason('');
-    setCustomDetails('');
-  };
-
-  const handleClose = () => {
-    setStep(1);
-    setReportType('');
-    setSelectedReason('');
-    setCustomDetails('');
-    onClose();
-  };
-
-  const handleBack = () => {
-    if (step === 2) {
-      setStep(1);
-      setSelectedReason('');
-      setCustomDetails('');
-    }
-  };
-
-  if (!isOpen) return null;
-
-  const currentReasons = reportType === 'problem' ? problemReasons : complaintReasons;
-
-  return (
-    <div className="report-modal-overlay" onClick={handleClose}>
-      <div className="report-modal-sheet" onClick={e => e.stopPropagation()}>
-        <div className="report-modal-handle"></div>
-
-        <div className="report-modal-header">
-          <h3 className="report-modal-title">
-            {step === 1 ? 'الإبلاغ عن الكتاب' : reportType === 'problem' ? 'ما هي المشكلة؟' : 'ما هي الشكوى؟'}
-          </h3>
-          <button onClick={handleClose} className="report-close-button">✕</button>
-        </div>
-
-        <div className="report-modal-content">
-          {step === 1 ? (
-            <div className="report-type-selection">
-              <button
-                className="report-type-card"
-                onClick={() => { setReportType('problem'); setStep(2); }}
-              >
-                <span className="report-type-title">مشكلة تقنية</span>
-                <span className="report-type-desc">خطأ في الملف، الصورة، أو المعلومات</span>
-              </button>
-
-              <button
-                className="report-type-card"
-                onClick={() => { setReportType('complaint'); setStep(2); }}
-              >
-                <span className="report-type-title">شكوى</span>
-                <span className="report-type-desc">محتوى غير لائق أو مخالف</span>
-              </button>
-            </div>
-          ) : (
-            <div className="report-reasons-selection">
-              <div className="report-reasons-grid">
-                {currentReasons.map((reason) => (
-                  <button
-                    key={reason.value}
-                    className={`report-reason-card ${selectedReason === reason.value ? 'selected' : ''}`}
-                    onClick={() => handleReasonSelect(reason.value)}
-                  >
-                    <span className="report-reason-label">{reason.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              {selectedReason === 'other' && (
-                <div className="report-custom-input">
-                  <label>تفاصيل المشكلة:</label>
-                  <textarea
-                    value={customDetails}
-                    onChange={(e) => setCustomDetails(e.target.value)}
-                    placeholder="اشرح المشكلة بالتفصيل..."
-                    rows="4"
-                  />
-                </div>
-              )}
-
-              <button
-                onClick={handleSubmit}
-                className="report-submit-button"
-                disabled={!selectedReason}
-              >
-                إرسال البلاغ
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const BookDetailsClient = ({ initialBook }) => {
   const { toggleFavorite, isFavorite } = useContext(FavoritesContext);
@@ -296,6 +122,19 @@ const BookDetailsClient = ({ initialBook }) => {
 
   useEffect(() => {
     setHasMounted(true);
+
+    if (user && initialBook?.id) {
+      const supabase = axios.create(); // Placeholder, actually we use global supabase client or fetch
+      // But we have `session` from context which has token.
+      // Supabase client is better.
+      // Let's use simple fetch to Supabase direct or assume createClient usage.
+      // Since I imported createClient in Modal but not here, I should probably use `createBrowserClient` or just use the passed `supabase` from context if available?
+      // AuthContext exposes `supabase`? No, it exposes `user` and `session`.
+      // I'll use a direct select via REST or just assume I can add the fetch here.
+
+      // Actually, I'll fetch it using the `API_URL` / rest or better, import `createClient`.
+    }
+
 
     if (initialBook && initialBook.id) {
       const HISTORY_KEY = 'recentlyViewedBooks';
@@ -340,6 +179,26 @@ const BookDetailsClient = ({ initialBook }) => {
       })));
     }
   }, [initialBook.comments, user]);
+
+  // Note Logic
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [userNote, setUserNote] = useState('');
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchNote = async () => {
+      if (user && initialBook?.id) {
+        const { data } = await supabase
+          .from('book_notes')
+          .select('note')
+          .eq('book_id', initialBook.id)
+          .eq('user_id', user.id)
+          .single();
+        if (data) setUserNote(data.note);
+      }
+    };
+    fetchNote();
+  }, [user, initialBook?.id]);
 
   useEffect(() => {
     setCoverSrc(getStorageUrl(book?.cover, 'book-covers') || '/imgs/no_cover_available.png');
@@ -696,11 +555,10 @@ const BookDetailsClient = ({ initialBook }) => {
   return (
     <article className="book-details-page-container">
       {/* Breadcrumbs */}
-      <nav aria-label="Breadcrumb" className="breadcrumb-nav" style={{ marginBottom: '20px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-        <Link href="/" style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>الرئيسية</Link>
-        <span style={{ margin: '0 8px' }}>/</span>
-        <span style={{ color: 'var(--text-secondary)' }}>{book.title}</span>
-      </nav>
+      <Breadcrumbs items={[
+        { label: book.category || 'الكتب', href: `/?category=${encodeURIComponent(book.category || '')}` },
+        { label: book.title }
+      ]} />
 
       <div className="book-details-layout">
         <aside className="left-column">
@@ -712,8 +570,6 @@ const BookDetailsClient = ({ initialBook }) => {
               height={600}
               className="book-cover-image"
               priority
-              placeholder="blur"
-              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
               onError={() => setCoverSrc('/imgs/no_cover_available.png')}
               unoptimized
             />
@@ -727,6 +583,89 @@ const BookDetailsClient = ({ initialBook }) => {
             </div>
           </div>
           <div className="cover-meta-info">
+            {/* Note Interaction Overlay */}
+            {user && (
+              <div
+                className="note-overlay-container"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  pointerEvents: 'none', // Allow clicks to pass through to image/share icons unless on note
+                  zIndex: 4
+                }}
+              >
+                {!userNote ? (
+                  <button
+                    onClick={() => setIsNoteModalOpen(true)}
+                    className="add-note-floating-btn"
+                    title="إضافة ملاحظة"
+                    style={{
+                      position: 'absolute',
+                      top: '10px', // Adjusted to not overlap with share buttons (which are usually left/right)
+                      right: '50%',
+                      transform: 'translateX(50%)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                      color: 'var(--primary-color)',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '40px',
+                      height: '40px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                      pointerEvents: 'auto',
+                      zIndex: 20
+                    }}
+                  >
+                    <FaPlus size={18} />
+                  </button>
+                ) : (
+                  <div
+                    onClick={() => setIsNoteModalOpen(true)}
+                    className="note-indicator-overlay full-width"
+                    title="انقر لتعديل الملاحظة"
+                    style={{
+                      backgroundColor: getNoteColor(userNote),
+                      position: 'absolute',
+                      bottom: '0',
+                      left: '0',
+                      right: '0',
+                      width: '100%',
+                      padding: '8px 10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      pointerEvents: 'auto',
+                      // Reuse styling from BookCard.css if possible, or inline similar styles
+                      color: '#333',
+                      fontWeight: '600',
+                      fontSize: '0.9rem',
+                      borderBottomLeftRadius: '12px',
+                      borderBottomRightRadius: '12px',
+                      boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
+                      zIndex: 20,
+                      textAlign: 'center'
+                    }}
+                  >
+                    <span style={{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '100%'
+                    }}>
+                      {userNote}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="meta-stat">
               <span className="meta-stat-value">{book.publishYear || 'N/A'}</span>
               <span className="meta-stat-label">سنة التأليف</span>
@@ -770,10 +709,19 @@ const BookDetailsClient = ({ initialBook }) => {
                   {isInReadingList && !isRead && (<button onClick={handleMarkAsReadInList} className="book-action-button primary" disabled={isProcessingAction}>وضع علامة &quot;مقروء&quot;</button>)}
                   {isInReadingList && (<button onClick={handleRemoveFromReadingList} className="book-action-button secondary" disabled={isProcessingAction}>إزالة من قائمة القراءة</button>)}
                   <button onClick={handleToggleFavorite} className="book-action-button secondary" disabled={isProcessingAction}>{isLiked ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}</button>
+
                 </>
               )}
             </div>
           )}
+
+          <BookNoteModal
+            isOpen={isNoteModalOpen}
+            onClose={() => setIsNoteModalOpen(false)}
+            bookId={book.id}
+            initialNote={userNote}
+            onSave={(newNote) => setUserNote(newNote)}
+          />
 
           <div>
             <h3 className="book-description-title">الوصف</h3>
@@ -787,7 +735,7 @@ const BookDetailsClient = ({ initialBook }) => {
           <h2 className="comments-title">التعليقات والمراجعات</h2>
           {isLoggedIn ? (
             <div className="comment-input-area">
-              <Image src={user?.profile_picture || '/imgs/user.jpg'} alt="صورتك الشخصية" width={45} height={45} className="comment-user-avatar" placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==" unoptimized />
+              <Image src={user?.profile_picture || '/imgs/user.jpg'} alt="صورتك الشخصية" width={45} height={45} className="comment-user-avatar" unoptimized />
               <div className="comment-input-box">
                 <textarea placeholder="أضف تعليقًا..." value={commentText} onFocus={() => setIsCommentBoxExpanded(true)} onChange={(e) => setCommentText(e.target.value)} className={`comment-textarea ${isCommentBoxExpanded ? 'expanded' : ''}`}></textarea>
                 {isCommentBoxExpanded && (
@@ -810,8 +758,6 @@ const BookDetailsClient = ({ initialBook }) => {
                     width={45}
                     height={45}
                     className="comment-user-avatar"
-                    placeholder="blur"
-                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
                     unoptimized
                     onError={(e) => { e.target.onerror = null; e.target.src = '/imgs/user.jpg'; }}
                   />
@@ -845,7 +791,7 @@ const BookDetailsClient = ({ initialBook }) => {
         </section>
       )}
 
-      {/* {initialBook.relatedBooks && initialBook.relatedBooks.length > 0 && (
+      {initialBook.relatedBooks && initialBook.relatedBooks.length > 0 && (
         <div className="related-books-section">
           <h2 className="related-books-title">كتب ذات صلة</h2>
           <div className="related-books-grid">
@@ -854,7 +800,7 @@ const BookDetailsClient = ({ initialBook }) => {
             ))}
           </div>
         </div>
-      )} */}
+      )}
 
       <ShareModal
         isOpen={isShareModalOpen}

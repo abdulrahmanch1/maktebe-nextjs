@@ -11,55 +11,85 @@
   }
 }
 
-.homepage-title {
-  text-align: center;
-  color: var(--primary-color);
-}
-
-.search-filter-container {
-  text-align: center;
-  margin-bottom: 20px;
+.search-filter-wrapper-floating {
+  margin-top: -35px;
+  /* Overlap with hero section */
+  position: relative;
+  z-index: 10;
   display: flex;
   justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
+  margin-bottom: 40px;
+  padding: 0 20px;
 }
 
-@media (max-width: 351px) {
-  .search-filter-container {
-    padding: 0 0.5rem;
-    gap: 5px;
-    margin-bottom: 10px;
-  }
+.search-filter-container.glass-panel {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 15px 25px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  /* Soft shadow */
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 800px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .search-input,
 .category-select {
-  padding: 10px;
-  border-radius: 5px;
-  margin-bottom: 10px;
-  border: 1px solid var(--secondary-color);
-  background-color: var(--background-color);
+  padding: 14px 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background-color: #fff;
   color: var(--primary-color);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+}
+
+.search-input:focus,
+.category-select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
 }
 
 .search-input {
-  max-width: 400px;
+  flex: 2;
+  min-width: 200px;
 }
 
 .category-select {
-  padding: 7.5px;
+  flex: 1;
+  min-width: 140px;
 }
 
+/* Book Grid Animation */
 .books-display-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   min-height: auto;
-  /* Performance optimization for large lists */
   contain-intrinsic-size: 1000px;
-  /* Approximate height to prevent scroll jumping */
+  opacity: 0;
+  animation: fadeUp 0.8s ease-out forwards;
+  animation-delay: 0.2s;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 351px) {

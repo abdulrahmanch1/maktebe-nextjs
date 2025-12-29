@@ -28,22 +28,15 @@ const DownloadButton = ({ book, pdfUrl, coverUrl }) => {
         <button
             onClick={handleClick}
             disabled={loading}
-            className={`download-btn ${isDownloaded ? 'downloaded' : ''}`}
+            className={`book-action-button ${isDownloaded ? 'downloaded' : 'primary'}`}
             style={{
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: '8px',
-                padding: '10px 20px',
-                borderRadius: '12px',
-                border: 'none',
-                cursor: loading ? 'wait' : 'pointer',
-                backgroundColor: isDownloaded ? '#4caf50' : 'var(--accent-color)',
-                color: 'white',
-                fontWeight: 'bold',
-                fontSize: '1rem',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                marginTop: '10px'
+                // Override background color if downloaded, otherwise 'primary' class handles it
+                backgroundColor: isDownloaded ? '#4caf50' : undefined,
+                color: 'var(--primary-color)', // Ensure text color is consistent with other buttons if needed, or keeping it strictly white/primary
             }}
         >
             {loading ? (

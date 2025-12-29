@@ -2,110 +2,117 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #090909;
-  color: #f2f2f2;
-}
-
-.pdf-viewer-toolbar {
-  padding: 0.85rem 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  background: linear-gradient(120deg, rgba(28, 28, 28, 0.95), rgba(15, 15, 15, 0.95));
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  z-index: 5;
-  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.35);
-  transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.4s ease;
-  box-sizing: border-box;
-}
-
-.pdf-viewer-toolbar.bottom {
-  margin-top: auto;
-}
-
-/* Desktop auto-hide */
-@media (min-width: 883px) {
-  .pdf-viewer-toolbar {
-    background: linear-gradient(120deg, rgba(28, 28, 28, 0.85), rgba(15, 15, 15, 0.85));
-    backdrop-filter: blur(10px);
-  }
-
-  .pdf-viewer-toolbar.toolbar-hidden {
-    transform: translateY(100%);
-    opacity: 0;
-    pointer-events: none;
-  }
-}
-
-.pdf-viewer-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  white-space: nowrap;
+  width: 100vw;
+  /* Updated to white/light theme as requested */
+  background-color: #f8fafc;
+  color: #1e293b;
   overflow: hidden;
-  text-overflow: ellipsis;
+  /* STRICT NO SCROLL */
+  position: fixed;
+  /* Lock body */
+  top: 0;
+  left: 0;
 }
 
-.pdf-viewer-controls {
+/* Smart Dock Container */
+.pdf-smart-dock {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: rgba(20, 20, 20, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 10px 20px;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
-  width: 100%;
+  gap: 16px;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  width: auto;
+  min-width: 320px;
+  max-width: 95vw;
 }
 
-.pdf-viewer-button {
-  background-color: rgba(255, 255, 255, 0.08);
-  color: #f2f2f2;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  padding: 0.35rem 0.9rem;
+.pdf-smart-dock.hidden {
+  transform: translateX(-50%) translateY(140%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Dock Sections */
+.dock-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dock-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 4px;
+}
+
+/* Dock Buttons */
+.dock-button {
+  background: transparent;
+  border: none;
+  color: #a1a1aa;
+  padding: 10px;
+  border-radius: 14px;
   cursor: pointer;
-  font-weight: 600;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 
-.pdf-viewer-button.secondary {
-  background-color: transparent;
+.dock-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  transform: translateY(-2px);
 }
 
-.pdf-viewer-button:disabled {
-  opacity: 0.5;
+.dock-button:active:not(:disabled) {
+  transform: translateY(0);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.dock-button.active {
+  background: rgba(253, 224, 71, 0.15);
+  color: #facc15;
+  box-shadow: 0 0 0 1px rgba(253, 224, 71, 0.3);
+}
+
+.dock-button.active:hover {
+  background: rgba(253, 224, 71, 0.25);
+  box-shadow: 0 0 0 1px rgba(253, 224, 71, 0.5);
+}
+
+.dock-button:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-.pdf-viewer-button:not(:disabled):hover {
-  background-color: rgba(255, 255, 255, 0.15);
+.dock-button svg {
+  width: 22px;
+  height: 22px;
 }
 
-.pdf-viewer-page-indicator,
-.pdf-viewer-scale {
-  font-weight: 600;
-  min-width: 70px;
+/* Page Indicator */
+.dock-page-info {
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  min-width: 60px;
   text-align: center;
-}
-
-.pdf-viewer-progress-wrapper {
-  flex: 1;
-  min-width: 180px;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.pdf-viewer-slider {
-  flex: 1;
-  accent-color: #f2b705;
-}
-
-.pdf-viewer-progress-text {
-  font-size: 0.9rem;
-  opacity: 0.9;
-  min-width: 120px;
 }
 
 .pdf-viewer-canvas-wrapper {
@@ -113,117 +120,191 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #050505;
+  background-color: transparent;
   overflow: hidden;
 
   position: relative;
-  touch-action: none;
   width: 100%;
-  height: 100%;
+  height: 100vh;
+  /* IMPORTANT: Reserve space for dock at bottom */
+  padding-bottom: 110px;
+  box-sizing: border-box;
 }
 
+/* Ensure the canvas NEVER exceeds available space */
 .pdf-viewer-canvas {
   max-width: 100%;
+  /* Max height corresponds to viewport minus padding */
   max-height: 100%;
-  width: 100%;
-  height: 100%;
+  width: auto;
+  /* Let aspect ratio decide width */
+  height: auto;
+  /* Let aspect ratio decide height */
   object-fit: contain;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  /* softer shadow for light mode */
   background-color: white;
   border-radius: 6px;
   transition: transform 0.18s ease, opacity 0.18s ease;
 }
 
-.pdf-viewer-canvas.animate-forward {
-  animation: pdf-quick-slide-forward 0.18s ease-out;
-}
-
-.pdf-viewer-canvas.animate-backward {
-  animation: pdf-quick-slide-backward 0.18s ease-out;
-}
-
-@keyframes pdf-quick-slide-forward {
-  from {
-    opacity: 0.4;
-    transform: translateX(15px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes pdf-quick-slide-backward {
-  from {
-    opacity: 0.4;
-    transform: translateX(-15px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.pdf-viewer-status {
-  color: #f2f2f2;
-  font-size: 1.2rem;
-  text-align: center;
-}
-
-.pdf-viewer-status.error {
-  color: #ff8a8a;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.pdf-viewer-status.error a {
-  color: #f2b705;
-  text-decoration: underline;
-  font-size: 1rem;
-}
-
-.pdf-viewer-overlay {
-  position: absolute;
-  inset: 0;
+/* Minimal Slider */
+.dock-slider-container {
+  flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: rgba(5, 5, 5, 0.6);
-  padding: 1.5rem;
-  text-align: center;
-  z-index: 2;
+  min-width: 120px;
+  padding: 0 8px;
 }
 
-.pdf-viewer-overlay.error {
-  background: rgba(60, 0, 0, 0.75);
+.dock-slider {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  accent-color: #facc15;
+  transition: height 0.2s ease;
 }
 
-@media (max-width: 882px) {
-  .pdf-viewer-controls {
-    flex-direction: column;
-    align-items: stretch;
+.dock-slider:hover {
+  height: 6px;
+}
+
+/* Title bubble (Desktop only usually) */
+.dock-title-bubble {
+  position: absolute;
+  top: -45px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 300px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.pdf-smart-dock:hover .dock-title-bubble {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-5px);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .pdf-smart-dock {
+    width: 92%;
+    bottom: 20px;
+    padding: 10px 14px;
+    gap: 8px;
+    flex-wrap: nowrap;
+    /* Ensure single row */
+    border-radius: 20px;
   }
 
-  .pdf-viewer-progress-wrapper {
-    width: 100%;
+  .dock-page-info {
+    font-size: 0.85rem;
+    min-width: 50px;
   }
 
-  .pdf-viewer-toolbar {
-    transform: translateY(100%);
-    opacity: 0;
-    pointer-events: none;
+  .dock-slider-container {
+    display: none;
+    /* Hide slider on very small screens or make it a separate popover if needed, but for dock aesthetic, minimal is better. Or just keep it small. */
   }
 
-  .pdf-viewer-toolbar.mobile-visible {
-    transform: translateY(0);
-    opacity: 1;
-    pointer-events: auto;
+  /* We'll use a specific class to show slider if user wants, but default hide for clean dock */
+  .dock-slider-container.mobile-hidden {
+    display: none;
+  }
+
+  .dock-button {
+    padding: 8px;
+  }
+
+  .dock-button svg {
+    width: 20px;
+    height: 20px;
   }
 
   .pdf-viewer-canvas-wrapper.toolbar-offset {
-    padding-bottom: 90px;
+    padding-bottom: 0;
+    /* Dock floats over, no need to push content hard, or maybe just a bit */
   }
+}
+
+/* Tablet adjustments */
+@media (max-width: 882px) {
+  .pdf-viewer-canvas-wrapper.toolbar-offset {
+    /* On mobile, we might want some padding so the dock doesn't cover text at the bottom initially */
+    padding-bottom: 80px;
+  }
+}
+
+/* Note Indicator for PDF Page */
+.pdf-page-note-indicator {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(253, 224, 71, 0.95);
+  /* More solid */
+  color: #854d0e;
+  padding: 12px;
+  /* Increased padding */
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  /* significantly larger icon */
+  transition: transform 0.2s;
+}
+
+.pdf-page-note-indicator:hover {
+  transform: scale(1.15);
+  background: #fef08a;
+  /* lighter yellow on hover */
+}
+
+.pdf-viewer-button-note {
+  background-color: rgba(253, 224, 71, 0.2) !important;
+  border-color: rgba(253, 224, 71, 0.5) !important;
+  color: #fde047 !important;
+  padding: 0.7rem 1.4rem;
+}
+
+.pdf-viewer-button-note svg {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+.pdf-viewer-button-note:hover {
+  background-color: rgba(253, 224, 71, 0.35) !important;
+  transform: translateY(-3px) !important;
+  box-shadow: 0 0 15px rgba(253, 224, 71, 0.2);
+}
+
+/* Drawing Canvas Styling */
+.drawing-canvas-layer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 100%;
+  max-height: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 10;
 }

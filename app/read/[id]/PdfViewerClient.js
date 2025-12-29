@@ -11,7 +11,13 @@ import React, {
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { AuthContext } from '@/contexts/AuthContext';
+import { createClient } from '@/utils/supabase/client';
+import { FaHighlighter, FaStickyNote } from 'react-icons/fa';
+import DraggableNoteCard from '@/components/DraggableNoteCard';
 import './PdfViewer.css';
+
+
+
 
 const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
   const canvasRef = useRef(null);
@@ -40,6 +46,41 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
   const hideToolbarTimeoutRef = useRef(null);
 
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 });
+
+  // Page Notes Logic
+  const [pageNotes, setPageNotes] = useState({}); // Map: pageNum -> Array of note objects
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchPageNotes = async () => {
+      if (!isLoggedIn || !user || !bookId) {
+        setPageNotes({});
+        return;
+      }
+      try {
+        const { data } = await supabase
+          .from('page_notes')
+          .select('*') // Select all fields including position and size
+          .eq('book_id', bookId)
+          .eq('user_id', user.id);
+
+        const notesMap = {};
+        if (data) {
+          data.forEach(item => {
+            const pNum = Number(item.page_number); // Ensure number
+            if (!notesMap[pNum]) {
+              notesMap[pNum] = [];
+            }
+            notesMap[pNum].push(item);
+          });
+        }
+        setPageNotes(notesMap);
+      } catch (err) {
+        console.error('Error fetching page notes:', err);
+      }
+    };
+    fetchPageNotes();
+  }, [bookId, isLoggedIn, user]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -299,13 +340,12 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
     const loadDocument = async () => {
       try {
         if (!pdfjsLibRef.current) {
-          const pdfModule = await import(
-            /* webpackIgnore: true */
-            'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/legacy/build/pdf.min.mjs'
-          );
-          const workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/legacy/build/pdf.worker.min.mjs';
-          if (pdfModule?.GlobalWorkerOptions) {
-            pdfModule.GlobalWorkerOptions.workerSrc = workerSrc;
+          // Use local pdfjs-dist
+          const pdfModule = await import('pdfjs-dist');
+
+          if (typeof window !== 'undefined' && pdfModule?.GlobalWorkerOptions) {
+            // Point to the worker we copied to public folder
+            pdfModule.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
           }
           pdfjsLibRef.current = pdfModule;
         }
@@ -326,7 +366,33 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
           pdfInstanceRef.current = null;
         }
 
-        const loadingTask = getDocument({ url: pdfUrl });
+        let docSource = pdfUrl;
+
+        // Offline Fallback Logic
+        if (!docSource) {
+          console.log("No PDF URL provided, checking offline storage...");
+          try {
+            // Dynamic import to avoid SSR issues with IDB
+            const { getOfflineBook } = await import('@/utils/db');
+            const offlineBook = await getOfflineBook(bookId);
+            if (offlineBook && offlineBook.pdfBlob) {
+              console.log("Found offline book:", offlineBook.title);
+              docSource = URL.createObjectURL(offlineBook.pdfBlob);
+              // Also set title if missing (e.g. if page.js failed to fetch it)
+              if (!bookTitle && offlineBook.title) {
+                // This component doesn't have state for title, but we can update the document title at least
+                document.title = `قراءة: ${offlineBook.title}`;
+              }
+            } else {
+              throw new Error("الكتاب غير موجود في التخزين المحلي.");
+            }
+          } catch (offlineErr) {
+            console.error("Failed to load from offline storage:", offlineErr);
+            throw new Error("تعذر تحميل الكتاب.");
+          }
+        }
+
+        const loadingTask = getDocument({ url: docSource });
         loadingTaskRef.current = loadingTask;
         const pdfDoc = await loadingTask.promise;
         if (!isMounted) {
@@ -341,7 +407,7 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
       } catch (error) {
         console.error('Failed to load PDF document:', error);
         if (isMounted) {
-          setErrorMessage('تعذر تحميل ملف الكتاب. حاول مجددًا لاحقًا.');
+          setErrorMessage(error.message || 'تعذر تحميل ملف الكتاب.');
         }
       } finally {
         if (isMounted) {
@@ -354,24 +420,12 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
 
     return () => {
       isMounted = false;
-      if (renderTaskRef.current) {
-        renderTaskRef.current.cancel();
-        renderTaskRef.current = null;
-      }
-      if (loadingTaskRef.current) {
-        loadingTaskRef.current.destroy();
-        loadingTaskRef.current = null;
-      }
-      if (pdfInstanceRef.current) {
-        pdfInstanceRef.current.destroy();
-        pdfInstanceRef.current = null;
-      }
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-        saveTimeoutRef.current = null;
-      }
+      if (renderTaskRef.current) renderTaskRef.current.cancel();
+      if (loadingTaskRef.current) loadingTaskRef.current.destroy();
+      if (pdfInstanceRef.current) pdfInstanceRef.current.destroy();
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
-  }, [pdfUrl]);
+  }, [pdfUrl, bookId, bookTitle]); // Added bookId, bookTitle dependencies
 
   useEffect(() => {
     if (!pdfInstanceRef.current || !totalPages) return;
@@ -386,10 +440,7 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
 
   useEffect(() => {
     return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-        saveTimeoutRef.current = null;
-      }
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
   }, []);
 
@@ -424,9 +475,7 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
 
 
   const handleSliderChange = (event) => {
-    const targetPage = Number(event.target.value);
-    const direction = targetPage > currentPage ? 'forward' : 'backward';
-    goToPage(targetPage, direction);
+    goToPage(Number(event.target.value));
   };
 
   const progressPercentage = computePercentage(currentPage);
@@ -463,13 +512,373 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
     }
 
     if (elapsed < 600 && Math.abs(deltaX) > swipeThreshold && Math.abs(deltaY) < 80) {
-      if (deltaX > 0) {
-        handleNextPage();
-      } else {
-        handlePrevPage();
-      }
+      if (deltaX > 0) handleNextPage();
+      else handlePrevPage();
     }
   }, [handleNextPage, handlePrevPage, isMobileViewport]);
+
+  // --- Drawing / Planning Mode Logic ---
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
+  const drawingCanvasRef = useRef(null);
+  const isDrawingRef = useRef(false);
+  const currentPathRef = useRef([]); // Array of {x, y} for current stroke
+  const [drawings, setDrawings] = useState([]); // Array of stroke objects for current page
+  const canvasScaleRef = useRef(scale); // Store current scale for coordinate conversion
+
+  // Load drawings for current page
+  useEffect(() => {
+    const fetchDrawings = async () => {
+      if (!isLoggedIn || !user || !bookId) {
+        setDrawings([]);
+        return;
+      }
+      const { data, error } = await supabase
+        .from('page_drawings')
+        .select('*')
+        .eq('book_id', bookId)
+        .eq('page_number', currentPage)
+        .eq('user_id', user.id);
+
+      if (data) {
+        // Flatten strokes from all rows (if multiple rows per page, though we might prefer one row per page or one row per stroke? 
+        // Let's assume one row per page for simplicity, OR array of rows. 
+        // If the table allows multiple rows per page (which is good for incremental saves), we merge them.
+        // Actually, for simplicity, let's just create a new row for each session or stroke? 
+        // Better: Fetch all rows for this page, each row could contain multiple strokes or one. 
+        // Simplest for now: Each row is a "session" of strokes or a single stroke.
+        // Let's treat 'strokes' column as an array of stroke objects.
+        const allStrokes = data.flatMap(row => row.strokes || []);
+        setDrawings(allStrokes);
+      }
+    };
+    fetchDrawings();
+  }, [bookId, currentPage, isLoggedIn, user, supabase]);
+
+  // Sync drawing canvas size with PDF canvas
+  useEffect(() => {
+    const pdfCanvas = canvasRef.current;
+    const drawingCanvas = drawingCanvasRef.current;
+    if (pdfCanvas && drawingCanvas) {
+      drawingCanvas.width = pdfCanvas.width;
+      drawingCanvas.height = pdfCanvas.height;
+      redrawDrawings(drawings);
+    }
+  }, [currentPage, scale, isRendering, drawings]);
+
+  const redrawDrawings = useCallback((strokesToDraw) => {
+    const canvas = drawingCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const width = canvas.width;
+    const height = canvas.height;
+
+    strokesToDraw.forEach(stroke => {
+      if (!stroke.points || stroke.points.length < 2) return;
+
+      ctx.beginPath();
+      ctx.strokeStyle = stroke.color || 'rgba(255, 235, 59, 0.4)';
+      ctx.lineWidth = stroke.width || 25;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      const pts = stroke.points;
+      // Start
+      ctx.moveTo(pts[0].x * width, pts[0].y * height);
+
+      // Curve through midpoints
+      for (let i = 1; i < pts.length - 1; i++) {
+        const p1 = pts[i];
+        const p2 = pts[i + 1];
+
+        const midX = (p1.x + p2.x) / 2 * width;
+        const midY = (p1.y + p2.y) / 2 * height;
+        const cpX = p1.x * width;
+        const cpY = p1.y * height;
+
+        ctx.quadraticCurveTo(cpX, cpY, midX, midY);
+      }
+
+      // Last point
+      const last = pts[pts.length - 1];
+      ctx.lineTo(last.x * width, last.y * height);
+
+      ctx.stroke();
+    });
+  }, []);
+
+  const getPointerPos = (e) => {
+    const canvas = drawingCanvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+
+    // Get the bounding rectangle of the canvas element
+    const rect = canvas.getBoundingClientRect();
+
+    // Calculate the actual displayed size of the image within the canvas
+    // The canvas has object-fit: contain, so we need to know the aspect ratio of the internal bitmap
+    const bitmapWidth = canvas.width;
+    const bitmapHeight = canvas.height;
+
+    // Calculate scaling ratios
+    const scaleX = rect.width / bitmapWidth;
+    const scaleY = rect.height / bitmapHeight;
+    const scale = Math.min(scaleX, scaleY);
+
+    // Calculate the visual size and offsets
+    const visualWidth = bitmapWidth * scale;
+    const visualHeight = bitmapHeight * scale;
+    const offsetX = (rect.width - visualWidth) / 2;
+    const offsetY = (rect.height - visualHeight) / 2;
+
+    // Get client coordinates
+    const clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+    const clientY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+
+    // Map to canvas relative coordinates
+    const relativeX = clientX - rect.left - offsetX;
+    const relativeY = clientY - rect.top - offsetY;
+
+    // Normalize to 0-1 range
+    let x = relativeX / visualWidth;
+    let y = relativeY / visualHeight;
+
+    // Clamp to [0, 1] to prevent drawing outside
+    x = Math.max(0, Math.min(1, x));
+    y = Math.max(0, Math.min(1, y));
+
+    return { x, y };
+  };
+
+  const startDrawing = useCallback((e) => {
+    if (!isDrawingMode) return;
+    if (e.cancelable) e.preventDefault();
+    isDrawingRef.current = true;
+    const pos = getPointerPos(e);
+    currentPathRef.current = [pos];
+  }, [isDrawingMode]);
+
+  const draw = useCallback((e) => {
+    if (!isDrawingMode || !isDrawingRef.current) return;
+    if (e.cancelable) e.preventDefault();
+    const pos = getPointerPos(e);
+    currentPathRef.current.push(pos);
+
+    // Redraw everything to ensure consistent opacity
+    // 1. Clear
+    const canvas = drawingCanvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 2. Draw existing strokes
+    const width = canvas.width;
+    const height = canvas.height;
+
+    // Helper to draw a single stroke path
+    const drawPath = (points, color, lineWidth) => {
+      if (points.length < 2) return;
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lineWidth;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      ctx.moveTo(points[0].x * width, points[0].y * height);
+      for (let i = 1; i < points.length - 1; i++) {
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        const midX = (p1.x + p2.x) / 2 * width;
+        const midY = (p1.y + p2.y) / 2 * height;
+        ctx.quadraticCurveTo(p1.x * width, p1.y * height, midX, midY);
+      }
+      const last = points[points.length - 1];
+      ctx.lineTo(last.x * width, last.y * height);
+      ctx.stroke();
+    };
+
+    // Draw saved drawings
+    drawings.forEach(stroke => {
+      drawPath(stroke.points, stroke.color || 'rgba(255, 235, 59, 0.4)', stroke.width || 25);
+    });
+
+    // 3. Draw current active path
+    if (currentPathRef.current.length > 1) {
+      drawPath(currentPathRef.current, 'rgba(255, 235, 59, 0.4)', 25);
+    }
+  }, [isDrawingMode, drawings]); // drawings dependency IS needed now because we redraw them
+
+  const stopDrawing = useCallback(async () => {
+    if (!isDrawingMode || !isDrawingRef.current) return;
+    isDrawingRef.current = false;
+
+    if (currentPathRef.current.length > 1) {
+      const newStroke = {
+        points: currentPathRef.current,
+        color: 'rgba(255, 235, 59, 0.4)',
+        width: 25
+      };
+
+      const newDrawings = [...drawings, newStroke];
+      setDrawings(newDrawings);
+
+      try {
+        await supabase.from('page_drawings').insert({
+          book_id: bookId,
+          user_id: user.id,
+          page_number: currentPage,
+          strokes: [newStroke]
+        });
+      } catch (err) {
+        console.error("Failed to save stroke:", err);
+      }
+    }
+    currentPathRef.current = [];
+  }, [isDrawingMode, drawings, bookId, user, currentPage, supabase]);
+
+  // Attach non-passive touch listeners to support preventing scroll while drawing
+  useEffect(() => {
+    const canvas = drawingCanvasRef.current;
+    if (!canvas) return;
+
+    // Only attach listeners if we are in drawing mode
+    if (!isDrawingMode) return;
+
+    const handleTouchStartPassthrough = (e) => startDrawing(e);
+    const handleTouchMovePassthrough = (e) => draw(e);
+
+    // We must use { passive: false } to allow e.preventDefault() in startDrawing/draw
+    canvas.addEventListener('touchstart', handleTouchStartPassthrough, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMovePassthrough, { passive: false });
+    canvas.addEventListener('touchend', stopDrawing, { passive: false });
+
+    return () => {
+      canvas.removeEventListener('touchstart', handleTouchStartPassthrough);
+      canvas.removeEventListener('touchmove', handleTouchMovePassthrough);
+      canvas.removeEventListener('touchend', stopDrawing);
+    };
+  }, [isDrawingMode, draw, startDrawing, stopDrawing]);
+
+  const handleToggleDrawing = () => {
+    setIsDrawingMode(prev => !prev);
+    if (!isDrawingMode) {
+      toast.info("وضع التخطيط: مفعل (ارسم بإصبعك/الماوس)");
+    } else {
+      toast.info("وضع التخطيط: معطل");
+    }
+  };
+
+  // --- End Drawing Logic ---
+
+  const handleUpdateNote = async (noteId, updates) => {
+    // Optimistic update
+    setPageNotes(prev => {
+      const notes = prev[currentPage] ? [...prev[currentPage]] : [];
+      const noteIndex = notes.findIndex(n => n.id === noteId);
+      if (noteIndex > -1) {
+        notes[noteIndex] = { ...notes[noteIndex], ...updates };
+        return { ...prev, [currentPage]: notes };
+      }
+      return prev;
+    });
+
+    try {
+      await supabase
+        .from('page_notes')
+        .update(updates)
+        .eq('id', noteId);
+    } catch (err) {
+      console.error("Failed to update note:", err);
+      toast.error("فشل حفظ التعديلات");
+    }
+  };
+
+  const handleDeleteNote = async (noteId) => {
+    if (!window.confirm("حذف الملاحظة؟")) return;
+
+    // Optimistic delete
+    setPageNotes(prev => {
+      const notes = prev[currentPage] ? prev[currentPage].filter(n => n.id !== noteId) : [];
+      const newMap = { ...prev };
+      if (notes.length === 0) delete newMap[currentPage];
+      else newMap[currentPage] = notes;
+      return newMap;
+    });
+
+    try {
+      await supabase.from('page_notes').delete().eq('id', noteId);
+      toast.success("تم الحذف");
+    } catch (err) {
+      console.error("Failed to delete note:", err);
+      toast.error("فشل حذف الملاحظة");
+    }
+  };
+
+  const handleCreateNote = async () => {
+    console.log("handleCreateNote called");
+    if (!user) {
+      console.error("User not logged in");
+      toast.error("يجب تسجيل الدخول");
+      return;
+    }
+    if (!bookId) {
+      console.error("Missing bookId");
+      toast.error("حدث خطأ: رقم الكتاب مفقود");
+      return;
+    }
+
+    // Direct insert clean note
+    const newNote = {
+      book_id: bookId,
+      user_id: user.id,
+      page_number: currentPage,
+      note: ' ',
+      req_x: 50,
+      req_y: 50,
+      width: 200,
+      height: 150,
+      color: '#fbf8cc'
+    };
+
+    try {
+      const { data, error } = await supabase
+        .from('page_notes')
+        .insert(newNote)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Supabase insert error details:", {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+        throw error;
+      }
+
+      if (data) {
+        setPageNotes(prev => {
+          const notes = prev[currentPage] ? [...prev[currentPage]] : [];
+          notes.push(data);
+          return { ...prev, [currentPage]: notes };
+        });
+        toast.success("تم إضافة الملاحظة");
+      }
+    } catch (e) {
+      // If e is custom thrown error, it has message. If generic, might be empty obj if not handled.
+      console.error("Catch block caught error:", e);
+      if (e.message) console.error("Error message:", e.message);
+      toast.error("فشل إنشاء الملاحظة: " + (e.message || "خطأ غير معروف"));
+    }
+  };
+
+  const handleCanvasLeave = useCallback(() => {
+    stopDrawing();
+    if (isDrawingMode) {
+      setIsDrawingMode(false);
+      toast.info("تم إيقاف القلم");
+    }
+  }, [isDrawingMode, stopDrawing]);
 
   return (
     <div className="pdf-viewer-root">
@@ -480,6 +889,7 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
         ]
           .filter(Boolean)
           .join(' ')}
+
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -488,12 +898,49 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
           className={`pdf-viewer-canvas ${pageAnimation ? `animate-${pageAnimation}` : ''
             }`}
         />
+        {/* Drawing Canvas Overlay */}
+        <canvas
+          ref={drawingCanvasRef}
+          className="drawing-canvas-layer"
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: isDrawingMode ? 'auto' : 'none',
+            // Critical: Block default touch actions (scrolling) ONLY when this element is interactive
+            touchAction: 'none',
+            zIndex: 10,
+            cursor: isDrawingMode ? "url('/highlighter-cursor.svg') 4 28, crosshair" : 'default',
+          }}
+          onMouseDown={startDrawing}
+          onMouseMove={draw}
+          onMouseUp={stopDrawing}
+          onMouseLeave={handleCanvasLeave}
+        />
+        {/* Render Page Notes */}
+        {pageNotes[currentPage] && pageNotes[currentPage].map(note => {
+          return (
+            <DraggableNoteCard
+              key={note.id}
+              id={note.id}
+              content={note.note}
+              initialX={note.req_x || 50}
+              initialY={note.req_y || 50}
+              initialWidth={note.width || 200}
+              initialHeight={note.height || 150}
+              initialColor={note.color || '#fbf8cc'}
+              onUpdate={handleUpdateNote}
+              onDelete={handleDeleteNote}
+            />
+          );
+        })}
         {errorMessage && (
           <div className="pdf-viewer-overlay error">
             <div className="pdf-viewer-status error">
               <span>{errorMessage}</span>
               <a href={pdfUrl} target="_blank" rel="noopener noreferrer">
-                فتح أو تحميل الكتاب مباشرةً
+                فتح أو تحميل الكتاب
               </a>
             </div>
           </div>
@@ -509,53 +956,92 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
 
       <div
         className={[
-          'pdf-viewer-toolbar',
-          'bottom',
-          isMobileViewport && mobileControlsVisible ? 'mobile-visible' : '',
-          !isMobileViewport && !toolbarVisible ? 'toolbar-hidden' : '',
+          'pdf-smart-dock',
+          !toolbarVisible ? 'hidden' : ''
         ]
           .filter(Boolean)
           .join(' ')}
       >
-        <div className="pdf-viewer-title" title={bookTitle}>{bookTitle}</div>
-        <div className="pdf-viewer-controls">
+        <div className="dock-title-bubble">{bookTitle}</div>
+
+        {/* Navigation Section */}
+        <div className="dock-section">
           <button
-            className="pdf-viewer-button"
+            className="dock-button"
             onClick={handlePrevPage}
             disabled={currentPage <= 1 || isRendering}
+            title="الصفحة السابقة"
           >
-            الصفحة السابقة
-          </button>
-          <span className="pdf-viewer-page-indicator">
-            {currentPage} / {totalPages || '...'}
-          </span>
-          <button
-            className="pdf-viewer-button"
-            onClick={handleNextPage}
-            disabled={currentPage >= totalPages || isRendering}
-          >
-            الصفحة التالية
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
           </button>
 
-          <div className="pdf-viewer-progress-wrapper">
-            <input
-              type="range"
-              min="1"
-              max={totalPages || 1}
-              value={currentPage}
-              onChange={handleSliderChange}
-              className="pdf-viewer-slider"
-            />
-            <span className="pdf-viewer-progress-text">
-              تقدم القراءة: {progressPercentage}%
-            </span>
-          </div>
-          <button className="pdf-viewer-button secondary" onClick={() => router.back()}>
-            رجوع
+          <span className="dock-page-info">
+            {currentPage} / {totalPages || '..'}
+          </span>
+
+          <button
+            className="dock-button"
+            onClick={handleNextPage}
+            disabled={currentPage >= totalPages || isRendering}
+            title="الصفحة التالية"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <div className="dock-divider" />
+
+        {/* Progress Section (Hidden on minimal mobile views via CSS if needed, but we try to keep it) */}
+        <div className="dock-slider-container">
+          <input
+            type="range"
+            min="1"
+            max={totalPages || 1}
+            value={currentPage}
+            onChange={handleSliderChange}
+            className="dock-slider"
+            title="شريط التقدم"
+          />
+        </div>
+
+        <div className="dock-divider" />
+
+        {/* Tools Section */}
+        <div className="dock-section">
+          <button
+            className={`dock-button ${isDrawingMode ? 'active' : ''}`}
+            onClick={handleToggleDrawing}
+            title="تظليل / رسم"
+          >
+            <FaHighlighter />
+          </button>
+
+          <button
+            className="dock-button"
+            onClick={handleCreateNote}
+            title="إضافة ملاحظة"
+          >
+            <FaStickyNote />
+          </button>
+
+          <button
+            className="dock-button"
+            onClick={() => router.back()}
+            title="خروج"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(180deg)' }}>
+              <path d="M15 3h6v6"></path>
+              <path d="M10 14L21 3"></path>
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            </svg>
           </button>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

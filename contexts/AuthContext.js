@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
           console.error("Error fetching user profile:", error);
           setUser({
             ...authUser,
-            username: authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.user_metadata?.username || authUser.email?.split('@')[0]
+            username: authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0]
           });
         } else {
           const fullUser = {

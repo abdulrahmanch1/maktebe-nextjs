@@ -47,6 +47,12 @@ const Header = () => {
           </Link>
         </div>
 
+        <nav className="header-nav">
+          <Link href="/about" className="header-nav-link">
+            عن المكتبة
+          </Link>
+        </nav>
+
         <div className="header-user-section">
           {isLoggedIn ? (
             <Link href="/settings" className="header-user-link">
@@ -57,8 +63,7 @@ const Header = () => {
                 width={36}
                 height={36}
                 className="header-user-avatar"
-                placeholder="blur"
-                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=="
+                unoptimized={!!(user && user.profilePicture)}
               />
             </Link>
           ) : (
