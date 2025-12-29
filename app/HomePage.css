@@ -23,14 +23,14 @@
 }
 
 .search-filter-container.glass-panel {
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--card-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 15px 25px;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   /* Soft shadow */
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid var(--border-color);
   display: flex;
   gap: 12px;
   width: 100%;
@@ -43,8 +43,8 @@
 .category-select {
   padding: 14px 20px;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  background-color: #fff;
+  border: 1px solid var(--border-color);
+  background-color: var(--background-color);
   color: var(--primary-color);
   font-size: 1rem;
   transition: all 0.2s ease;
@@ -55,7 +55,7 @@
 .category-select:focus {
   outline: none;
   border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+  box-shadow: 0 0 0 3px var(--accent-color-alpha);
 }
 
 .search-input {

@@ -47,12 +47,6 @@ const Header = () => {
           </Link>
         </div>
 
-        <nav className="header-nav">
-          <Link href="/about" className="header-nav-link">
-            عن المكتبة
-          </Link>
-        </nav>
-
         <div className="header-user-section">
           {isLoggedIn ? (
             <Link href="/settings" className="header-user-link">

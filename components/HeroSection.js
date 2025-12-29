@@ -49,10 +49,11 @@ const HeroSection = () => {
                     {loading ? (
                         <div style={{
                             width: '100%', height: '100%',
-                            background: 'linear-gradient(45deg, #1e293b, #334155)',
+                            background: 'var(--secondary-color)',
                             borderRadius: '4px 16px 16px 4px',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'white', fontWeight: 'bold'
+                            color: 'var(--primary-color)', fontWeight: 'bold',
+                            fontSize: '2rem'
                         }}>
                             ⏳
                         </div>
@@ -63,36 +64,15 @@ const HeroSection = () => {
                                     src={featuredBook.cover || '/imgs/default-book.jpg'}
                                     alt={featuredBook.title || 'كتاب الأسبوع'}
                                     fill
+                                    sizes="180px"
                                     style={{ objectFit: 'cover', borderRadius: '4px 16px 16px 4px' }}
                                     priority
                                 />
-                                <div style={{
-                                    position: 'absolute',
-                                    bottom: 0,
-                                    left: 0,
-                                    right: 0,
-                                    background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)',
-                                    padding: '1rem',
-                                    color: 'white',
-                                    borderRadius: '0 0 16px 4px'
-                                }}>
-                                    <div style={{
-                                        fontSize: '0.75rem',
-                                        fontWeight: '600',
-                                        color: '#fbbf24',
-                                        marginBottom: '0.25rem'
-                                    }}>
+                                <div className="book-overlay">
+                                    <div className="book-badge">
                                         ⭐ كتاب الأسبوع
                                     </div>
-                                    <div style={{
-                                        fontSize: '0.9rem',
-                                        fontWeight: 'bold',
-                                        lineHeight: '1.2',
-                                        display: '-webkit-box',
-                                        WebkitLineClamp: 2,
-                                        WebkitBoxOrient: 'vertical',
-                                        overflow: 'hidden'
-                                    }}>
+                                    <div className="book-title-overlay">
                                         {featuredBook.title}
                                     </div>
                                 </div>
@@ -101,10 +81,10 @@ const HeroSection = () => {
                     ) : (
                         <div style={{
                             width: '100%', height: '100%',
-                            background: 'linear-gradient(45deg, #1e293b, #334155)',
+                            background: 'var(--secondary-color)',
                             borderRadius: '4px 16px 16px 4px',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'white', fontWeight: 'bold', textAlign: 'center', padding: '10px'
+                            color: 'var(--primary-color)', fontWeight: 'bold', textAlign: 'center', padding: '10px'
                         }}>
                             كتاب الأسبوع
                         </div>

@@ -6,7 +6,7 @@ import { ThemeContext } from '@/contexts/ThemeContext';
 import { AuthContext } from '@/contexts/AuthContext';
 import './Sidebar.css';
 
-import { FaHome, FaBookOpen, FaCog, FaHeart, FaList, FaTachometerAlt, FaChartBar, FaBook, FaUserTie, FaEnvelope, FaPlus, FaLayerGroup, FaDownload } from 'react-icons/fa';
+import { FaHome, FaBookOpen, FaCog, FaHeart, FaList, FaTachometerAlt, FaChartBar, FaBook, FaUserTie, FaEnvelope, FaPlus, FaLayerGroup, FaDownload, FaInfoCircle } from 'react-icons/fa';
 import Image from 'next/image';
 
 const Sidebar = ({ isOpen, toggle, isLoggedIn, logout }) => {
@@ -71,6 +71,10 @@ const Sidebar = ({ isOpen, toggle, isLoggedIn, logout }) => {
         <Link href="/settings" onClick={toggle} className={getLinkClassName('/settings')}>
           <FaCog className="sidebar-icon" />
           <span>الإعدادات</span>
+        </Link>
+        <Link href="/about" onClick={toggle} className={getLinkClassName('/about')}>
+          <FaInfoCircle className="sidebar-icon" />
+          <span>عن المكتبة</span>
         </Link>
 
         {isLoggedIn && user && user.role === 'admin' && (
