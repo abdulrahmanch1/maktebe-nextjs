@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { AuthContext } from '@/contexts/AuthContext';
 import { createClient } from '@/utils/supabase/client';
-import { FaHighlighter, FaStickyNote } from 'react-icons/fa';
+import { FaHighlighter, FaStickyNote, FaEraser } from 'react-icons/fa';
 import DraggableNoteCard from '@/components/DraggableNoteCard';
 import './PdfViewer.css';
 
@@ -44,6 +44,18 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
   const [mobileControlsVisible, setMobileControlsVisible] = useState(false);
   const [toolbarVisible, setToolbarVisible] = useState(true);
   const hideToolbarTimeoutRef = useRef(null);
+
+  // --- Drawing / Planning Mode Logic (Hoisted) ---
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
+  const [showDrawingToolbar, setShowDrawingToolbar] = useState(false);
+  const [drawingTool, setDrawingTool] = useState('pen'); // 'pen' or 'eraser'
+  const [penColor, setPenColor] = useState('rgba(255, 235, 59, 0.4)'); // Yellow
+  const [penWidth, setPenWidth] = useState(25);
+  const drawingCanvasRef = useRef(null);
+  const isDrawingRef = useRef(false);
+  const currentPathRef = useRef([]); // Array of {x, y} for current stroke
+  const [drawings, setDrawings] = useState([]); // Array of stroke objects for current page
+  const canvasScaleRef = useRef(scale); // Store current scale for coordinate conversion
 
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 });
 
@@ -273,7 +285,7 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
       saveTimeoutRef.current = setTimeout(async () => {
         await persistServerProgress(pageNumber, percentage);
         lastScheduledProgressRef.current = null;
-      }, 1200);
+      }, 5000); // Increased to 5s to prevent API spam
     },
     [
       computePercentage,
@@ -481,6 +493,9 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
   const progressPercentage = computePercentage(currentPage);
 
   const handleTouchStart = useCallback((event) => {
+    // Disable swipe gesture if drawing mode is active
+    if (isDrawingMode) return;
+
     if (event.touches.length === 1) {
       const touch = event.touches[0];
       touchStartRef.current = {
@@ -489,11 +504,13 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
         time: Date.now(),
       };
     }
-  }, []);
+  }, [isDrawingMode]);
 
 
 
   const handleTouchEnd = useCallback((event) => {
+    // Disable swipe gesture if drawing mode is active
+    if (isDrawingMode) return;
 
     if (event.changedTouches.length === 0) return;
     const touch = event.changedTouches[0];
@@ -515,15 +532,10 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
       if (deltaX > 0) handleNextPage();
       else handlePrevPage();
     }
-  }, [handleNextPage, handlePrevPage, isMobileViewport]);
+  }, [handleNextPage, handlePrevPage, isDrawingMode, isMobileViewport]);
 
   // --- Drawing / Planning Mode Logic ---
-  const [isDrawingMode, setIsDrawingMode] = useState(false);
-  const drawingCanvasRef = useRef(null);
-  const isDrawingRef = useRef(false);
-  const currentPathRef = useRef([]); // Array of {x, y} for current stroke
-  const [drawings, setDrawings] = useState([]); // Array of stroke objects for current page
-  const canvasScaleRef = useRef(scale); // Store current scale for coordinate conversion
+  // State definitions moved to top to avoid ReferenceError with touch handlers
 
   // Load drawings for current page
   useEffect(() => {
@@ -660,8 +672,37 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
 
   const draw = useCallback((e) => {
     if (!isDrawingMode || !isDrawingRef.current) return;
-    if (e.cancelable) e.preventDefault();
+    if (e.cancelable && (isDrawingMode || e.type === 'touchmove')) {
+      e.preventDefault(); // Strict prevention of scroll
+      e.stopPropagation();
+    }
+
     const pos = getPointerPos(e);
+
+    if (drawingTool === 'eraser') {
+      // Real-time Eraser Logic
+      const eraserRadius = 0.05; // Adjust sensitivity
+
+      setDrawings(prevDrawings => {
+        const remaining = prevDrawings.filter(stroke => {
+          // Check if ANY point in the stroke is close to the eraser position
+          // This is a simplified hit-test. Ideally we check distance to line segments.
+          return !stroke.points.some(p =>
+            Math.abs(p.x - pos.x) < eraserRadius && Math.abs(p.y - pos.y) < eraserRadius
+          );
+        });
+
+        // If changed, trigger update
+        if (remaining.length !== prevDrawings.length) {
+          // We'll handle DB sync in stopDrawing, or we can debounce it here.
+          // For now, let's just update local state visually.
+          return remaining;
+        }
+        return prevDrawings;
+      });
+      return; // Don't draw the eraser path itself
+    }
+
     currentPathRef.current.push(pos);
 
     // Redraw everything to ensure consistent opacity
@@ -703,37 +744,66 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
 
     // 3. Draw current active path
     if (currentPathRef.current.length > 1) {
-      drawPath(currentPathRef.current, 'rgba(255, 235, 59, 0.4)', 25);
+      // For eraser, we still draw to show preview, but we'll remove strokes on stopDrawing
+      drawPath(currentPathRef.current, drawingTool === 'eraser' ? 'rgba(255, 100, 100, 0.5)' : penColor, drawingTool === 'eraser' ? penWidth * 2 : penWidth);
     }
-  }, [isDrawingMode, drawings]); // drawings dependency IS needed now because we redraw them
+  }, [isDrawingMode, drawings, drawingTool, penColor, penWidth]);
 
   const stopDrawing = useCallback(async () => {
     if (!isDrawingMode || !isDrawingRef.current) return;
     isDrawingRef.current = false;
 
-    if (currentPathRef.current.length > 1) {
+    if (drawingTool === 'eraser') {
+      // Sync after eraser session
+      if (isLoggedIn && user) {
+        try {
+          // Delete all strokes for this page
+          await supabase.from('page_drawings').delete()
+            .eq('book_id', bookId)
+            .eq('page_number', currentPage)
+            .eq('user_id', user.id);
+
+          // Re-insert remaining strokes if any
+          if (drawings.length > 0) {
+            await supabase.from('page_drawings').insert({
+              book_id: bookId,
+              user_id: user.id,
+              page_number: currentPage,
+              strokes: drawings
+            });
+          }
+        } catch (err) {
+          console.error("Failed to update after erase:", err);
+        }
+      }
+    } else if (currentPathRef.current.length > 1) {
+      // Normal pen: Add new stroke
       const newStroke = {
         points: currentPathRef.current,
-        color: 'rgba(255, 235, 59, 0.4)',
-        width: 25
+        color: penColor,
+        width: penWidth,
+        tool: 'pen'
       };
 
       const newDrawings = [...drawings, newStroke];
       setDrawings(newDrawings);
 
-      try {
-        await supabase.from('page_drawings').insert({
-          book_id: bookId,
-          user_id: user.id,
-          page_number: currentPage,
-          strokes: [newStroke]
-        });
-      } catch (err) {
-        console.error("Failed to save stroke:", err);
+      // Only save to database if user is logged in
+      if (isLoggedIn && user) {
+        try {
+          await supabase.from('page_drawings').insert({
+            book_id: bookId,
+            user_id: user.id,
+            page_number: currentPage,
+            strokes: [newStroke]
+          });
+        } catch (err) {
+          console.error("Failed to save stroke:", err);
+        }
       }
     }
     currentPathRef.current = [];
-  }, [isDrawingMode, drawings, bookId, user, currentPage, supabase]);
+  }, [isDrawingMode, drawings, bookId, user, currentPage, supabase, isLoggedIn, drawingTool, penColor, penWidth]);
 
   // Attach non-passive touch listeners to support preventing scroll while drawing
   useEffect(() => {
@@ -759,11 +829,20 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
   }, [isDrawingMode, draw, startDrawing, stopDrawing]);
 
   const handleToggleDrawing = () => {
-    setIsDrawingMode(prev => !prev);
-    if (!isDrawingMode) {
-      toast.info("وضع التخطيط: مفعل (ارسم بإصبعك/الماوس)");
-    } else {
-      toast.info("وضع التخطيط: معطل");
+    const newMode = !isDrawingMode;
+    setIsDrawingMode(newMode);
+    setShowDrawingToolbar(newMode); // Always show toolbar when painting, hide when stopped
+
+    if (newMode && !isLoggedIn) {
+      // Show warning only once for guest users when enabling
+      const hasSeenWarning = sessionStorage.getItem('drawing_guest_warning');
+      if (!hasSeenWarning) {
+        toast.warning("⚠️ لن يتم حفظ الرسومات. سجّل الدخول للحفظ.", { autoClose: 5000 });
+        sessionStorage.setItem('drawing_guest_warning', 'true');
+      }
+    } else if (!newMode) {
+      // Optional: toast info when closed
+      // toast.info("تم إيقاف القلم");
     }
   };
 
@@ -806,7 +885,6 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
 
     try {
       await supabase.from('page_notes').delete().eq('id', noteId);
-      toast.success("تم الحذف");
     } catch (err) {
       console.error("Failed to delete note:", err);
       toast.error("فشل حذف الملاحظة");
@@ -862,7 +940,6 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
           notes.push(data);
           return { ...prev, [currentPage]: notes };
         });
-        toast.success("تم إضافة الملاحظة");
       }
     } catch (e) {
       // If e is custom thrown error, it has message. If generic, might be empty obj if not handled.
@@ -874,11 +951,7 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
 
   const handleCanvasLeave = useCallback(() => {
     stopDrawing();
-    if (isDrawingMode) {
-      setIsDrawingMode(false);
-      toast.info("تم إيقاف القلم");
-    }
-  }, [isDrawingMode, stopDrawing]);
+  }, [stopDrawing]);
 
   return (
     <div className="pdf-viewer-root">
@@ -918,6 +991,118 @@ const PdfViewerClient = ({ pdfUrl, bookTitle, bookId }) => {
           onMouseUp={stopDrawing}
           onMouseLeave={handleCanvasLeave}
         />
+
+        {/* Drawing Toolbar */}
+        {showDrawingToolbar && isDrawingMode && (
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '20px',
+            transform: 'translateY(-50%)',
+            background: 'rgba(20, 20, 20, 0.95)', // Slightly more opaque
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            padding: '30px 0', // More vertical padding, zero horizontal (controlled by width)
+            width: '56px', // Fixed slim width
+            borderRadius: '100px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px', // Increased gap for more height
+            alignItems: 'center',
+            zIndex: 200,
+            boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            maxHeight: '85vh',
+            overflow: 'hidden' // Hide ALL scrollbars
+          }}>
+            {/* Pen Colors */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
+              {[
+                { color: 'rgba(255, 235, 59, 0.4)', label: 'أصفر' },
+                { color: 'rgba(76, 175, 80, 0.4)', label: 'أخضر' },
+                { color: 'rgba(33, 150, 243, 0.4)', label: 'أزرق' },
+                { color: 'rgba(255, 152, 0, 0.4)', label: 'برتقالي' },
+                { color: 'rgba(233, 30, 99, 0.4)', label: 'وردي' },
+              ].map((item) => (
+                <button
+                  key={item.color}
+                  onClick={() => { setPenColor(item.color); setDrawingTool('pen'); }}
+                  title={item.label}
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    background: item.color,
+                    border: penColor === item.color && drawingTool === 'pen' ? '3px solid white' : '2px solid rgba(255,255,255,0.1)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    padding: 0,
+                    appearance: 'none',
+                    outline: 'none',
+                    transform: penColor === item.color && drawingTool === 'pen' ? 'scale(1.1)' : 'scale(1)',
+                    boxShadow: penColor === item.color ? '0 0 10px rgba(255,255,255,0.3)' : 'none',
+                    flexShrink: 0
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Divider */}
+            <div style={{ width: '24px', height: '1px', background: 'rgba(255,255,255,0.2)' }} />
+
+            {/* Eraser */}
+            <button
+              onClick={() => setDrawingTool('eraser')}
+              title="ممحاة"
+              style={{
+                padding: '8px',
+                background: drawingTool === 'eraser' ? 'rgba(255,255,255,0.2)' : 'transparent',
+                border: 'none',
+                borderRadius: '50%',
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '36px',
+                height: '36px',
+                transition: 'all 0.2s ease',
+                flexShrink: 0
+              }}
+            >
+              <FaEraser />
+            </button>
+
+            {/* Divider */}
+            <div style={{ width: '24px', height: '1px', background: 'rgba(255,255,255,0.2)' }} />
+
+            {/* Width Control - Rotated for vertical feeling or just small input */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem' }}>📏</span>
+              {/* Vertical Slider Wrapper */}
+              <div style={{ height: '80px', width: '100%', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <input
+                  type="range"
+                  min="10"
+                  max="50"
+                  value={penWidth}
+                  onChange={(e) => setPenWidth(Number(e.target.value))}
+                  title={`حجم الخط: ${penWidth}px`}
+                  style={{
+                    width: '80px',
+                    height: '20px',
+                    position: 'absolute', // Absolute to not affect parent width
+                    cursor: 'pointer',
+                    accentColor: 'white',
+                    transform: 'rotate(-90deg)',
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Render Page Notes */}
         {pageNotes[currentPage] && pageNotes[currentPage].map(note => {
           return (

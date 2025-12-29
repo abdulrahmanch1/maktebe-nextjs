@@ -22,45 +22,43 @@ const DraggableNoteCard = ({
     const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
     const [localContent, setLocalContent] = useState(content);
 
-    // Update local content if prop changes (e.g. from server refresh), but only if not focused?
-    // Actually, checking if focused is hard here without extra state.
-    // Simple sync:
     useEffect(() => {
         if (content !== localContent && document.activeElement !== textareaRef.current) {
             setLocalContent(content);
         }
-    }, [content]);
+    }, [content, localContent]);
 
-    // Auto-focus if content is empty (new note)
     useEffect(() => {
         if (!content && textareaRef.current) {
             textareaRef.current.focus();
         }
-    }, []);
+    }, [content]);
+
+    // Unified event handler for both mouse and touch
+    const getEventCoordinates = (e) => {
+        if (e.touches && e.touches[0]) {
+            return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+        }
+        return { clientX: e.clientX, clientY: e.clientY };
+    };
 
     const handleDragStart = (e) => {
-        // ... (Drag logic remains the same, omitted for brevity if unchanged, but I need to include it for replace_file_content unless using chunks. 
-        // For safety/simplicity in replace tool, I'll keep the logic as is or just render the whole file if I can't match blocks well. 
-        // Actually this tool replaces chunks. I'll paste the whole file content implementation since I'm changing imports and props and render.)
-        // wait, replace_file_content is "single contiguous block". 
-        // I will use "Whole File" replacement strategy because changes are scattered (imports, props, render).
         e.stopPropagation();
-        const startX = e.clientX;
-        const startY = e.clientY;
+        const { clientX: startX, clientY: startY } = getEventCoordinates(e);
         const startLeft = cardRef.current.offsetLeft;
         const startTop = cardRef.current.offsetTop;
         const parentWidth = cardRef.current.offsetParent.offsetWidth;
         const parentHeight = cardRef.current.offsetParent.offsetHeight;
 
-        const onMouseMove = (moveEvent) => {
+        const onMove = (moveEvent) => {
             moveEvent.preventDefault();
-            const deltaX = moveEvent.clientX - startX;
-            const deltaY = moveEvent.clientY - startY;
+            const { clientX, clientY } = getEventCoordinates(moveEvent);
+            const deltaX = clientX - startX;
+            const deltaY = clientY - startY;
 
             let newLeft = startLeft + deltaX;
             let newTop = startTop + deltaY;
 
-            // Bounds check
             newLeft = Math.max(0, Math.min(newLeft, parentWidth - size.width));
             newTop = Math.max(0, Math.min(newTop, parentHeight - size.height));
 
@@ -68,9 +66,11 @@ const DraggableNoteCard = ({
             cardRef.current.style.top = `${newTop}px`;
         };
 
-        const onMouseUp = () => {
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
+        const onEnd = () => {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onEnd);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', onEnd);
 
             const finalLeft = cardRef.current.offsetLeft;
             const finalTop = cardRef.current.offsetTop;
@@ -81,21 +81,23 @@ const DraggableNoteCard = ({
             onUpdate(id, { req_x: xPercent, req_y: yPercent });
         };
 
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('touchend', onEnd);
     };
 
     const handleResizeStart = (e) => {
         e.stopPropagation();
-        const startX = e.clientX;
-        const startY = e.clientY;
+        const { clientX: startX, clientY: startY } = getEventCoordinates(e);
         const startWidth = size.width;
         const startHeight = size.height;
 
-        const onMouseMove = (moveEvent) => {
+        const onMove = (moveEvent) => {
             moveEvent.preventDefault();
-            const deltaX = moveEvent.clientX - startX;
-            const deltaY = moveEvent.clientY - startY;
+            const { clientX, clientY } = getEventCoordinates(moveEvent);
+            const deltaX = clientX - startX;
+            const deltaY = clientY - startY;
 
             const newWidth = Math.max(150, startWidth + deltaX);
             const newHeight = Math.max(100, startHeight + deltaY);
@@ -103,14 +105,18 @@ const DraggableNoteCard = ({
             setSize({ width: newWidth, height: newHeight });
         };
 
-        const onMouseUp = () => {
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
+        const onEnd = () => {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onEnd);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', onEnd);
             onUpdate(id, { width: size.width, height: size.height });
         };
 
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchmove', onMove, { passive: false });
+        document.addEventListener('touchend', onEnd);
     };
 
     const handleColorChange = (newColor) => {
@@ -141,15 +147,17 @@ const DraggableNoteCard = ({
                 zIndex: 100,
                 display: 'flex',
                 flexDirection: 'column',
-                overflow: 'visible'
+                overflow: 'visible',
+                touchAction: 'none'
             }}
             onClick={(e) => e.stopPropagation()}
         >
             <div
                 className="note-card-header"
                 onMouseDown={handleDragStart}
+                onTouchStart={handleDragStart}
                 style={{
-                    padding: '6px 8px',
+                    padding: '8px 10px',
                     cursor: 'grab',
                     borderBottom: '1px solid rgba(0,0,0,0.05)',
                     display: 'flex',
@@ -157,36 +165,41 @@ const DraggableNoteCard = ({
                     alignItems: 'center',
                     backgroundColor: 'rgba(0,0,0,0.03)',
                     borderTopLeftRadius: '8px',
-                    borderTopRightRadius: '8px'
+                    borderTopRightRadius: '8px',
+                    touchAction: 'none'
                 }}
             >
-                <FaGripLines style={{ color: '#666', opacity: 0.7 }} size={12} />
-                <div className="note-card-actions" style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => setIsColorPickerOpen(!isColorPickerOpen)} title="تغيير اللون" style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#555', padding: 0 }}><FaPalette size={12} /></button>
-                    <button onClick={() => onDelete(id)} title="حذف" style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#d32f2f', padding: 0 }}><FaTrash size={12} /></button>
+                <FaGripLines style={{ color: '#666', opacity: 0.7 }} size={14} />
+                <div className="note-card-actions" style={{ display: 'flex', gap: '10px' }}>
+                    <button onClick={() => setIsColorPickerOpen(!isColorPickerOpen)} title="تغيير اللون" style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#555', padding: '4px' }}>
+                        <FaPalette size={14} />
+                    </button>
+                    <button onClick={() => onDelete(id)} title="حذف" style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#d32f2f', padding: '4px' }}>
+                        <FaTrash size={14} />
+                    </button>
                 </div>
             </div>
 
             {isColorPickerOpen && (
                 <div className="color-picker-popover" style={{
                     position: 'absolute',
-                    top: '35px',
+                    top: '40px',
                     right: '5px',
                     background: 'white',
                     border: '1px solid #ccc',
-                    borderRadius: '5px',
-                    padding: '5px',
+                    borderRadius: '8px',
+                    padding: '8px',
                     display: 'grid',
                     gridTemplateColumns: 'repeat(5, 1fr)',
-                    gap: '5px',
+                    gap: '6px',
                     zIndex: 101,
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                 }}>
                     {NOTE_COLORS.map(c => (
                         <div
                             key={c}
                             onClick={() => handleColorChange(c)}
-                            style={{ width: '20px', height: '20px', backgroundColor: c, borderRadius: '50%', cursor: 'pointer', border: '1px solid #ddd' }}
+                            style={{ width: '24px', height: '24px', backgroundColor: c, borderRadius: '50%', cursor: 'pointer', border: '2px solid #ddd' }}
                         />
                     ))}
                 </div>
@@ -205,9 +218,9 @@ const DraggableNoteCard = ({
                         border: 'none',
                         resize: 'none',
                         backgroundColor: 'transparent',
-                        padding: '10px',
-                        fontSize: '0.9rem',
-                        lineHeight: '1.4',
+                        padding: '12px',
+                        fontSize: '0.95rem',
+                        lineHeight: '1.5',
                         color: '#333',
                         outline: 'none',
                         fontFamily: 'inherit'
@@ -217,16 +230,18 @@ const DraggableNoteCard = ({
 
             <div
                 onMouseDown={handleResizeStart}
+                onTouchStart={handleResizeStart}
                 style={{
                     position: 'absolute',
-                    bottom: '2px',
-                    right: '2px',
+                    bottom: '4px',
+                    right: '4px',
                     cursor: 'nwse-resize',
-                    padding: '5px',
-                    opacity: 0.5
+                    padding: '6px',
+                    opacity: 0.6,
+                    touchAction: 'none'
                 }}
             >
-                <FaExpandAlt size={12} style={{ transform: 'rotate(90deg)' }} />
+                <FaExpandAlt size={14} style={{ transform: 'rotate(90deg)' }} />
             </div>
         </div>
     );
